@@ -3,6 +3,43 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Blue Palette */
+  --blue-100: #E5ECF8;
+  --blue-200: #C6D6EF;
+  --blue-300: #8DADE0;
+  --blue-400: #5483D0;
+  --blue-500: #2F5FAC;
+  --blue-600: #234781;
+  --blue-700: #183056;
+  --blue-800: #0C182B;
+  --blue-900: #020D1E;
+
+  /* Gray Palette */
+  --gray-100: #F6F7FC;
+  --gray-200: #F1F2F6;
+  --gray-300: #E4E6ED;
+  --gray-400: #D6D9E4;
+  --gray-500: #C8CCDB;
+  --gray-600: #9AA1B9;
+  --gray-700: #646D89;
+  --gray-800: #424C6B;
+  --gray-900: #2A2E3F;
+
+  /* Orange Palette */
+  --orange-100: #FBAA1C;
+  --orange-500: #F47E20;
+
+  /* Utility */
+  --black: #000000;
+  --white: #FFFFFF;
+  --green: #2FAC8E;
+  --linear1: linear-gradient(90deg, #95BEFF, #0040E5);
+  --linear2: linear-gradient(90deg, #5697FF, #2558DD);
+
+  /* Shadow */
+  --shadow-style-1: 2px 2px 12px 0 rgba(0, 0, 0, 0.08);
+  --shadow-style-2: 2px 2px 12px 0 rgba(64, 50, 133, 0.12);
 }
 
 @theme inline {
@@ -10,6 +47,43 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Blue */
+  --color-blue-100: var(--blue-100);
+  --color-blue-200: var(--blue-200);
+  --color-blue-300: var(--blue-300);
+  --color-blue-400: var(--blue-400);
+  --color-blue-500: var(--blue-500);
+  --color-blue-600: var(--blue-600);
+  --color-blue-700: var(--blue-700);
+  --color-blue-800: var(--blue-800);
+  --color-blue-900: var(--blue-900);
+
+  /* Gray */
+  --color-gray-100: var(--gray-100);
+  --color-gray-200: var(--gray-200);
+  --color-gray-300: var(--gray-300);
+  --color-gray-400: var(--gray-400);
+  --color-gray-500: var(--gray-500);
+  --color-gray-600: var(--gray-600);
+  --color-gray-700: var(--gray-700);
+  --color-gray-800: var(--gray-800);
+  --color-gray-900: var(--gray-900);
+
+  /* Orange */
+  --color-orange-100: var(--orange-100);
+  --color-orange-500: var(--orange-500);
+
+  /* Utility */
+  --color-black: var(--black);
+  --color-white: var(--white);
+  --color-green: var(--green);
+  --background-image-linear1: var(--linear1);
+  --background-image-linear2: var(--linear2);
+
+  /* Shadow */
+  --shadow-1: var(--shadow-style-1);
+  --shadow-2: var(--shadow-style-2);
 }
 
 @media (prefers-color-scheme: dark) {
