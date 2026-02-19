@@ -83,20 +83,17 @@ const PaymentForm = forwardRef(function PaymentForm({
   }));
 
   return (
-    <div className="flex-1">
-      {/* Header */}
-      <p className="text-gray-700 body2 mb-6">Select payment method</p>
-
+    <div className="flex-1 lg:max-w-[600px]">
       {/* Credit/Debit Card Option */}
       <div
-        className={`border rounded-lg p-6 mb-4 cursor-pointer transition-all ${
+        className={`w-full border rounded-lg p-4 sm:p-6 lg:p-6 mb-4 cursor-pointer transition-all overflow-hidden ${
           paymentMethod === "card"
-            ? "border-blue-500 bg-white shadow-1"
+            ? "border-blue-500 shadow-1 bg-gray-200"
             : "border-gray-300 bg-white"
         }`}
         onClick={() => onPaymentMethodChange("card")}
       >
-        <label className="flex items-center gap-3 cursor-pointer mb-4">
+        <label className="flex items-center gap-3 cursor-pointer">
           <input
             type="radio"
             name="paymentMethod"
@@ -105,7 +102,7 @@ const PaymentForm = forwardRef(function PaymentForm({
             onChange={() => onPaymentMethodChange("card")}
             className="w-5 h-5 accent-blue-500"
           />
-          <span className="body2 font-medium text-gray-900">
+          <span className="body2 font-medium text-gray-800">
             Credit card / Debit card
           </span>
         </label>
@@ -117,19 +114,19 @@ const PaymentForm = forwardRef(function PaymentForm({
               <label className="block body3 font-medium text-gray-900 mb-1">
                 Card number
               </label>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 lg:gap-3 min-w-0">
                 <input
                   type="text"
                   placeholder="Card number"
                   value={cardNumber}
                   onChange={handleCardNumberChange}
-                  className={`flex-1 h-12 px-4 border rounded-lg body2 text-gray-900 placeholder-gray-400 outline-none focus:border-blue-500 transition-colors ${
+                  className={`flex-1 min-w-0 h-12 px-3 sm:px-4 lg:px-4 border rounded-lg body2 text-gray-900 placeholder-gray-400 outline-none bg-white focus:border-blue-500 transition-colors ${
                     errors.cardNumber ? "border-red-500" : "border-gray-300"
                   }`}
                 />
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2 lg:gap-2 flex-shrink-0">
                   {/* Visa */}
-                  <svg width="40" height="26" viewBox="0 0 40 26" fill="none">
+                  <svg className="w-8 h-5 sm:w-10 sm:h-6 lg:w-10 lg:h-6" viewBox="0 0 40 26" fill="none">
                     <rect
                       width="40"
                       height="26"
@@ -142,7 +139,7 @@ const PaymentForm = forwardRef(function PaymentForm({
                     />
                   </svg>
                   {/* Mastercard */}
-                  <svg width="40" height="26" viewBox="0 0 40 26" fill="none">
+                  <svg className="w-8 h-5 sm:w-10 sm:h-6 lg:w-10 lg:h-6" viewBox="0 0 40 26" fill="none">
                     <rect
                       width="40"
                       height="26"
@@ -173,7 +170,7 @@ const PaymentForm = forwardRef(function PaymentForm({
                 placeholder="Name on card"
                 value={cardName}
                 onChange={(e) => setCardName(e.target.value)}
-                className={`w-full h-12 px-4 border rounded-lg body2 text-gray-900 placeholder-gray-400 outline-none focus:border-blue-500 transition-colors ${
+                className={`w-full h-12 px-3 sm:px-4 lg:px-4 border rounded-lg body2 text-gray-900 placeholder-gray-400 outline-none bg-white focus:border-blue-500 transition-colors ${
                   errors.cardName ? "border-red-500" : "border-gray-300"
                 }`}
               />
@@ -183,7 +180,7 @@ const PaymentForm = forwardRef(function PaymentForm({
             </div>
 
             {/* Expiry date & CVV */}
-            <div className="flex gap-4">
+            <div className="flex gap-2 sm:gap-4 lg:gap-4">
               <div className="flex-1">
                 <label className="block body3 font-medium text-gray-900 mb-1">
                   Expiry date
@@ -193,7 +190,7 @@ const PaymentForm = forwardRef(function PaymentForm({
                   placeholder="MM/YY"
                   value={expiry}
                   onChange={handleExpiryChange}
-                  className={`w-full h-12 px-4 border rounded-lg body2 text-gray-900 placeholder-gray-400 outline-none focus:border-blue-500 transition-colors ${
+                  className={`w-full h-12 px-3 sm:px-4 lg:px-4 border rounded-lg body2 text-gray-900 placeholder-gray-400 outline-none bg-white focus:border-blue-500 transition-colors ${
                     errors.expiry ? "border-red-500" : "border-gray-300"
                   }`}
                 />
@@ -210,7 +207,7 @@ const PaymentForm = forwardRef(function PaymentForm({
                   placeholder="CVV"
                   value={cvv}
                   onChange={handleCvvChange}
-                  className={`w-full h-12 px-4 border rounded-lg body2 text-gray-900 placeholder-gray-400 outline-none focus:border-blue-500 transition-colors ${
+                  className={`w-full h-12 px-3 sm:px-4 lg:px-4 border rounded-lg body2 text-gray-900 placeholder-gray-400 outline-none bg-white focus:border-blue-500 transition-colors ${
                     errors.cvv ? "border-red-500" : "border-gray-300"
                   }`}
                 />
@@ -225,9 +222,9 @@ const PaymentForm = forwardRef(function PaymentForm({
 
       {/* QR Payment Option */}
       <div
-        className={`border rounded-lg p-6 cursor-pointer transition-all ${
+        className={`w-full border rounded-lg p-4 sm:p-6 lg:min-w-[464px] xl:min-w-[564px] lg:p-6 cursor-pointer transition-all overflow-hidden ${
           paymentMethod === "promptpay"
-            ? "border-blue-500 bg-white shadow-1"
+            ? "border-blue-500 bg-gray-200 shadow-1"
             : "border-gray-300 bg-white"
         }`}
         onClick={() => onPaymentMethodChange("promptpay")}
@@ -245,14 +242,14 @@ const PaymentForm = forwardRef(function PaymentForm({
         </label>
       </div>
 
-      {/* Submit button (visible on mobile below form) */}
+      {/* Submit button (visible on mobile below form)
       <button
         onClick={handlePlaceOrder}
         disabled={isLoading}
-        className="mt-6 w-full lg:hidden h-[60px] bg-blue-500 hover:bg-blue-600 text-white headline3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="mt-6 w-full hidden h-[60px] bg-blue-500 hover:bg-blue-600 text-white headline3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isLoading ? "Processing..." : "Place order"}
-      </button>
+      </button> */}
     </div>
   );
 });
