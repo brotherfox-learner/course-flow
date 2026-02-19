@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
     // Also get the payment from our DB
     const paymentResult = await pool.query(
-      `SELECT p.id, p.status, p.course_id, c.slug as course_slug, c.course_name
+      `SELECT p.id, p.status, p.user_id, p.course_id, c.slug as course_slug, c.course_name
        FROM payments p
        JOIN courses c ON c.id = p.course_id
        WHERE p.provider_charge_id = $1`,
@@ -26,6 +26,50 @@ export default async function handler(req, res) {
     );
 
     const payment = paymentResult.rows[0] || null;
+
+    // ── Sync DB กับ Omise status (ทดแทน webhook สำหรับ localhost) ──
+    // ถ้า Omise บอกว่า successful แต่ DB ยังเป็น pending → อัพเดตให้ตรง
+    if (payment && payment.status === "pending") {
+      if (charge.status === "successful") {
+        // อัพเดต payment เป็น paid
+        await pool.query(
+          `UPDATE payments 
+           SET status = 'paid', 
+               paid_at = NOW(),
+               provider_transaction_id = $1,
+               updated_at = NOW()
+           WHERE id = $2`,
+          [charge.transaction || null, payment.id]
+        );
+
+        // สร้าง enrollment
+        await pool.query(
+          `INSERT INTO enrollments (user_id, course_id, status, enrolled_at, updated_at)
+           VALUES ($1, $2, 'active', NOW(), NOW())
+           ON CONFLICT (user_id, course_id) DO NOTHING`,
+          [payment.user_id, payment.course_id]
+        );
+
+        console.log(`[Status Sync] Payment ${payment.id} updated to paid`);
+      } else if (charge.status === "failed" || charge.status === "expired") {
+        // อัพเดต payment เป็น failed
+        await pool.query(
+          `UPDATE payments 
+           SET status = 'failed',
+               failure_code = $1,
+               failure_message = $2,
+               updated_at = NOW()
+           WHERE id = $3`,
+          [
+            charge.failure_code || null,
+            charge.failure_message || null,
+            payment.id,
+          ]
+        );
+
+        console.log(`[Status Sync] Payment ${payment.id} updated to failed`);
+      }
+    }
 
     return res.status(200).json({
       chargeId: charge.id,

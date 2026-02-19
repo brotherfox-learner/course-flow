@@ -43,31 +43,6 @@
   /* Shadow */
   --shadow-style-1: 2px 2px 12px 0 rgba(0, 0, 0, 0.08);
   --shadow-style-2: 2px 2px 12px 0 rgba(64, 50, 133, 0.12);
-
-  /* Typography */
-  --font-size-headline-1: 66px;
-  --font-size-headline-2: 36px;
-  --font-size-headline-3: 24px;
-  --font-size-body-1: 20px;
-  --font-size-body-2: 16px;
-  --font-size-body-3: 14px;
-  --font-size-body-4: 12px;
-  --font-weight-headline: 500;
-  --font-weight-body: 400;
-  --line-height-headline-1: 125%;
-  --line-height-headline-2: 125%;
-  --line-height-headline-3: 125%;
-  --line-height-body-1: 150%;
-  --line-height-body-2: 150%;
-  --line-height-body-3: 150%;
-  --line-height-body-4: 150%;
-  --letter-spacing-headline-1: -0.02em;
-  --letter-spacing-headline-2: -0.02em;
-  --letter-spacing-headline-3: -0.02em;
-  --letter-spacing-body-1: 0;
-  --letter-spacing-body-2: 0;
-  --letter-spacing-body-3: 0;
-  --letter-spacing-body-4: 0;
 }
 
 @theme inline {
