@@ -6,13 +6,13 @@ function Footer() {
             <div className="flex flex-col gap-8 lg:items-center lg:justify-between lg:flex-row lg:gap-10">
                 <BrandLogo />
                 <div className="flex flex-col items-start gap-4 lg:flex-row lg:gap-14">
-                    <button className="text-base font-normal">All Courses</button>
-                    <button className="text-base font-normal">Bundle Package</button>
+                    <button className="text-base font-normal cursor-pointer">All Courses</button>
+                    <button className="text-base font-normal cursor-pointer">Bundle Package</button>
                 </div>
                 <div className="flex flex-row gap-4">
-                    <img src="/fb.svg" alt="facebook" />
-                    <img src="/ig.svg" alt="instagram" />
-                    <img src="/tw.svg" alt="twitter" />
+                    <img src="/fb.svg" alt="facebook" className="cursor-pointer"/>
+                    <img src="/ig.svg" alt="instagram" className="cursor-pointer"/>
+                    <img src="/tw.svg" alt="twitter" className="cursor-pointer"/>
                 </div>
             </div>
         </footer>

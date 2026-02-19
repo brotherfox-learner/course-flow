@@ -1,3 +1,8 @@
+// default setting button variant = "primary" size = "lg"
+// รับ className เพิ่มได้
+// รับ props จากภายนอกเช่น Onclick disabled
+
+
 function Button({
     children,
     variant = "primary",
@@ -55,4 +60,4 @@ function Button({
     );
 }
 
-export default Button;  
+export default Button;
