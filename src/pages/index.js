@@ -1,5 +1,8 @@
 import { useState } from "react";
 import Card from "../common/card";
+import NavBar from "@/common/navbar/NavBar";
+import SubFooter from "@/common/SubFooter";
+import Footer from "@/common/Footer";
 
 export default function Home() {
   const [courses, setCourses] = useState([]);
@@ -16,6 +19,7 @@ export default function Home() {
   };
   return (
     <div className="min-h-screen bg-gray-100 p-4">
+      <NavBar/>
       <button className="bg-blue-500 text-white p-2 rounded-md mb-4" onClick={handleGetCourses}>
         Load Courses
       </button>
@@ -31,6 +35,8 @@ export default function Home() {
           />
         ))}
       </section>
+      <SubFooter/>
+      <Footer/>
     </div>
   );
 }
