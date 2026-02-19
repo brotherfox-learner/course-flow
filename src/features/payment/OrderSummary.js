@@ -22,7 +22,7 @@ export default function OrderSummary({
     paymentMethod === "card" ? "Credit card / Debit card" : "QR Payment";
 
   return (
-    <div className="w-full lg:w-[358px] bg-white rounded-lg shadow-1 p-6 h-fit sticky top-6">
+    <div className="w-full lg:w-[400px] xl:w-[440px] bg-white rounded-lg shadow-1 p-4 sm:p-6 lg:p-6 py-6 sm:py-8 lg:py-8 h-fit lg:sticky lg:top-6 flex-shrink-0">
       {/* Summary Header */}
       <p className="text-orange-500 body3 font-medium mb-1">Summary</p>
 
@@ -100,7 +100,7 @@ export default function OrderSummary({
       <button
         onClick={onPlaceOrder}
         disabled={isLoading}
-        className="w-full h-[60px] bg-blue-500 hover:bg-blue-600 text-white headline3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed hidden lg:block"
+        className="w-full h-[60px] bg-blue-500 hover:bg-blue-600 text-white headline3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed "
       >
         {isLoading ? "Processing..." : "Place order"}
       </button>
