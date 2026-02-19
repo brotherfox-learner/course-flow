@@ -6,21 +6,25 @@ import QrCodeDisplay from "../../features/payment/QrCodeDisplay";
 import pool from "../../utils/db";
 
 // Hardcoded user ID for now (auth will be added later)
-const TEMP_USER_ID = "00000000-0000-0000-0000-000000000001";
+const TEMP_USER_ID = "353c3e0e-28c4-4773-a818-ec4833ac6c4a";
 
 export async function getServerSideProps(context) {
+  // รับ courseSlug จาก URL
   const { courseSlug } = context.params;
 
   try {
+    // ดึงข้อมูลคอร์สจากฐานข้อมูล
     const result = await pool.query(
       "SELECT id, course_name, slug, price, course_summary, cover_img_url FROM courses WHERE slug = $1",
       [courseSlug]
     );
 
+    // ถ้าไม่พบคอร์ส แสดงข้อความว่า "Course not found"
     if (result.rows.length === 0) {
       return { notFound: true };
     }
 
+    // เก็บข้อมูลคอร์สในตัวแปร course
     const course = result.rows[0];
 
     return {
@@ -136,7 +140,8 @@ export default function PaymentPage({ course }) {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Payment failed");
+        const detail = data.failureMessage || data.error || "Payment failed";
+        throw new Error(detail);
       }
 
       if (data.status === "successful") {
@@ -204,7 +209,8 @@ export default function PaymentPage({ course }) {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Payment failed");
+        const detail = data.failureMessage || data.error || "Payment failed";
+        throw new Error(detail);
       }
 
       // Show QR code

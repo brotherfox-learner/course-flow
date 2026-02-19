@@ -70,7 +70,7 @@ const PaymentForm = forwardRef(function PaymentForm({
         name: cardName,
         expiration_month: parseInt(month, 10),
         expiration_year: parseInt("20" + year, 10),
-        security_code: parseInt(cvv, 10),
+        security_code: cvv,
       });
     } else {
       onSubmitPromptPay();
