@@ -10,12 +10,12 @@ function SubFooter() {
                 <img
                     src="/learning.svg"
                     alt="learning"
-                    className="absolute top-2"
+                    className="absolute top-2 right-0"
                 />
                 <img
                     src="/white_polygon.svg"
                     alt="white-polygon"
-                    className="absolute bottom-0"
+                    className="w-[23px] h-[23px] absolute right-20"
                 />
                 <img
                     src="/not-start.svg"
