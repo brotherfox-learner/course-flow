@@ -52,7 +52,7 @@ function Button({
 
     return (
         <button
-            className={`${currentVariant} ${className} ${sizes[size]}`}
+            className={`${currentVariant} ${sizes[size]} ${className}`}
             {...props}
         >
             {children}

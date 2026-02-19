@@ -15,6 +15,9 @@
   --blue-800: #0C182B;
   --blue-900: #020D1E;
 
+  /* Dark Blue Palette */
+  --dark-blue-500: #191C77;
+
   /* Gray Palette */
   --gray-100: #F6F7FC;
   --gray-200: #F1F2F6;
@@ -83,6 +86,9 @@
   --color-blue-700: var(--blue-700);
   --color-blue-800: var(--blue-800);
   --color-blue-900: var(--blue-900);
+
+  /* Dark Blue */
+  --color-dark-blue-500: var(--dark-blue-500);
 
   /* Gray */
   --color-gray-100: var(--gray-100);
@@ -162,7 +168,7 @@ body {
     letter-spacing: var(--letter-spacing-headline-3);
   }
 
-  .text-body-1 {
+  .body1 {
     font-size: var(--font-size-body-1);
     font-weight: var(--font-weight-body);
     line-height: var(--line-height-body-1);
