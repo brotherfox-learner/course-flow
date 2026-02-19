@@ -12,8 +12,8 @@ function Footer() {
                 <div className="flex flex-row gap-4">
                     <img src="/fb.svg" alt="facebook" className="cursor-pointer"/>
                     <img src="/ig.svg" alt="instagram" className="cursor-pointer"/>
+                    {/* เปลี่ยนเป็น X ในอนาคต */}
                     <img src="/tw.svg" alt="twitter" className="cursor-pointer"/>
-                    //เปลี่ยนเป็น X ในอนาคต
                 </div>
             </div>
         </footer>
