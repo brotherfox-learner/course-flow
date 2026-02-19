@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Card from "../common/card";
 
 export default function Home() {
   const [courses, setCourses] = useState([]);
@@ -14,17 +15,22 @@ export default function Home() {
     }
   };
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      Test
-      <button className="bg-blue-500 text-white p-2 rounded-md" onClick={handleGetCourses}>
-        Test
+    <div className="min-h-screen bg-gray-100 p-4">
+      <button className="bg-blue-500 text-white p-2 rounded-md mb-4" onClick={handleGetCourses}>
+        Load Courses
       </button>
-      {courses.map((course) => (
-        <div key={course.id}>
-          <h2>{course.course_name}</h2>
-          <p>{course.course_summary}</p>
-        </div>
-      ))}
+      <section className=" grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 lg:w-[1119px] mx-auto justify-center items-center lg:gap-[24px]">
+        {courses.map((course) => (
+          <Card
+            key={course.id}
+            courseName={course.course_name}
+            description={course.course_summary}
+            lessonCount={course.total_learning_time}
+            durationHours={course.total_learning_time}
+            imageUrl={course.cover_img_url}
+          />
+        ))}
+      </section>
     </div>
   );
 }
