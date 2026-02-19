@@ -236,7 +236,7 @@ body {
   }
 
   .headline3 {
-    font-size: var(--font-size-headline-3);
+    font-size: clamp(1.25rem, 4vw, var(--font-size-headline-3));
     font-weight: var(--font-weight-headline);
     line-height: var(--line-height-headline-3);
     letter-spacing: var(--letter-spacing-headline-3);
