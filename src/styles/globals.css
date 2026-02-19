@@ -130,21 +130,21 @@ body {
 
 /* Typography Utility Classes */
 @layer utilities {
-  .text-headline-1 {
+  .headline1 {
     font-size: var(--font-size-headline-1);
     font-weight: var(--font-weight-headline);
     line-height: var(--line-height-headline-1);
     letter-spacing: var(--letter-spacing-headline-1);
   }
 
-  .text-headline-2 {
+  .headline2 {
     font-size: var(--font-size-headline-2);
     font-weight: var(--font-weight-headline);
     line-height: var(--line-height-headline-2);
     letter-spacing: var(--letter-spacing-headline-2);
   }
 
-  .text-headline-3 {
+  .headline3 {
     font-size: var(--font-size-headline-3);
     font-weight: var(--font-weight-headline);
     line-height: var(--line-height-headline-3);
@@ -158,21 +158,21 @@ body {
     letter-spacing: var(--letter-spacing-body-1);
   }
 
-  .text-body-2 {
+  .body2 {
     font-size: var(--font-size-body-2);
     font-weight: var(--font-weight-body);
     line-height: var(--line-height-body-2);
     letter-spacing: var(--letter-spacing-body-2);
   }
 
-  .text-body-3 {
+  .body3 {
     font-size: var(--font-size-body-3);
     font-weight: var(--font-weight-body);
     line-height: var(--line-height-body-3);
     letter-spacing: var(--letter-spacing-body-3);
   }
 
-  .text-body-4 {
+  .body4 {
     font-size: var(--font-size-body-4);
     font-weight: var(--font-weight-body);
     line-height: var(--line-height-body-4);

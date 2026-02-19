@@ -19,7 +19,7 @@ export default function Home() {
       <button className="bg-blue-500 text-white p-2 rounded-md mb-4" onClick={handleGetCourses}>
         Load Courses
       </button>
-      <section className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <section className=" grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 lg:w-[1119px] mx-auto justify-center items-center lg:gap-[24px]">
         {courses.map((course) => (
           <Card
             key={course.id}

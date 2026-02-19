@@ -26,7 +26,7 @@ export default function Card({
       </div>
 
       <section
-        className="px-[16px] pt-[8px] pb-[16px] lg:pt-[5px] lg:px-5 lg:gap-[8px] flex flex-col gap-[5px] flex-1"
+        className="px-[16px] pt-[8px] pb-[16px] lg:pt-[3px] lg:px-5 lg:gap-[8px] flex flex-col gap-[5px] flex-1"
       >
         {category && (
           <p className="text-[12px] font-normal  tracking-[0] text-orange-500 lg:text-[14px] lg:font-medium  lg:tracking-[-0.02em]">
@@ -54,7 +54,7 @@ export default function Card({
             alt="Lesson count icon"
             className="w-[20px] h-[20px]"
           />
-          <span className="text-[14px] font-normal  tracking-[0] text-gray-700 whitespace-nowrap">
+          <span className="text-[14px] font-normal lg:text-[16px] tracking-[0] text-gray-700 whitespace-nowrap">
             {lessonCount ?? ""} Lesson
           </span>
         </div>
@@ -64,7 +64,7 @@ export default function Card({
             alt="Duration icon"
             className="w-[20px] h-[20px]"
           />
-          <span className="text-[14px] font-normal  tracking-[0] text-gray-700 whitespace-nowrap">
+          <span className="text-[14px] font-normal lg:text-[16px] tracking-[0] text-gray-700 whitespace-nowrap">
             {durationHours ?? ""} Hours
           </span>
         </div>
