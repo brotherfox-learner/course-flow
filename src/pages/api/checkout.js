@@ -15,6 +15,7 @@ export default async function handler(req, res) {
     paymentMethod, // "card" or "promptpay"
   } = req.body;
 
+  // connect to the database
   const client = await pool.connect();
 
   try {
@@ -24,12 +25,18 @@ export default async function handler(req, res) {
       [courseId]
     );
 
+    // ถ้าไม่พบคอร์ส แสดงข้อความว่า "Course not found"
     if (courseResult.rows.length === 0) {
       return res.status(404).json({ error: "Course not found" });
     }
-
+    
+    // เก็บข้อมูลคอร์สในตัวแปร course
     const course = courseResult.rows[0];
+
+    // สร้างตัวแปร finalAmount เพื่อคำนวณราคาสุดท้าย
     let finalAmount = parseFloat(course.price);
+    
+    // สร้างตัวแปร promoCodeId เพื่อเก็บ ID ของ promo code ที่ใช้
     let promoCodeId = null;
 
     // 2. Apply promo code if provided
@@ -72,6 +79,7 @@ export default async function handler(req, res) {
           finalAmount = finalAmount * (1 - parseFloat(promo.discount_value) / 100);
         }
 
+        // Reassign รหัส promo code ที่ใช้
         promoCodeId = promo.id;
       }
     }
@@ -127,9 +135,11 @@ export default async function handler(req, res) {
       ]
     );
 
+    // เก็บ ID ของ payment
     const paymentId = paymentResult.rows[0].id;
 
     // 6. If card payment is successful, create enrollment immediately
+    // ถ้าการชำระเงินสำเร็จ สร้าง enrollment ทันที
     if (charge.status === "successful") {
       await client.query(
         `INSERT INTO enrollments (user_id, course_id, promo_code_id, status, enrolled_at, updated_at)
@@ -138,13 +148,13 @@ export default async function handler(req, res) {
         [userId, courseId, promoCodeId]
       );
 
-      // Update payment with paid_at
+      // อัพเดต payment ด้วย paid_at
       await client.query(
         `UPDATE payments SET status = 'paid', paid_at = NOW(), updated_at = NOW() WHERE id = $1`,
         [paymentId]
       );
     }
-
+    
     await client.query("COMMIT");
 
     // 7. Build response
@@ -169,16 +179,31 @@ export default async function handler(req, res) {
     await client.query("ROLLBACK").catch(() => {});
     console.error("Checkout error:", error);
 
-    // Handle Omise-specific errors
-    if (error.code) {
+    // Omise errors have string codes like "invalid_card", "invalid_charge"
+    // PostgreSQL errors have numeric-string codes like "23503", "42P01"
+    const isOmiseError =
+      error.code && typeof error.code === "string" && !/^\d/.test(error.code);
+
+    if (isOmiseError) {
       return res.status(400).json({
-        error: "Payment failed",
+        error: `Payment failed: ${error.message}`,
         failureCode: error.code,
         failureMessage: error.message,
       });
     }
 
-    return res.status(500).json({ error: "Internal server error" });
+    // Database or other server errors
+    const dbMessage =
+      error.code === "23503"
+        ? "Database reference error — user or course may not exist"
+        : error.code === "42P01"
+          ? "Database table does not exist"
+          : error.message;
+
+    return res.status(500).json({
+      error: `Server error: ${dbMessage}`,
+      code: error.code || null,
+    });
   } finally {
     client.release();
   }

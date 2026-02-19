@@ -12,11 +12,19 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  // connect to the database
   const client = await pool.connect();
 
   try {
+    console.log("Webhook called");
+    console.log("Method:", req.method);
+    console.log("Body:", req.body);
+
+    // รับ event จาก Omise
     const event = req.body;
+    // เก็บ key ของ event
     const eventKey = event.key; // e.g. "charge.complete"
+    // เก็บ data ของ event
     const chargeData = event.data;
 
     // 1. Log the webhook
@@ -52,9 +60,11 @@ export default async function handler(req, res) {
           [chargeId]
         );
 
+        // ถ้ามี payment ที่สอดคล้องกับ chargeId สร้าง enrollment
         if (paymentResult.rows.length > 0) {
           const { user_id, course_id } = paymentResult.rows[0];
 
+          // สร้าง enrollment
           await client.query(
             `INSERT INTO enrollments (user_id, course_id, status, enrolled_at, updated_at)
              VALUES ($1, $2, 'active', NOW(), NOW())
@@ -62,7 +72,10 @@ export default async function handler(req, res) {
             [user_id, course_id]
           );
         }
-      } else if (chargeStatus === "failed" || chargeStatus === "expired") {
+      }
+      // ถ้าการชำระเงินล้มเหลว หรือหมดอายุ
+      else if (chargeStatus === "failed" || chargeStatus === "expired") {
+        // อัพเดต payment ด้วย failed หรือ expired
         await client.query(
           `UPDATE payments 
            SET status = 'failed', 
@@ -81,10 +94,13 @@ export default async function handler(req, res) {
       await client.query("COMMIT");
     }
 
+    // ส่งกลับข้อมูลว่าได้รับ event จาก Omise
     return res.status(200).json({ received: true });
   } catch (error) {
-    await client.query("ROLLBACK").catch(() => {});
+    // ถ้ามี error อัปเดต rollback
+    await client.query("ROLLBACK").catch(() => { });
     console.error("Webhook error:", error);
+    // ส่งกลับข้อมูลว่าไม่สามารถประมวลผล webhook ได้
     return res.status(500).json({ error: "Webhook processing failed" });
   } finally {
     client.release();

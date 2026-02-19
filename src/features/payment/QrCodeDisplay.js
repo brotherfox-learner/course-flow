@@ -1,10 +1,45 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
 
+const QR_EXPIRY_MINUTES = 15;
+
 export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug }) {
   const router = useRouter();
   const [status, setStatus] = useState("pending");
   const intervalRef = useRef(null);
+
+  // Countdown timer state (15 minutes in seconds)
+  const [timeLeft, setTimeLeft] = useState(QR_EXPIRY_MINUTES * 60);
+  const timerRef = useRef(null);
+
+  // Format seconds to MM:SS
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
+
+  // Countdown timer
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          // หมดเวลา → redirect ไปหน้า failed
+          clearInterval(timerRef.current);
+          clearInterval(intervalRef.current);
+          router.push(
+            `/payment/complete?status=failed&courseSlug=${courseSlug}`
+          );
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [courseSlug, router]);
 
   // Poll for payment status every 5 seconds
   useEffect(() => {
@@ -18,6 +53,7 @@ export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug 
         if (data.status === "successful") {
           setStatus("successful");
           clearInterval(intervalRef.current);
+          clearInterval(timerRef.current);
           // Redirect to success page
           router.push(
             `/payment/complete?status=success&courseSlug=${courseSlug}`
@@ -25,6 +61,7 @@ export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug 
         } else if (data.status === "failed" || data.status === "expired") {
           setStatus("failed");
           clearInterval(intervalRef.current);
+          clearInterval(timerRef.current);
           router.push(
             `/payment/complete?status=failed&courseSlug=${courseSlug}`
           );
@@ -48,6 +85,10 @@ export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug 
       window.open(qrCodeUri, "_blank");
     }
   };
+
+  // คำนวณ progress สำหรับ timer ring (0 = หมดเวลา, 1 = เต็ม)
+  const progress = timeLeft / (QR_EXPIRY_MINUTES * 60);
+  const isUrgent = timeLeft <= 60; // สีแดงเมื่อเหลือไม่ถึง 1 นาที
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -103,7 +144,7 @@ export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug 
           </p>
 
           {/* QR Image */}
-          <div className="w-[200px] h-[200px] mx-auto mb-8 flex items-center justify-center">
+          <div className="w-[200px] h-[200px] mx-auto mb-6 flex items-center justify-center">
             {qrCodeUri ? (
               <img
                 src={qrCodeUri}
@@ -117,12 +158,58 @@ export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug 
             )}
           </div>
 
-          {/* Status indicator */}
+          {/* Countdown Timer */}
           {status === "pending" && (
-            <p className="body3 text-gray-500 mb-4 flex items-center gap-2">
-              <span className="inline-block w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
-              Waiting for payment...
-            </p>
+            <div className="flex flex-col items-center mb-6">
+              {/* Circular progress ring */}
+              <div className="relative w-20 h-20 mb-3">
+                <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
+                  {/* Background circle */}
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="35"
+                    fill="none"
+                    stroke="#E5E7EB"
+                    strokeWidth="6"
+                  />
+                  {/* Progress circle */}
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="35"
+                    fill="none"
+                    stroke={isUrgent ? "#EF4444" : "#3B82F6"}
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    strokeDasharray={`${2 * Math.PI * 35}`}
+                    strokeDashoffset={`${2 * Math.PI * 35 * (1 - progress)}`}
+                    className="transition-all duration-1000"
+                  />
+                </svg>
+                {/* Time text in center */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span
+                    className={`text-sm font-semibold ${
+                      isUrgent ? "text-red-500" : "text-gray-900"
+                    }`}
+                  >
+                    {formatTime(timeLeft)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Status text */}
+              <p className="body3 text-gray-500 flex items-center gap-2">
+                <span className="inline-block w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+                Waiting for payment...
+              </p>
+              {isUrgent && (
+                <p className="body4 text-red-500 mt-1">
+                  QR code is about to expire!
+                </p>
+              )}
+            </div>
           )}
 
           {/* Save QR button */}
