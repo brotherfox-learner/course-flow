@@ -1,5 +1,15 @@
 import PropTypes from "prop-types";
 
+const BADGE_STYLES = {
+  inprogress: "bg-purple-100 text-purple-600 border border-purple-200",
+  completed: "bg-green-100 text-green-600 border border-green-200",
+};
+
+const BADGE_LABELS = {
+  inprogress: "In Progress",
+  completed: "Completed",
+};
+
 export default function Card({
   category = "Course",
   courseName,
@@ -8,6 +18,7 @@ export default function Card({
   durationHours,
   imageUrl,
   onClick,
+  badge,
   className = "",
 }) {
   return (
@@ -22,6 +33,13 @@ export default function Card({
             alt={courseName ? `Course cover for ${courseName}` : "Course cover image"}
             className="w-full h-full object-cover"
           />
+        )}
+        {badge && BADGE_LABELS[badge] && (
+          <span
+            className={`absolute top-3 right-3 px-3 py-1 rounded-full text-[12px] font-semibold backdrop-blur-sm ${BADGE_STYLES[badge]}`}
+          >
+            {BADGE_LABELS[badge]}
+          </span>
         )}
       </div>
 
@@ -81,5 +99,6 @@ Card.propTypes = {
   durationHours: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   imageUrl: PropTypes.string,
   onClick: PropTypes.func,
+  badge: PropTypes.oneOf(["inprogress", "completed"]),
   className: PropTypes.string,
 };
