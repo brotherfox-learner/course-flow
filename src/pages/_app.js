@@ -1,5 +1,6 @@
 import { Inter } from "next/font/google";
 import "@/styles/globals.css";
+import { AuthProvider } from "@/context/AuthContext"
 
 const inter = Inter({
   subsets: ["latin", "thai"],
@@ -9,8 +10,10 @@ const inter = Inter({
 
 export default function App({ Component, pageProps }) {
   return (
-    <div className={inter.className}>
-      <Component {...pageProps} />
-    </div>
+    <AuthProvider>
+      <div className={inter.className}>
+        <Component {...pageProps} />
+      </div>
+    </AuthProvider>
   );
 }
