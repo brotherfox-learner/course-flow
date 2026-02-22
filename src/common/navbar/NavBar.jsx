@@ -17,7 +17,7 @@ function NavBar() {
     }, [user]);
 
     return (
-        <nav className="sticky top-0 z-100 shadow-2 flex flex-row items-center justify-between bg-white px-4 py-3 lg:px-30">
+        <nav className="sticky top-0 z-100 shadow-2 flex flex-row items-center justify-between bg-white px-4 py-3 lg:px-40">
             <BrandLogo />
             <div className="flex flex-row gap-8 lg:gap-12">
                 <Button variant="ghost" size="ghost" className="text-dark-blue-500!">Our Courses</Button>
