@@ -8,7 +8,7 @@ function DropdownUser() {
     const {logout} = useAuth()
 
     return (
-        <div className="absolute right-5 top-13 py-[8px] min-w-[198px] bg-white rounded-lg shadow-2">
+        <div className="absolute right-0 top-17 lg:right-2 lg:top-13 py-[8px] min-w-[198px] bg-white rounded-lg shadow-2">
             <button className={styleButton}>
                 <User size={16} color="#8DADE0" strokeWidth={2} />
                 <span>Profile</span>

@@ -1,5 +1,6 @@
 import Button from "@/common/navbar/Button"
 import useLogin from "../hook/useLogin"
+import Link from "next/link"
 
 function LoginSection() {
     const { form, errors, isLoading, handleChange, submit } = useLogin()
@@ -71,9 +72,11 @@ function LoginSection() {
 
                 <div className="flex items-center gap-1">
                     <span className="body2 text-black">Don’t have an account?</span>
-                    <Button variant="ghost" size="ghost" className="text-[16px]" disabled={isLoading}>
-                        Log in
-                    </Button>
+                    <Link href="/register">
+                        <Button variant="ghost" size="ghost" className="text-[16px]" disabled={isLoading}>
+                            Register
+                        </Button>
+                    </Link>
                 </div>
             </div>
             <div className="absolute left-[-80px] z-0 rotate-340 w-28 h-30 rounded-full bg-orange-100 lg:w-80 lg:h-83 lg:top-[200px] lg:left-[-250px]"></div>

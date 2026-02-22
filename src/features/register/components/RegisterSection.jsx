@@ -1,6 +1,7 @@
 import Button from "@/common/navbar/Button"
 import DatePickerInput from "./DatePicker"
 import useRegister from "../hook/useRegister"
+import Link from "next/link"
 
 function RegisterSection() {
   const { form, errors, isLoading, handleChange, submit } = useRegister()
@@ -14,7 +15,7 @@ function RegisterSection() {
 
   return (
     <div className="relative bg-white px-4 py-10 overflow-hidden">
-      <div className="space-y-8 mx-auto lg:max-w-[453px] lg:mt-[50px] relative z-10">
+      <div className="space-y-8 mx-auto lg:max-w-[453px] lg:mt-[20px] relative z-10">
         <h3 className="headline3 text-dark-blue-500">
           Register to start learning!
         </h3>
@@ -141,6 +142,14 @@ function RegisterSection() {
             {isLoading ? "Register..." : "Register"}
           </Button>
         </form>
+        <div className="flex items-center gap-1">
+          <span className="body2 text-black">Already have an account?</span>
+          <Link href="/login">
+            <Button variant="ghost" size="ghost" className="text-[16px]" disabled={isLoading}>
+              Log in
+            </Button>
+          </Link>
+        </div>
       </div >
       <div className="absolute left-[-55px] bottom-7 z-0 rotate-340 w-22 h-30 rounded-full bg-orange-100 lg:w-80 lg:h-83 lg:top-[200px] lg:left-[-250px]"></div>
       <div className="absolute left-[-19px] top-[193px] w-8 h-8 rounded-full bg-blue-200 lg:w-19 lg:h-19 lg:top-[81px] lg:left-[87px]"></div>
