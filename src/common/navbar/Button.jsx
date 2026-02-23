@@ -11,7 +11,7 @@ function Button({
     ...props
 }) {
     const baseBehavior =
-        "inline-flex items-center justify-center font-bold rounded-xl cursor-pointer transition-colors duration-200 disabled:cursor-not-allowed";
+        "inline-flex items-center justify-center font-bold rounded-xl cursor-pointer transition-colors duration-200 disabled:cursor-not-allowed outline-none focus-visible:border-2 focus-visible:border-black";
 
     const sizes = {
         sm: "text-xs p-[8px]",
