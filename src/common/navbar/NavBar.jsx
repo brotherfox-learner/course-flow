@@ -1,15 +1,33 @@
 import Link from "next/link";
 import Button from "./Button"
 import BrandLogo from "./BrandLogo"
+import UserProfile from "./UserProfile"
+import DropdownUser from "./DropdownUser"
+import { useToggle } from "@/hooks/useToggle"
+import { useAuth } from "@/context/AuthContext"
+import { useEffect } from "react"
+
 function NavBar() {
+    const { isShow, switchToggle, reset } = useToggle()
+    const { user, profile } = useAuth()
+
+    useEffect(() => {
+        if (!user) reset();
+    }, [user]);
+
     return (
-        <nav className="sticky top-0 z-100 shadow-2 flex flex-row items-center justify-between bg-white px-4 py-3 lg:px-30">
+        <nav className="sticky top-0 z-100 shadow-2 flex flex-row items-center justify-between bg-white px-4 py-3 lg:px-40">
             <BrandLogo />
-            <div className="space-x-2 lg:space-x-12">
-                <Link href="/courses">
-                    <Button variant="ghost" size="ghost" className="text-dark-blue-500!">Our Courses</Button>
-                </Link>
-                <Button variant="primary" size="md">Log in</Button>
+            <div className="flex flex-row gap-2 lg:gap-12">
+                <Button variant="ghost" size="ghost" className="text-dark-blue-500!">Our Courses</Button>
+                {user ? (
+                    <UserProfile profile={profile} onToggle={switchToggle} />
+                ) : (
+                    <Link href="/login">
+                        <Button variant="primary" size="md">Log in</Button>
+                    </Link>
+                )}
+                {user && isShow && <DropdownUser />}
             </div>
         </nav>
     )

@@ -41,6 +41,7 @@
   --black: #000000;
   --white: #FFFFFF;
   --green: #2FAC8E;
+  --purple:#9B2FAC;
   --linear1: linear-gradient(90deg, #95BEFF, #0040E5);
   --linear2: linear-gradient(90deg, #2558DD, #5697FF);
 
@@ -144,6 +145,7 @@
   --color-black: var(--black);
   --color-white: var(--white);
   --color-green: var(--green);
+  --color-purple: var(--purple);
   --background-image-linear1: var(--linear1);
   --background-image-linear2: var(--linear2);
 
