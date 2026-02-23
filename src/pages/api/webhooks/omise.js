@@ -1,19 +1,12 @@
 import pool from "../../../utils/db";
 
-/**
- * Omise webhook endpoint.
- * หมายเหตุ: ถ้าไม่เห็น row ใน payment_webhooks เลย ให้เช็ค
- * 1. รันบน localhost หรือไม่ — Omise ส่งได้แค่ URL สาธารณะ (HTTPS) ต้องใช้ ngrok หรือ deploy
- * 2. charge.complete — Omise จะส่ง charge.complete เฉพาะ 3DS หรือ Internet Banking (เช่น PromptPay)
- *    การชำระบัตรแบบไม่ผ่าน 3DS จะไม่ trigger webhook นี้
- * 3. ใน Omise Dashboard (Test/Live) ตั้ง Webhook URL = https://your-domain.com/api/webhooks/omise
- */
 export const config = {
   api: {
     bodyParser: true,
   },
 };
 
+// Omise webhook endpoint
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
