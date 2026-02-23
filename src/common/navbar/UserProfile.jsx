@@ -6,7 +6,7 @@ export function UserProfile({ user, onToggle }) {
   const firstInitial = user?.firstName?.charAt(0)?.toUpperCase() || "?"
 
   return (
-    <div className="flex flex-row items-center py-5 lg:gap-4">
+    <div className="flex flex-row items-center lg:py-3 lg:gap-4">
       <Avatar className="w-10 h-10">
         <AvatarFallback>{firstInitial}</AvatarFallback>
       </Avatar>
