@@ -242,6 +242,21 @@ body {
     letter-spacing: var(--letter-spacing-headline-3);
   }
 
+  .headline3-lg-headline2 {
+    font-size: var(--font-size-headline-3);
+    font-weight: var(--font-weight-headline);
+    line-height: var(--line-height-headline-3);
+    letter-spacing: var(--letter-spacing-headline-3);
+  }
+  @media (min-width: 1024px) {
+    .headline3-lg-headline2 {
+      font-size: var(--font-size-headline-2);
+      font-weight: var(--font-weight-headline);
+      line-height: var(--line-height-headline-2);
+      letter-spacing: var(--letter-spacing-headline-2);
+    }
+  }
+
   .body1 {
     font-size: var(--font-size-body-1);
     font-weight: var(--font-weight-body);
@@ -261,6 +276,21 @@ body {
     font-weight: var(--font-weight-body);
     line-height: var(--line-height-body-3);
     letter-spacing: var(--letter-spacing-body-3);
+  }
+
+  .body3-lg-body2 {
+    font-size: var(--font-size-body-3);
+    font-weight: var(--font-weight-body);
+    line-height: var(--line-height-body-3);
+    letter-spacing: var(--letter-spacing-body-3);
+  }
+  @media (min-width: 1024px) {
+    .body3-lg-body2 {
+      font-size: var(--font-size-body-2);
+      font-weight: var(--font-weight-body);
+      line-height: var(--line-height-body-2);
+      letter-spacing: var(--letter-spacing-body-2);
+    }
   }
 
   .body4 {

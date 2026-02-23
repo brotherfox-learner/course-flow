@@ -6,7 +6,7 @@ import Pagination from "../../common/pagination.jsx"
 import SearchBox from '../../common/searchbox.jsx';
 import Modal from "../../common/modal.jsx"
 // pagination ระบุหน้าที่ต้องการแสดงผลบนหน้า Home
-const PAGE_SIZE = 2
+const PAGE_SIZE = 12
 
 export default function CommonTest() {
   const [courses, setCourses] = useState([])
@@ -67,7 +67,7 @@ export default function CommonTest() {
 
       {/* grid 3 card ต่อแถว */}
       {/* //card */}
-      <section className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 lg:w-[1119px] mx-auto gap-[24px]">
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 lg:w-[1119px] mx-auto gap-[24px]">
         {visibleCourses.map((course) => (
           <Card
             key={course.id}
