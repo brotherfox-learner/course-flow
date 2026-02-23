@@ -81,7 +81,7 @@ export default function PaymentComplete() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={() =>
-                    router.push(courseSlug ? `/courses/${courseSlug}` : "/")
+                    router.push(courseSlug ? `/my-courses` : "/")
                   }
                   className="px-8 py-3 border-2 border-orange-500 text-orange-500 body2 font-medium rounded-xl hover:bg-orange-50 transition-colors"
                 >
