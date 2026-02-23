@@ -1,20 +1,31 @@
 import pool from "../../utils/db";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { userId } = req.query;
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
 
-  if (!userId) {
-    return res.status(400).json({ error: "userId is required" });
+  const token = authHeader.split(" ")[1];
+  const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token);
+  if (authError || !authUser) {
+    return res.status(401).json({ error: "Invalid token" });
   }
 
   try {
     // ดึงข้อมูล user จาก users table (schema: profile_name, first_name, last_name, avatar_url)
     let user = {
-      id: userId,
+      id: authUser.id,
       name: "User",
       avatar_url: null,
     };
@@ -54,8 +65,9 @@ export default async function handler(req, res) {
          FROM enrollments e
          JOIN courses c ON c.id = e.course_id
          WHERE e.user_id = $1
+         AND (e.status = 'active' OR e.status = 'completed')
          ORDER BY e.status ASC`,
-        [userId]
+        [user.id]
       );
     } catch (queryErr) {
       // ถ้า lessons ไม่มี หรือ total_learning_time ไม่มี - ใช้ query แบบง่าย
@@ -73,8 +85,9 @@ export default async function handler(req, res) {
          FROM enrollments e
          JOIN courses c ON c.id = e.course_id
          WHERE e.user_id = $1
+         AND (e.status = 'active' OR e.status = 'completed')
          ORDER BY e.status ASC`,
-        [userId]
+        [user.id]
       );
     }
 

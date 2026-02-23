@@ -20,7 +20,6 @@ export function AuthProvider({ children }) {
   // Profile จาก users table
   const [profile, setProfile] = useState(null);
 
-
   //  Bootstrap session + listener
 
   useEffect(() => {

@@ -53,16 +53,19 @@ export async function getServerSideProps(context) {
 
 export default function PaymentPage({ course }) {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, isLoggedIn, loading: authLoading } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // ต้องล็อกอินถึงจะจ่ายได้ — redirect ไป login ถ้ายังไม่ล็อกอิน
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (authLoading) return;
+    if (!isLoggedIn) {
       router.replace("/login");
+      return;
     }
-  }, [authLoading, user, router]);
+  }, [isLoggedIn, authLoading, user, router]);
 
   // Promo code state
   const [promoCode, setPromoCode] = useState("");

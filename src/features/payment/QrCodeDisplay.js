@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
-
+import NavBar from "@/common/navbar/NavBar";
 const QR_EXPIRY_MINUTES = 15;
 
 export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug }) {
@@ -91,15 +91,10 @@ export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug 
   const isUrgent = timeLeft <= 60; // สีแดงเมื่อเหลือไม่ถึง 1 นาที
 
   return (
+    <>
+    <NavBar />
     <div className="min-h-screen bg-gray-100">
-      {/* Header placeholder */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-[1440px] mx-auto px-6 lg:px-[160px] py-4 flex items-center justify-between">
-          <span className="text-blue-500 font-bold text-xl italic">
-            CourseFlow
-          </span>
-        </div>
-      </div>
+
 
       {/* Back link */}
       <div className="max-w-[1440px] mx-auto px-6 lg:px-[160px] pt-8">
@@ -130,9 +125,11 @@ export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug 
       <div className="max-w-[739px] mx-auto mt-8 mb-16 px-6">
         <div className="bg-white rounded-lg shadow-1 p-8 lg:p-12 flex flex-col items-center">
           <h2 className="headline3 text-gray-900 mb-1">Scan QR code</h2>
-          <p className="body3 text-gray-600 mb-4">
-            Reference no. CF{Date.now().toString().slice(-10)}
-          </p>
+          {chargeId && (
+            <p className="body3 text-gray-600 mb-4">
+              Reference no. {chargeId}
+            </p>
+          )}
 
           {/* Amount */}
           <p className="text-orange-500 headline3 font-semibold mb-6">
@@ -222,5 +219,6 @@ export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug 
         </div>
       </div>
     </div>
+    </>
   );
 }

@@ -6,6 +6,7 @@ import DropdownUser from "./DropdownUser"
 import { useToggle } from "@/hooks/useToggle"
 import { useAuth } from "@/context/AuthContext"
 import { useEffect } from "react"
+import router from "next/router"
 
 function NavBar() {
     const { isShow, switchToggle, reset } = useToggle()
@@ -19,7 +20,7 @@ function NavBar() {
         <nav className="sticky top-0 z-100 shadow-2 flex flex-row items-center justify-between bg-white px-4 py-3 lg:px-40">
             <BrandLogo />
             <div className="flex flex-row gap-2 lg:gap-12">
-                <Button variant="ghost" size="ghost" className="text-dark-blue-500!">Our Courses</Button>
+                <Button onClick={() => router.push("/courses")} variant="ghost" size="ghost" className="text-dark-blue-500!">Our Courses</Button>
                 {user ? (
                     <UserProfile profile={profile} onToggle={switchToggle} />
                 ) : (
