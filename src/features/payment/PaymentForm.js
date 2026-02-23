@@ -242,14 +242,6 @@ const PaymentForm = forwardRef(function PaymentForm({
         </label>
       </div>
 
-      {/* Submit button (visible on mobile below form)
-      <button
-        onClick={handlePlaceOrder}
-        disabled={isLoading}
-        className="mt-6 w-full hidden h-[60px] bg-blue-500 hover:bg-blue-600 text-white headline3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {isLoading ? "Processing..." : "Place order"}
-      </button> */}
     </div>
   );
 });

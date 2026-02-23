@@ -1,4 +1,5 @@
 import Button from "@/common/navbar/Button"
+import router from "next/router"
 
 function HeroSection () {
     return(
@@ -6,7 +7,7 @@ function HeroSection () {
             <div className="space-y-4 lg:space-y-6 relative z-10 lg:self-center lg:w-[643px]">
                 <h2 className="headline2 text-black lg:headline1">Best Virtual <br /> Classroom Software</h2>
                 <p className="body2 text-gray-700 lg:body1">Welcome to Schooler! The one-stop online class management system that caters to all your educational needs!</p>
-                <Button variant="primary" size="lg" className="mt-4 lg:mt-15">Explore Courses</Button>
+                <Button onClick={() => router.push("/courses")} variant="primary" size="lg" className="mt-4 lg:mt-15">Explore Courses</Button>
             </div>
             <div className="relative z-10 mt-[20px] flex items-center">
                 <img src="/computer_book.svg" alt="computer on book" className="w-[452px]"/>
