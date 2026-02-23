@@ -2,6 +2,7 @@ import Card from "../../../common/card";
 import SearchBox from "../../../common/searchbox";
 import Link from "next/link";
 import Pagination from "../../../common/pagination.jsx";
+import CourseCardSkeleton from "./CourseCardSkeleton";
 import { useCourseList } from "../hooks";
 
 const PAGE_SIZE = 12;
@@ -15,6 +16,7 @@ export default function CourseCard() {
     visibleCourses,
     handleSearchChange,
     handlePageChange,
+    resetSearch,
     pageSize,
   } = useCourseList(PAGE_SIZE);
 
@@ -34,14 +36,20 @@ export default function CourseCard() {
         <SearchBox
           value={search}
           onChange={handleSearchChange}
+          onClear={resetSearch}
           placeholder="Search..."
         />
       </div>
 
       {loading ? (
-        <div className="max-w-[1119px] mx-auto text-center py-12">
-          <p className="text-gray-500">Loading courses...</p>
-        </div>
+        <section
+          className="grid gap-[32px] grid-cols-1 md:grid-cols-2 md:gap-y-[32px] md:gap-x-[15px] lg:grid-cols-2 lg:gap-x-[25px] xl:grid-cols-3 xl:gap-y-[60px] xl:gap-x-[24px] xl:w-[1119px] 2xl:grid-cols-4 2xl:w-[1500px] 2xl:gap-y-[50px] 2xl:gap-x-[24px]"
+          aria-label="Loading courses"
+        >
+          {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+            <CourseCardSkeleton key={i} />
+          ))}
+        </section>
       ) : (
         <>
           <section className="grid  gap-[32px] grid-cols-1 md:grid-cols-2 md:gap-y-[32px] md:gap-x-[15px]  lg:grid-cols-2  lg:gap-x-[25px]  xl:grid-cols-3 xl:gap-y-[60px] xl:gap-x-[24px]  xl:w-[1119px] 2xl:grid-cols-4 2xl:w-[1500px] 2xl:gap-y-[50px] 2xl:gap-x-[24px]">
