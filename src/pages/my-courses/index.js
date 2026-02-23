@@ -22,7 +22,6 @@ export default function MyCourses() {
   const displayAvatar = user?.avatarUrl ?? profile?.avatarUrl ?? "/default_avatar.png";
 
   useEffect(() => {
-
     if (!token) {
       if (!authLoading && !isLoggedIn) {
         router.replace("/login");
@@ -35,7 +34,6 @@ export default function MyCourses() {
       try {
         setLoading(true);
         setError(null);
-
         const res = await fetch("/api/my-courses", {
           headers: { Authorization: `Bearer ${token}` },
         });
