@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/router";
 import PaymentForm from "../../features/payment/PaymentForm";
 import OrderSummary from "../../features/payment/OrderSummary";
@@ -6,12 +6,10 @@ import QrCodeDisplay from "../../features/payment/QrCodeDisplay";
 import pool from "../../utils/db";
 import NavBar from "../../common/navbar/NavBar";
 import Footer from "../../common/Footer";
-
-// Hardcoded user ID for now (auth will be added later)
-const TEMP_USER_ID = "353c3e0e-28c4-4773-a818-ec4833ac6c4a";
+import { useAuth } from "../../context/AuthContext";
 
 export async function getServerSideProps(context) {
-  // รับ courseSlug จาก URL
+  // รับ courseSlug จาก URL 
   const { courseSlug } = context.params;
 
   try {
@@ -49,9 +47,19 @@ export async function getServerSideProps(context) {
 
 export default function PaymentPage({ course }) {
   const router = useRouter();
+  const { user, isLoggedIn, loading: authLoading } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // ต้องล็อกอินถึงจะจ่ายได้ — redirect ไป login ถ้ายังไม่ล็อกอิน
+  useEffect(() => {
+    if (authLoading) return;
+    if (!isLoggedIn) {
+      router.replace("/login");
+      return;
+    }
+  }, [isLoggedIn, authLoading, router]);
 
   // Promo code state
   const [promoCode, setPromoCode] = useState("");
@@ -133,7 +141,7 @@ export default function PaymentPage({ course }) {
         body: JSON.stringify({
           token,
           courseId: course.id,
-          userId: TEMP_USER_ID,
+          userId: user?.id,
           promoCode: promoCode || null,
           paymentMethod: "card",
         }),
@@ -202,7 +210,7 @@ export default function PaymentPage({ course }) {
         body: JSON.stringify({
           sourceId,
           courseId: course.id,
-          userId: TEMP_USER_ID,
+          userId: user?.id,
           promoCode: promoCode || null,
           paymentMethod: "promptpay",
         }),
@@ -238,6 +246,15 @@ export default function PaymentPage({ course }) {
       handlePromptPaySubmit();
     }
   };
+
+  // รอ auth หรือ redirect ไป login — ไม่แสดงฟอร์มจ่ายก่อนล็อกอิน
+  if (authLoading || !isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="body2 text-gray-600">กำลังโหลด...</p>
+      </div>
+    );
+  }
 
   // If showing QR code, render QR display
   if (showQr && qrData) {

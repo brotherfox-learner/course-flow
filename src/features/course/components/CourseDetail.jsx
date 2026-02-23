@@ -13,6 +13,7 @@ import Card from "../../../common/card";
 import Button from "../../../common/navbar/Button";
 import Modal from "../../../common/modal";
 import { useCourseDetail, useSubscribeModal } from "../hooks";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function CourseDetail() {
   const router = useRouter();
@@ -20,15 +21,15 @@ export default function CourseDetail() {
   const [barExpanded, setBarExpanded] = useState(false);
 
   const { course, lessons, otherCourses, loading } = useCourseDetail(id);
+  const { isLoggedIn } = useAuth();
 
   // TODO: เช็ค login จาก auth context/state จริง
-  const isLogin = true;
   const {
     showConfirmModal,
     handleSubscribe,
     handleConfirmSubscribe,
     handleCancelSubscribe,
-  } = useSubscribeModal(id, isLogin, router.push.bind(router));
+  } = useSubscribeModal(course?.slug, isLoggedIn, router.push.bind(router));
 
   if (loading) return <div className="p-10 text-center text-slate-500">Loading...</div>;
   if (!course) return <div className="p-10 text-center text-slate-500">Course not found</div>;
