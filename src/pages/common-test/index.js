@@ -58,12 +58,13 @@ export default function CommonTest() {
       </div>
       {/* searchbox */}
       <div className="p-4 flex justify-center">
-      <SearchBox 
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search..."
-      />
-    </div>
+        <SearchBox 
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onClear={() => setSearch("")}
+          placeholder="Search..."
+        />
+      </div>
 
       {/* grid 3 card ต่อแถว */}
       {/* //card */}

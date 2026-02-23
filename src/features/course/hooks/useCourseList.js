@@ -39,6 +39,11 @@ export function useCourseList(pageSize = DEFAULT_PAGE_SIZE) {
     setPage(1);
   }, []);
 
+  const resetSearch = useCallback(() => {
+    setSearch("");
+    setPage(1);
+  }, []);
+
   const handlePageChange = useCallback((newPage) => {
     setPage(newPage);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -54,6 +59,7 @@ export function useCourseList(pageSize = DEFAULT_PAGE_SIZE) {
     visibleCourses,
     handleSearchChange,
     handlePageChange,
+    resetSearch,
     pageSize,
   };
 }
