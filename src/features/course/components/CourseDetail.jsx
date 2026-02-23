@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import axios from "axios";
 import {
   Accordion,
   AccordionContent,
@@ -13,69 +12,29 @@ import {
 import Card from "../../../common/card";
 import Button from "../../../common/navbar/Button";
 import Modal from "../../../common/modal";
-
+import { useCourseDetail, useSubscribeModal } from "../hooks";
 
 export default function CourseDetail() {
   const router = useRouter();
   const { id } = router.query;
-  const [course, setCourse] = useState(null);
-  const [lessons, setLessons] = useState([]);
-  const [otherCourses, setOtherCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [barExpanded, setBarExpanded] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  
+
+  const { course, lessons, otherCourses, loading } = useCourseDetail(id);
+
   // TODO: เช็ค login จาก auth context/state จริง
   const isLogin = true;
-
-  useEffect(() => {
-    if (!id) return;
-    const fetchData = async () => {
-      try {
-        const [courseRes, lessonsRes, coursesRes] = await Promise.all([
-          axios.get(`/api/courses/${id}`),
-          axios.get(`/api/lessons/${id}`),
-          axios.get("/api/courses").catch(() => ({ data: { courses: [] } })),
-        ]);
-        setCourse(courseRes.data);
-        setLessons(Array.isArray(lessonsRes.data) ? lessonsRes.data : []);
-        const all = coursesRes.data?.courses ?? [];
-        const others = all.filter((c) => String(c.id) !== String(id)).slice(0, 3);
-        setOtherCourses(others);
-      } catch (err) {
-        console.error("Fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [id]);
+  const {
+    showConfirmModal,
+    handleSubscribe,
+    handleConfirmSubscribe,
+    handleCancelSubscribe,
+  } = useSubscribeModal(id, isLogin, router.push.bind(router));
 
   if (loading) return <div className="p-10 text-center text-slate-500">Loading...</div>;
   if (!course) return <div className="p-10 text-center text-slate-500">Course not found</div>;
 
   const title = course.course_name || "Course Title";
   const price = course.price ? Number(course.price).toLocaleString("en-US", { minimumFractionDigits: 2 }) : "0.00";
-
-  const handleSubscribe = () => {
-    if (isLogin) {
-      // แสดง confirmation modal
-      setShowConfirmModal(true);
-    } else {
-      // Redirect ไปหน้า login
-      router.push("/login");
-    }
-  };
-
-  const handleConfirmSubscribe = () => {
-    // ไปหน้า payment เมื่อกด Yes
-    router.push(`/payment/${id}`);
-  };
-
-  const handleCancelSubscribe = () => {
-    // ปิด modal เมื่อกด No
-    setShowConfirmModal(false);
-  };
 
   return (
     <main className="min-h-screen bg-white font-['Inter']">
@@ -156,8 +115,8 @@ export default function CourseDetail() {
                 <button type="button" className="w-full py-[18px] px-8 rounded-[12px] border border-[#F47E20] text-[#F47E20] body2 font-bold text-center hover:opacity-90 transition shadow-[4px_4px_24px_rgba(0,0,0,0.08)]">
                   Add to Wishlist
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={handleSubscribe}
                   className="w-full py-[18px] px-8 rounded-[12px] bg-[#2F5FAC] text-white body2 font-bold text-center hover:opacity-90 transition shadow-[4px_4px_24px_rgba(0,0,0,0.08)]"
                 >
