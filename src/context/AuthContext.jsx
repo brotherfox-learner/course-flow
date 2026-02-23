@@ -1,57 +1,128 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import axios from "axios";
+import { createClient } from "@supabase/supabase-js"
 
-const AuthContext = createContext(null)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+export const supabase = createClient(
+  supabaseUrl,
+  supabaseAnonKey
+)
+
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [accessToken, setAccessToken] = useState(null)
+  // Supabase session
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  // Profile จาก users table
+  const [profile, setProfile] = useState(null);
+
+
+  //  Bootstrap session + listener
 
   useEffect(() => {
-    const stored = localStorage.getItem("auth")
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      setUser(parsed.user)
-      setAccessToken(parsed.accessToken)
+    let mounted = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      setSession(data.session ?? null);
+      setLoading(false);
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange(
+      (_event, newSession) => {
+        setSession(newSession);
+      }
+    );
+
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  //  Derived state
+
+  const user = session?.user ?? null;
+  const token = session?.access_token ?? null;
+  const isLoggedIn = !!user;
+
+
+  //  Fetch profile from backend
+
+  const fetchProfile = useCallback(async (accessToken) => {
+    if (!accessToken) {
+      setProfile(null);
+      return;
     }
-  }, [])
 
-  const login = ({ user, accessToken }) => {
-    setUser(user)
-    setAccessToken(accessToken)
+    try {
+      const res = await axios.get("/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+      setProfile(res.data);
+    } catch (err) {
+      console.error("fetchProfile failed:", err.message);
+      setProfile(null);
 
-    localStorage.setItem(
-      "auth",
-      JSON.stringify({ user, accessToken })
-    )
-  }
+      if (err.response?.status === 401) {
+        await supabase.auth.signOut();
+      }
+    }
+  }, []);
 
-  const logout = () => {
-    setUser(null)
-    setAccessToken(null)
-    localStorage.removeItem("auth")
-  }
+  useEffect(() => {
+    fetchProfile(token);
+  }, [token, fetchProfile]);
+
+
+  //   (ใช้ Supabase ตรง)
+
+  const login = async ({ email, password }) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+  
+    if (error) throw error; // hook จะ catch เอง
+    return data;
+  };
+
+    // Logout
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setProfile(null);
+  };
 
   return (
     <AuthContext.Provider
       value={{
+        session,
         user,
-        accessToken,
-        isAuthenticated: !!user,
+        token,
+        profile,
+        isLoggedIn,
+        loading,
         login,
         logout,
       }}
     >
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
-
 
 export function useAuth() {
-  const useAuth = useContext(AuthContext)
-  if (!useAuth) {
-    throw new Error("useAuth must be used inside AuthProvider")
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuth must be used inside AuthProvider");
   }
-  return useAuth
+  return ctx;
 }
+

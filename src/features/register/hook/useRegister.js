@@ -65,7 +65,7 @@ export default function useRegister() {
     try {
       setIsLoading(true)
       setErrors({})
-      await axios.post("/api/register", apiPayload)
+      await axios.post("/api/auth/register", apiPayload)
       setForm(initialForm)
       router.push("/register-success")
     } catch (err) {
