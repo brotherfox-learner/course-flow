@@ -1,5 +1,5 @@
+// hooks/useLogin.js
 import { useState } from "react"
-import axios from "axios"
 import { useRouter } from "next/router"
 import { useAuth } from "@/context/AuthContext"
 
@@ -36,21 +36,12 @@ export default function useLogin() {
       setIsLoading(true)
       setErrors({})
 
-      const res = await axios.post("/api/login", form)
+      await login(form) // ← จบเลย, session จะ set ผ่าน onAuthStateChange อัตโนมัติ
 
-      // ✅ เก็บข้อมูลจาก API เข้า Context
-      login({
-        user: res.data.user,
-        accessToken: res.data.session.accessToken,
-      })
-
-      // ✅ redirect หลัง login
       router.push("/")
     } catch (err) {
       setErrors({
-        form:
-          err.response?.data?.message ||
-          "Login failed. Please ensure your email and password are correct",
+        form: "Login failed. Please ensure your email and password are correct",
       })
     } finally {
       setIsLoading(false)

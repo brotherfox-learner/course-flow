@@ -10,7 +10,7 @@ import { useEffect } from "react"
 
 function NavBar() {
     const { isShow, switchToggle, reset } = useToggle()
-    const { user } = useAuth()
+    const { user, profile } = useAuth()
 
     useEffect(() => {
         if (!user) reset();
@@ -22,12 +22,10 @@ function NavBar() {
             <div className="flex flex-row gap-2 lg:gap-12">
                 <Button variant="ghost" size="ghost" className="text-dark-blue-500!">Our Courses</Button>
                 {user ? (
-                    <UserProfile user={user} onToggle={switchToggle} />
+                    <UserProfile profile={profile} onToggle={switchToggle} />
                 ) : (
                     <Link href="/login">
-                        <Button variant="primary" size="md">
-                            Log in
-                        </Button>
+                        <Button variant="primary" size="md">Log in</Button>
                     </Link>
                 )}
                 {user && isShow && <DropdownUser />}
