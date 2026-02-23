@@ -36,8 +36,7 @@ export default function useLogin() {
       setIsLoading(true)
       setErrors({})
 
-      await login(form) // ← จบเลย, session จะ set ผ่าน onAuthStateChange อัตโนมัติ
-
+      await login(form)
       router.push("/")
     } catch (err) {
       setErrors({

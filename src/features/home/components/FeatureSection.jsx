@@ -81,7 +81,7 @@ function FeatureSection() {
                     </div>
                 ))}
             </div>
-            <div className="absolute top-[-20px] w-12 h-12 rounded-full circle-gradient rotate-300 lg:w-[73px] lg:h-[73px]"></div>
+            <div className="absolute top-10 left-20 w-12 h-12 rounded-full circle-gradient rotate-300 lg:w-[73px] lg:h-[73px]"></div>
             <div className="absolute top-11 right-10 w-8 h-8 rounded-full bg-blue-100 lg:left-[500px] lg:top-24"></div>
             <div className="absolute top-[680px] z-100 right-10 text-[#9B2FAC] text-5xl rotate-20 lg:top-[380px]">+</div>
             <div className="absolute bottom-0 right-7 w-12 h-12 rounded-full bg-[#C6DCFF] lg:w-[85px] lg:h-[85px] lg:bottom-[-45px] lg:right-30"></div>
