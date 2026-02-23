@@ -55,7 +55,7 @@ export default function Card({
             className="w-[20px] h-[20px]"
           />
           <span className="text-[14px] font-normal lg:text-[16px] tracking-[0] text-gray-700 whitespace-nowrap">
-            {lessonCount ?? ""} Lesson
+            {lessonCount ?? ""} Lessons
           </span>
         </div>
         <div className="flex items-center gap-2 w-[88px] h-[21px]">

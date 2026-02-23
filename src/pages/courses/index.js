@@ -1,12 +1,13 @@
 import NavBar from "@/common/navbar/NavBar";
 import SubFooter from "@/common/SubFooter";
 import Footer from "@/common/Footer";
-import Link from "next/link"
+import CourseCard from "@/features/course/components/CourseCard.jsx";
 
-export default function Home() {
+export default function CoursesPage() {
   return (
     <>
-      <NavBar/>   
+      <NavBar />  
+      <CourseCard />
       <SubFooter />
       <Footer />
     </>
