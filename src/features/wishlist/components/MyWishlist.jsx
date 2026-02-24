@@ -1,10 +1,32 @@
+import { useState } from "react";
 import Link from "next/link";
 import Card from "@/common/card";
+import Modal from "@/common/modal";
 import CourseCardSkeleton from "@/features/course/components/CourseCardSkeleton";
 
 const SKELETON_COUNT = 6;
 
-export default function MyWishlist({ courses, loading, error }) {
+export default function MyWishlist({ courses, loading, error, onRemoveCourse }) {
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [courseToRemove, setCourseToRemove] = useState(null);
+
+  const handleTrashClick = (course) => {
+    setCourseToRemove(course);
+    setShowRemoveModal(true);
+  };
+
+  const handleConfirmRemove = () => {
+    if (courseToRemove?.courseId != null) {
+      onRemoveCourse?.(courseToRemove.courseId);
+    }
+    setShowRemoveModal(false);
+    setCourseToRemove(null);
+  };
+
+  const handleCancelRemove = () => {
+    setShowRemoveModal(false);
+    setCourseToRemove(null);
+  };
   if (loading) {
     return (
       <section
@@ -54,9 +76,25 @@ export default function MyWishlist({ courses, loading, error }) {
             lessonCount={course.lessonCount}
             durationHours={course.totalLearningTime}
             imageUrl={course.coverImgUrl}
+            showTrash
+            onTrashClick={() => handleTrashClick(course)}
           />
         </Link>
       ))}
+      <Modal
+        open={showRemoveModal}
+        onClose={handleCancelRemove}
+        title="Remove from wishlist"
+        message={
+          courseToRemove
+            ? `Are you sure you want to remove "${courseToRemove.courseName}" from your wishlist? You can add it again anytime.`
+            : ""
+        }
+        primaryLabel="Remove"
+        secondaryLabel="Cancel"
+        onPrimaryClick={handleConfirmRemove}
+        onSecondaryClick={handleCancelRemove}
+      />
     </section>
   );
 }

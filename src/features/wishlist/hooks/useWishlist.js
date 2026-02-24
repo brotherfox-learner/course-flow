@@ -66,5 +66,31 @@ export function useWishlist(userId, token) {
     [token, refetch]
   );
 
-  return { courses, loading, error, refetch, addToWishlist };
+  const removeFromWishlist = useCallback(
+    async (courseId) => {
+      if (!token) return { success: false, error: "Not logged in" };
+      try {
+        const res = await fetch("/api/wishlist", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ courseId: Number(courseId) }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success !== false) {
+          await refetch();
+          return { success: true };
+        }
+        return { success: false, error: data.error || "Failed to remove from wishlist" };
+      } catch (err) {
+        console.error("removeFromWishlist:", err);
+        return { success: false, error: "Failed to remove from wishlist" };
+      }
+    },
+    [token, refetch]
+  );
+
+  return { courses, loading, error, refetch, addToWishlist, removeFromWishlist };
 }
