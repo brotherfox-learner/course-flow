@@ -3,9 +3,7 @@ import { useRouter } from "next/router";
 import Card from "@/common/card";
 import NavBar from "@/common/navbar/NavBar";
 import Footer from "@/common/Footer";
-
-// Hardcoded user ID — จะเปลี่ยนเป็น auth ทีหลัง
-const TEMP_USER_ID = "353c3e0e-28c4-4773-a818-ec4833ac6c4a";
+import { useAuth } from "@/context/AuthContext";
 
 export default function MyCourses() {
   const router = useRouter();
@@ -15,12 +13,26 @@ export default function MyCourses() {
   const [activeTab, setActiveTab] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user: authUser, profile, loading: authLoading } = useAuth();
+
+  const displayName =
+    user?.name ??
+    (profile ? [profile.firstName, profile.lastName].filter(Boolean).join(" ") : null) ??
+    "User";
+  const displayAvatar = user?.avatarUrl ?? profile?.avatarUrl ?? "/default_avatar.png";
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!authUser?.id) {
+      setLoading(false);
+      return;
+    }
+
     const fetchData = async () => {
       try {
+        setLoading(true);
         setError(null);
-        const res = await fetch(`/api/my-courses?userId=${TEMP_USER_ID}`);
+        const res = await fetch(`/api/my-courses?userId=${authUser.id}`);
         const text = await res.text();
 
         let data;
@@ -32,7 +44,7 @@ export default function MyCourses() {
         }
 
         if (res.ok) {
-          setUser(data.user);
+          setUser(data.user ?? null);
           setCourses(data.courses ?? []);
           setStats(data.stats ?? { inprogress: 0, completed: 0, total: 0 });
         } else {
@@ -47,7 +59,7 @@ export default function MyCourses() {
     };
 
     fetchData();
-  }, []);
+  }, [authUser?.id, authLoading]);
 
   const filteredCourses = courses.filter((course) => {
     if (activeTab === "all") return true;
@@ -63,7 +75,7 @@ export default function MyCourses() {
     { key: "completed", label: "Completed" },
   ];
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <>
         <NavBar />
@@ -93,6 +105,13 @@ export default function MyCourses() {
         <div className="max-w-[1440px] mx-auto px-4 lg:px-[160px] pt-12 lg:pt-16 pb-6">
           <h1 className="headline2 text-black text-center mb-8">My Courses</h1>
 
+          {!authUser && !authLoading && (
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="body2 text-amber-800">
+                Please log in to view your courses.
+              </p>
+            </div>
+          )}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="body2 text-red-600">{error}</p>
@@ -121,12 +140,12 @@ export default function MyCourses() {
             <aside className="hidden lg:flex flex-col items-center w-[340px] h-[380px] shrink-0 sticky top-24 bg-white rounded-lg shadow-1 p-6">
               <div className="w-[120px] h-[120px] rounded-full overflow-hidden mb-4 border-2 border-gray-200">
                 <img
-                  src={user?.avatarUrl || "/default_avatar.png"}
-                  alt={user?.name || "User avatar"}
+                  src={displayAvatar}
+                  alt={displayName}
                   className="w-full h-full object-cover"
                 />
               </div>
-              <h3 className="headline3 text-black mb-6">{user?.name || "User"}</h3>
+              <h3 className="headline3 text-black mb-6">{displayName}</h3>
               <div className="flex justify-between gap-4 w-full">
                 <div className="flex-1  bg-gray-100 rounded-lg py-6 px-4">
                   <p className="body2 text-gray-700 mb-3">Course<br />Inprogress</p>
@@ -177,13 +196,13 @@ export default function MyCourses() {
             <div className="flex gap-3">
             <div className="w-[40px] h-[40px] rounded-full overflow-hidden border border-gray-200 shrink-0">
               <img
-                src={user?.avatarUrl || "/default_avatar.png"}
-                alt={user?.name || "User avatar"}
+                src={displayAvatar}
+                alt={displayName}
                 className="w-full h-full object-cover"
               />
             </div>
             <p className="body2 font-medium text-black flex-1 truncate">
-              {user?.name || "User"}
+              {displayName}
             </p>
             </div>
             <div className="flex items-center gap-3 shrink-0">

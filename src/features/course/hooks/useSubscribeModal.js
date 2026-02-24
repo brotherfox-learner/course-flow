@@ -2,12 +2,12 @@ import { useState, useCallback } from "react";
 
 /**
  * Subscribe confirmation modal state and handlers
- * @param {string|undefined} courseId - for redirect to payment
+ * @param {string|undefined} courseSlug - for redirect to payment page (URL uses slug)
  * @param {boolean} isLogin - from auth (TODO: AuthContext)
  * @param {(path: string) => void} push - router.push
  * @returns {{ showConfirmModal: boolean, handleSubscribe: () => void, handleConfirmSubscribe: () => void, handleCancelSubscribe: () => void }}
  */
-export function useSubscribeModal(courseId, isLogin, push) {
+export function useSubscribeModal(courseSlug, isLogin, push) {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const handleSubscribe = useCallback(() => {
@@ -19,11 +19,11 @@ export function useSubscribeModal(courseId, isLogin, push) {
   }, [isLogin, push]);
 
   const handleConfirmSubscribe = useCallback(() => {
-    if (courseId) {
-      push(`/payment/${courseId}`);
+    if (courseSlug) {
+      push(`/payment/${courseSlug}`);
     }
     setShowConfirmModal(false);
-  }, [courseId, push]);
+  }, [courseSlug, push]);
 
   const handleCancelSubscribe = useCallback(() => {
     setShowConfirmModal(false);

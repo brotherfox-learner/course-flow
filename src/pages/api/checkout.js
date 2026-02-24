@@ -10,10 +10,14 @@ export default async function handler(req, res) {
     token, // Card token from Omise.js (tokn_xxx)
     sourceId, // Source ID from Omise.js for PromptPay (src_xxx)
     courseId,
-    userId, // Will be from auth later, hardcoded for now
+    userId,
     promoCode,
     paymentMethod, // "card" or "promptpay"
   } = req.body;
+
+  if (!userId) {
+    return res.status(401).json({ error: "User must be logged in to complete payment" });
+  }
 
   // connect to the database
   const client = await pool.connect();

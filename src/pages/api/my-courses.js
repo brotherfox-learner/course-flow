@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // ดึงข้อมูล user (users table อาจมี column ต่างจาก name, avatar_url)
+    // ดึงข้อมูล user จาก users table (schema: profile_name, first_name, last_name, avatar_url)
     let user = {
       id: userId,
       name: "User",
@@ -21,19 +21,19 @@ export default async function handler(req, res) {
 
     try {
       const userResult = await pool.query(
-        "SELECT id FROM users WHERE id = $1",
+        "SELECT id, profile_name, first_name, last_name, avatar_url FROM users WHERE id = $1",
         [userId]
       );
       if (userResult.rows.length > 0) {
         const row = userResult.rows[0];
         user.id = row.id;
-        // ใช้ name ถ้ามี (บาง DB ใช้ full_name, username)
-        user.name = row.full_name ?? row.username ?? row.name ?? "User";
+        user.name =
+          row.profile_name ??
+          ([row.first_name, row.last_name].filter(Boolean).join(" ") || "User");
         user.avatar_url = row.avatar_url ?? null;
       }
     } catch (userErr) {
       console.warn("User query fallback:", userErr.message);
-      // ใช้ placeholder user
     }
 
     // ดึง enrolled courses พร้อม course info (ใช้ query แบบง่าย ไม่พึ่ง lessons/sub_lessons)

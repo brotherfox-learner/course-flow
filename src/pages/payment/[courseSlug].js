@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/router";
 import PaymentForm from "../../features/payment/PaymentForm";
 import OrderSummary from "../../features/payment/OrderSummary";
@@ -6,20 +6,24 @@ import QrCodeDisplay from "../../features/payment/QrCodeDisplay";
 import pool from "../../utils/db";
 import NavBar from "../../common/navbar/NavBar";
 import Footer from "../../common/Footer";
-
-// Hardcoded user ID for now (auth will be added later)
-const TEMP_USER_ID = "353c3e0e-28c4-4773-a818-ec4833ac6c4a";
+import { useAuth } from "@/context/AuthContext";
 
 export async function getServerSideProps(context) {
-  // รับ courseSlug จาก URL
+  // รับ courseSlug จาก URL (รองรับทั้ง slug และ id)
   const { courseSlug } = context.params;
 
   try {
-    // ดึงข้อมูลคอร์สจากฐานข้อมูล
-    const result = await pool.query(
+    // ดึงข้อมูลคอร์สจากฐานข้อมูล - ลอง slug ก่อน แล้วลอง id
+    let result = await pool.query(
       "SELECT id, course_name, slug, price, course_summary, cover_img_url FROM courses WHERE slug = $1",
       [courseSlug]
     );
+    if (result.rows.length === 0) {
+      result = await pool.query(
+        "SELECT id, course_name, slug, price, course_summary, cover_img_url FROM courses WHERE id = $1",
+        [courseSlug]
+      );
+    }
 
     // ถ้าไม่พบคอร์ส แสดงข้อความว่า "Course not found"
     if (result.rows.length === 0) {
@@ -49,9 +53,16 @@ export async function getServerSideProps(context) {
 
 export default function PaymentPage({ course }) {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace("/login");
+    }
+  }, [authLoading, user, router]);
 
   // Promo code state
   const [promoCode, setPromoCode] = useState("");
@@ -103,6 +114,10 @@ export default function PaymentPage({ course }) {
 
   // Handle card payment
   const handleCardSubmit = async (cardData) => {
+    if (!user?.id) {
+      setError("Please log in to complete payment");
+      return;
+    }
     setIsLoading(true);
     setError(null);
 
@@ -133,7 +148,7 @@ export default function PaymentPage({ course }) {
         body: JSON.stringify({
           token,
           courseId: course.id,
-          userId: TEMP_USER_ID,
+          userId: user?.id,
           promoCode: promoCode || null,
           paymentMethod: "card",
         }),
@@ -163,6 +178,10 @@ export default function PaymentPage({ course }) {
 
   // Handle PromptPay payment
   const handlePromptPaySubmit = async () => {
+    if (!user?.id) {
+      setError("Please log in to complete payment");
+      return;
+    }
     setIsLoading(true);
     setError(null);
 
@@ -202,7 +221,7 @@ export default function PaymentPage({ course }) {
         body: JSON.stringify({
           sourceId,
           courseId: course.id,
-          userId: TEMP_USER_ID,
+          userId: user?.id,
           promoCode: promoCode || null,
           paymentMethod: "promptpay",
         }),
@@ -238,6 +257,18 @@ export default function PaymentPage({ course }) {
       handlePromptPaySubmit();
     }
   };
+
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <NavBar />
+        <div className="flex-1 flex items-center justify-center">
+          <p className="body2 text-gray-500">Loading...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   // If showing QR code, render QR display
   if (showQr && qrData) {

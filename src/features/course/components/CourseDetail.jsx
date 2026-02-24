@@ -35,7 +35,7 @@ export default function CourseDetail() {
     handleSubscribe,
     handleConfirmSubscribe,
     handleCancelSubscribe,
-  } = useSubscribeModal(id, isLogin, router.push.bind(router));
+  } = useSubscribeModal(course?.slug, isLogin, router.push.bind(router));
 
   const handleWishlistClick = async () => {
     if (!isLogin) {
