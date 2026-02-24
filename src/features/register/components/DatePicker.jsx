@@ -72,6 +72,15 @@ export default function DatePickerInput({
     value ? formatDate(value) : ""
   )
 
+  React.useEffect(() => {
+    if (value) {
+      // value อาจมาเป็น string "2000-02-12" หรือ Date object
+      const parsed = value instanceof Date ? value : new Date(value)
+      setDate(parsed)
+      setInputValue(formatDate(parsed))
+    }
+  }, [value])
+
   const currentYear = new Date().getFullYear()
 
   // สร้าง event ให้เหมือน input ปกติ
@@ -101,7 +110,7 @@ export default function DatePickerInput({
 
               const parsed = parseDate(formatted)
 
-              // ⭐ จุดแก้จริง: emit เฉพาะเมื่อปีครบ 4 หลัก
+              // emit เฉพาะเมื่อปีครบ 4 หลัก
               if (parsed && formatted.length === 10) {
                 setDate(parsed)
                 emitChange(parsed)

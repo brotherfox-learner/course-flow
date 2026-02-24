@@ -3,7 +3,7 @@ import router from "next/router"
 
 function HeroSection () {
     return(
-        <div className="relative z-10 bg-blue-100 pt-14 px-4 min-h-[700px] lg:px-[160px] lg:flex lg:flex-row lg:justify-between lg:pt-0">
+        <div className="relative z-10 bg-blue-100 pt-14 px-4 min-h-screen lg:px-[160px] lg:flex lg:flex-row lg:justify-between lg:pt-0">
             <div className="space-y-4 lg:space-y-6 relative z-10 lg:self-center lg:w-[643px]">
                 <h2 className="headline2 text-black lg:headline1">Best Virtual <br /> Classroom Software</h2>
                 <p className="body2 text-gray-700 lg:body1">Welcome to Schooler! The one-stop online class management system that caters to all your educational needs!</p>

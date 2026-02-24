@@ -10,7 +10,7 @@ import router from "next/router"
 
 function NavBar() {
     const { isShow, switchToggle, reset } = useToggle()
-    const { user, profile } = useAuth()
+    const { user, profile, loading } = useAuth()
 
     useEffect(() => {
         if (!user) reset();
@@ -22,7 +22,7 @@ function NavBar() {
             <div className="flex flex-row gap-2 lg:gap-12">
                 <Button onClick={() => router.push("/courses")} variant="ghost" size="ghost" className="text-dark-blue-500!">Our Courses</Button>
                 {user ? (
-                    <UserProfile profile={profile} onToggle={switchToggle} />
+                    <UserProfile profile={profile} onToggle={switchToggle} isLoading={loading}/>
                 ) : (
                     <Link href="/login">
                         <Button variant="primary" size="md">Log in</Button>

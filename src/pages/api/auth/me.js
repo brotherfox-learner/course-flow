@@ -71,5 +71,6 @@ export default async function handler(req, res) {
     role,
     createdAt: created_at,
     updatedAt: updated_at,
+    email: user.email,
   })
 }
