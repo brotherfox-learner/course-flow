@@ -1,4 +1,5 @@
 import { useRouter } from "next/router";
+import NavBar from "@/common/navbar/NavBar";
 
 export default function PaymentComplete() {
   const router = useRouter();
@@ -7,23 +8,9 @@ export default function PaymentComplete() {
   const isSuccess = status === "success";
 
   return (
+    <>
+    <NavBar />
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-[1440px] mx-auto px-6 lg:px-[160px] py-4 flex items-center justify-between">
-          <span className="text-blue-500 font-bold text-xl italic">
-            CourseFlow
-          </span>
-          <nav className="flex items-center gap-8">
-            <a
-              href="/"
-              className="body2 text-gray-700 hover:text-blue-500 transition-colors"
-            >
-              Our Courses
-            </a>
-          </nav>
-        </div>
-      </div>
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center px-6 py-16 relative overflow-hidden">
@@ -185,5 +172,6 @@ export default function PaymentComplete() {
         </div>
       </footer>
     </div>
+    </>
   );
 }
