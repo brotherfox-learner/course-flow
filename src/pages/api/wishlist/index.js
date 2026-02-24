@@ -95,5 +95,50 @@ export default async function handler(req, res) {
     }
   }
 
+  if (req.method === "DELETE") {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const token = authHeader.split(" ")[1];
+    const { createClient } = await import("@supabase/supabase-js");
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return res.status(401).json({ error: "Invalid token" });
+    }
+    const userId = user.id;
+
+    let body;
+    try {
+      body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    } catch {
+      return res.status(400).json({ error: "Invalid JSON body" });
+    }
+    const { courseId } = body;
+    if (courseId == null || Number.isNaN(Number(courseId))) {
+      return res.status(400).json({ error: "courseId is required" });
+    }
+    const courseIdInt = Number(courseId);
+
+    try {
+      const result = await pool.query(
+        `DELETE FROM enrollments
+         WHERE user_id = $1 AND course_id = $2 AND status = 'wishlist'`,
+        [userId, courseIdInt]
+      );
+      return res.status(200).json({ success: true, deleted: (result.rowCount ?? 0) > 0 });
+    } catch (err) {
+      console.error("Wishlist DELETE error:", err);
+      return res.status(500).json({ error: "Failed to remove from wishlist" });
+    }
+  }
+
   return res.status(405).json({ error: "Method not allowed" });
 }

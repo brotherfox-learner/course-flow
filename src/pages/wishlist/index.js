@@ -9,7 +9,7 @@ import MyWishlist from "@/features/wishlist/components/MyWishlist";
 export default function WishlistPage() {
   const router = useRouter();
   const { user, token, isLoggedIn, loading: authLoading } = useAuth();
-  const { courses, loading, error, refetch } = useWishlist(user?.id, token);
+  const { courses, loading, error, removeFromWishlist } = useWishlist(user?.id, token);
 
   useEffect(() => {
     if (authLoading) return;
@@ -49,7 +49,7 @@ export default function WishlistPage() {
         </div>
 
         <div className="w-full flex flex-col items-center px-4 pb-16 lg:pb-24">
-          <MyWishlist courses={courses} loading={loading} error={error} />
+          <MyWishlist courses={courses} loading={loading} error={error} onRemoveCourse={removeFromWishlist} />
         </div>
       </main>
       <Footer />
