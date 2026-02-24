@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import {
@@ -29,6 +29,8 @@ export default function CourseDetail() {
   const isInWishlist = course && wishlistCourses.some((c) => Number(c.courseId) === Number(course.id));
   const [wishlistAdding, setWishlistAdding] = useState(false);
   const [wishlistRemoving, setWishlistRemoving] = useState(false);
+  const [enrollmentStatus, setEnrollmentStatus] = useState(null);
+  const [enrollmentLoading, setEnrollmentLoading] = useState(false);
   const {
     showConfirmModal,
     handleSubscribe,
@@ -59,6 +61,54 @@ export default function CourseDetail() {
     }
   };
 
+  useEffect(() => {
+    if (!token || !course?.id) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const fetchEnrollmentStatus = async () => {
+      try {
+        setEnrollmentLoading(true);
+        const res = await fetch("/api/my-courses", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) {
+          return;
+        }
+
+        const data = await res.json();
+        const matchedCourse = (data.courses || []).find(
+          (c) => String(c.courseId) === String(course.id)
+        );
+
+        if (!cancelled) {
+          setEnrollmentStatus(matchedCourse?.enrollmentStatus ?? null);
+        }
+      } catch {
+        if (!cancelled) {
+          setEnrollmentStatus(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setEnrollmentLoading(false);
+        }
+      }
+    };
+
+    fetchEnrollmentStatus();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token, course?.id]);
+
+  const hasActiveEnrollment = enrollmentStatus === "active";
+  const hasCompletedEnrollment = enrollmentStatus === "completed";
+  const hasEnrollment = hasActiveEnrollment || hasCompletedEnrollment;
+
   const wishlistButtonLabel = wishlistAdding
     ? "Adding..."
     : wishlistRemoving
@@ -66,7 +116,22 @@ export default function CourseDetail() {
       : isInWishlist
         ? "Already added to wishlist"
         : "Add to Wishlist";
-  const wishlistButtonDisabled = wishlistAdding || wishlistRemoving;
+  const wishlistButtonDisabled = wishlistAdding || wishlistRemoving || enrollmentLoading || hasEnrollment;
+
+  const primaryButtonLabel = hasCompletedEnrollment
+    ? "Review This Course"
+    : hasActiveEnrollment
+      ? "Start Learning"
+      : "Subscribe This Course";
+
+  const handleStartLearning = () => {
+    if (!isLogin) {
+      router.push("/login");
+      return;
+    }
+    if (!course?.id) return;
+    router.push(`/courses/${course.id}/learn`);
+  };
 
   if (loading) {
     return <CourseDetailSkeleton />;
@@ -152,27 +217,29 @@ export default function CourseDetail() {
               </div>
               <p className="headline3 text-[#646D89]">THB {price}</p>
               <div className="flex flex-col gap-4 pt-10 border-t border-[#D6D9E4]">
+                {!hasEnrollment && (
+                  <button
+                    type="button"
+                    onClick={handleWishlistClick}
+                    disabled={wishlistButtonDisabled}
+                    className="w-full py-[18px] px-8 rounded-[12px] border border-[#F47E20] text-[#F47E20] body2 font-bold text-center hover:opacity-90 transition shadow-[4px_4px_24px_rgba(0,0,0,0.08)] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                  >
+                    {wishlistButtonLabel}
+                    {isInWishlist && (
+                      <img
+                        src="/check.svg"
+                        alt="Wishlist status checkmark icon"
+                        className="w-4 h-4 shrink-0 [filter:invert(58%)_sepia(98%)_saturate(2476%)_hue-rotate(360deg)_brightness(101%)_contrast(95%)]"
+                      />
+                    )}
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={handleWishlistClick}
-                  disabled={wishlistButtonDisabled}
-                  className="w-full py-[18px] px-8 rounded-[12px] border border-[#F47E20] text-[#F47E20] body2 font-bold text-center hover:opacity-90 transition shadow-[4px_4px_24px_rgba(0,0,0,0.08)] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-                >
-                  {wishlistButtonLabel}
-                  {isInWishlist && (
-                    <img
-                      src="/check.svg"
-                      alt=""
-                      className="w-4 h-4 shrink-0 [filter:invert(58%)_sepia(98%)_saturate(2476%)_hue-rotate(360deg)_brightness(101%)_contrast(95%)]"
-                    />
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubscribe}
+                  onClick={hasEnrollment ? handleStartLearning : handleSubscribe}
                   className="w-full py-[18px] px-8 rounded-[12px] bg-[#2F5FAC] text-white body2 font-bold text-center hover:opacity-90 transition shadow-[4px_4px_24px_rgba(0,0,0,0.08)]"
                 >
-                  Subscribe This Course
+                  {primaryButtonLabel}
                 </button>
               </div>
             </div>
@@ -235,29 +302,31 @@ export default function CourseDetail() {
               </button>
             </header>
             <div className="flex flex-row items-stretch gap-2 w-full h-[34px]">
-              <Button
-                variant="secondary"
-                size="md"
-                onClick={handleWishlistClick}
-                disabled={wishlistButtonDisabled}
-                className="flex-1 h-[34px] body4 !font-bold !leading-[150%] flex items-center justify-center gap-1"
-              >
-                {wishlistButtonLabel}
-                {isInWishlist && (
-                  <img
-                    src="/check.svg"
-                    alt=""
-                    className="w-3 h-3 shrink-0 [filter:invert(58%)_sepia(98%)_saturate(2476%)_hue-rotate(360deg)_brightness(101%)_contrast(95%)]"
-                  />
-                )}
-              </Button>
+              {!hasEnrollment && (
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={handleWishlistClick}
+                  disabled={wishlistButtonDisabled}
+                  className="flex-1 h-[34px] body4 !font-bold !leading-[150%] flex items-center justify-center gap-1"
+                >
+                  {wishlistButtonLabel}
+                  {isInWishlist && (
+                    <img
+                      src="/check.svg"
+                      alt="Wishlist status checkmark icon"
+                      className="w-3 h-3 shrink-0 [filter:invert(58%)_sepia(98%)_saturate(2476%)_hue-rotate(360deg)_brightness(101%)_contrast(95%)]"
+                    />
+                  )}
+                </Button>
+              )}
               <Button
                 variant="primary"
                 size="md"
-                onClick={handleSubscribe}
+                onClick={hasEnrollment ? handleStartLearning : handleSubscribe}
                 className="flex-1 h-[34px] body4 !font-bold !leading-[150%]"
               >
-                Subscribe This Course
+                {primaryButtonLabel}
               </Button>
             </div>
           </div>
