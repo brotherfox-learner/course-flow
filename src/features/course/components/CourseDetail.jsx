@@ -13,6 +13,9 @@ import Card from "../../../common/card";
 import Button from "../../../common/navbar/Button";
 import Modal from "../../../common/modal";
 import { useCourseDetail, useSubscribeModal } from "../hooks";
+import { useAuth } from "@/context/AuthContext";
+import { useWishlist } from "@/features/wishlist/hooks";
+import CourseDetailSkeleton from "./CourseDetailSkeleton";
 
 export default function CourseDetail() {
   const router = useRouter();
@@ -21,8 +24,12 @@ export default function CourseDetail() {
 
   const { course, lessons, otherCourses, loading } = useCourseDetail(id);
 
-  // TODO: เช็ค login จาก auth context/state จริง
-  const isLogin = true;
+  const { isLoggedIn, token, user } = useAuth();
+  const isLogin = isLoggedIn;
+  const { courses: wishlistCourses, addToWishlist, removeFromWishlist } = useWishlist(user?.id, token);
+  const isInWishlist = course && wishlistCourses.some((c) => Number(c.courseId) === Number(course.id));
+  const [wishlistAdding, setWishlistAdding] = useState(false);
+  const [wishlistRemoving, setWishlistRemoving] = useState(false);
   const {
     showConfirmModal,
     handleSubscribe,
@@ -30,7 +37,41 @@ export default function CourseDetail() {
     handleCancelSubscribe,
   } = useSubscribeModal(id, isLogin, router.push.bind(router));
 
-  if (loading) return <div className="p-10 text-center text-slate-500">Loading...</div>;
+  const handleWishlistClick = async () => {
+    if (!isLogin) {
+      router.push("/login");
+      return;
+    }
+    if (!course?.id) return;
+    if (isInWishlist) {
+      setWishlistRemoving(true);
+      try {
+        await removeFromWishlist(course.id);
+      } finally {
+        setWishlistRemoving(false);
+      }
+    } else {
+      setWishlistAdding(true);
+      try {
+        await addToWishlist(course.id);
+      } finally {
+        setWishlistAdding(false);
+      }
+    }
+  };
+
+  const wishlistButtonLabel = wishlistAdding
+    ? "Adding..."
+    : wishlistRemoving
+      ? "Removing from wishlist..."
+      : isInWishlist
+        ? "Already added to wishlist"
+        : "Add to Wishlist";
+  const wishlistButtonDisabled = wishlistAdding || wishlistRemoving;
+
+  if (loading) {
+    return <CourseDetailSkeleton />;
+  }
   if (!course) return <div className="p-10 text-center text-slate-500">Course not found</div>;
 
   const title = course.course_name || "Course Title";
@@ -112,8 +153,20 @@ export default function CourseDetail() {
               </div>
               <p className="headline3 text-[#646D89]">THB {price}</p>
               <div className="flex flex-col gap-4 pt-10 border-t border-[#D6D9E4]">
-                <button type="button" className="w-full py-[18px] px-8 rounded-[12px] border border-[#F47E20] text-[#F47E20] body2 font-bold text-center hover:opacity-90 transition shadow-[4px_4px_24px_rgba(0,0,0,0.08)]">
-                  Add to Wishlist
+                <button
+                  type="button"
+                  onClick={handleWishlistClick}
+                  disabled={wishlistButtonDisabled}
+                  className="w-full py-[18px] px-8 rounded-[12px] border border-[#F47E20] text-[#F47E20] body2 font-bold text-center hover:opacity-90 transition shadow-[4px_4px_24px_rgba(0,0,0,0.08)] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                >
+                  {wishlistButtonLabel}
+                  {isInWishlist && (
+                    <img
+                      src="/check.svg"
+                      alt=""
+                      className="w-4 h-4 shrink-0 [filter:invert(58%)_sepia(98%)_saturate(2476%)_hue-rotate(360deg)_brightness(101%)_contrast(95%)]"
+                    />
+                  )}
                 </button>
                 <button
                   type="button"
@@ -186,9 +239,18 @@ export default function CourseDetail() {
               <Button
                 variant="secondary"
                 size="md"
-                className="flex-1 h-[34px] body4 !font-bold !leading-[150%]"
+                onClick={handleWishlistClick}
+                disabled={wishlistButtonDisabled}
+                className="flex-1 h-[34px] body4 !font-bold !leading-[150%] flex items-center justify-center gap-1"
               >
-                Add to Wishlist
+                {wishlistButtonLabel}
+                {isInWishlist && (
+                  <img
+                    src="/check.svg"
+                    alt=""
+                    className="w-3 h-3 shrink-0 [filter:invert(58%)_sepia(98%)_saturate(2476%)_hue-rotate(360deg)_brightness(101%)_contrast(95%)]"
+                  />
+                )}
               </Button>
               <Button
                 variant="primary"

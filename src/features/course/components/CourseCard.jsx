@@ -2,7 +2,10 @@ import Card from "../../../common/card";
 import SearchBox from "../../../common/searchbox";
 import Link from "next/link";
 import Pagination from "../../../common/pagination.jsx";
+import CourseCardSkeleton from "./CourseCardSkeleton";
 import { useCourseList } from "../hooks";
+import { useAuth } from "@/context/AuthContext";
+import { useWishlist } from "@/features/wishlist/hooks";
 
 const PAGE_SIZE = 12;
 
@@ -15,8 +18,24 @@ export default function CourseCard() {
     visibleCourses,
     handleSearchChange,
     handlePageChange,
+    resetSearch,
     pageSize,
   } = useCourseList(PAGE_SIZE);
+  const { user, token, isLoggedIn } = useAuth();
+  const { courses: wishlistCourses, addToWishlist, removeFromWishlist } = useWishlist(
+    isLoggedIn ? user?.id : null,
+    token
+  );
+
+  const handleWishlistToggle = async (courseId) => {
+    if (!isLoggedIn || !token) return;
+    const isInWishlist = wishlistCourses.some((c) => Number(c.courseId) === Number(courseId));
+    if (isInWishlist) {
+      await removeFromWishlist(courseId);
+    } else {
+      await addToWishlist(courseId);
+    }
+  };
 
   return (
     <div className="min-h-auto mb-[30px] lg:mb-20 bg-white flex flex-col items-center justify-center mx-auto relative overflow-x-hidden">
@@ -34,34 +53,60 @@ export default function CourseCard() {
         <SearchBox
           value={search}
           onChange={handleSearchChange}
+          onClear={resetSearch}
           placeholder="Search..."
         />
       </div>
 
       {loading ? (
-        <div className="max-w-[1119px] mx-auto text-center py-12">
-          <p className="text-gray-500">Loading courses...</p>
-        </div>
+        <section
+          className="grid gap-[32px] grid-cols-1 md:grid-cols-2 md:gap-y-[32px] md:gap-x-[15px] lg:grid-cols-2 lg:gap-x-[25px] xl:grid-cols-3 xl:gap-y-[60px] xl:gap-x-[24px] xl:w-[1119px] 2xl:grid-cols-4 2xl:w-[1500px] 2xl:gap-y-[50px] 2xl:gap-x-[24px]"
+          aria-label="Loading courses"
+        >
+          {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+            <CourseCardSkeleton key={i} />
+          ))}
+        </section>
       ) : (
         <>
           <section className="grid  gap-[32px] grid-cols-1 md:grid-cols-2 md:gap-y-[32px] md:gap-x-[15px]  lg:grid-cols-2  lg:gap-x-[25px]  xl:grid-cols-3 xl:gap-y-[60px] xl:gap-x-[24px]  xl:w-[1119px] 2xl:grid-cols-4 2xl:w-[1500px] 2xl:gap-y-[50px] 2xl:gap-x-[24px]">
             {visibleCourses.length > 0 ? (
-              visibleCourses.map((course) => (
-                <Link key={course.id} href={`/courses/${course.id}`}>
-                  <Card
-                    courseName={course.course_name}
-                    description={course.course_summary}
-                    lessonCount={course.lesson_count}
-                    durationHours={course.total_learning_time}
-                    imageUrl={course.cover_img_url}
-                  />
-                </Link>
-              ))
+              visibleCourses.map((course) => {
+                const isInWishlist = wishlistCourses.some(
+                  (c) => Number(c.courseId) === Number(course.id)
+                );
+                return (
+                  <Link key={course.id} href={`/courses/${course.id}`}>
+                    <Card
+                      courseName={course.course_name}
+                      description={course.course_summary}
+                      lessonCount={course.lesson_count}
+                      durationHours={course.total_learning_time}
+                      imageUrl={course.cover_img_url}
+                      wishlistHeart={isLoggedIn}
+                      isInWishlist={isInWishlist}
+                      onWishlistClick={() => handleWishlistToggle(course.id)}
+                    />
+                  </Link>
+                );
+              })
+            ) : search ? (
+              <div className="col-span-full max-w-[600px] mx-auto py-12 pb-24 lg:pb-32 min-h-[55vh] text-left">
+                <h2 className="headline3 text-gray-900 font-bold mb-3">
+                  Sorry, we couldn&apos;t find any results for &quot;{search}&quot;
+                </h2>
+                <p className="body2 text-gray-700 mb-4">
+                  Try adjusting your search. Here are some ideas:
+                </p>
+                <ul className="list-disc list-inside body2 text-gray-700 space-y-2">
+                  <li>Make sure all words are spelled correctly</li>
+                  <li>Try different search terms</li>
+                  <li>Try more general search terms</li>
+                </ul>
+              </div>
             ) : (
               <div className="col-span-full text-center py-12">
-                <p className="text-gray-500">
-                  {search ? "No courses found matching your search." : "No courses available."}
-                </p>
+                <p className="text-gray-500">No courses available.</p>
               </div>
             )}
           </section>
