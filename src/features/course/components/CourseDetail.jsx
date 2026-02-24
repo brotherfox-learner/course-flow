@@ -23,7 +23,6 @@ export default function CourseDetail() {
   const [barExpanded, setBarExpanded] = useState(false);
 
   const { course, lessons, otherCourses, loading } = useCourseDetail(id);
-
   const { isLoggedIn, token, user } = useAuth();
   const isLogin = isLoggedIn;
   const { courses: wishlistCourses, addToWishlist, removeFromWishlist } = useWishlist(user?.id, token);
