@@ -33,7 +33,7 @@ export default async function handler(req, res) {
     try {
       const userResult = await pool.query(
         "SELECT id, profile_name, first_name, last_name, avatar_url FROM users WHERE id = $1",
-        [userId]
+        [authUser.id]
       );
       if (userResult.rows.length > 0) {
         const row = userResult.rows[0];
