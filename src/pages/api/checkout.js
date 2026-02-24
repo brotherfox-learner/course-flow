@@ -33,9 +33,23 @@ export default async function handler(req, res) {
     if (courseResult.rows.length === 0) {
       return res.status(404).json({ error: "Course not found" });
     }
-    
+
     // เก็บข้อมูลคอร์สในตัวแปร course
     const course = courseResult.rows[0];
+
+    // ถ้า enroll แล้ว (active/completed) ไม่ให้จ่ายซ้ำ
+    const existingEnrollment = await client.query(
+      `SELECT id FROM enrollments 
+       WHERE user_id = $1 AND course_id = $2 AND status IN ('active', 'completed')`,
+      [userId, courseId]
+    );
+    if (existingEnrollment.rows.length > 0) {
+      return res.status(400).json({
+        error: "Already enrolled in this course",
+        alreadyEnrolled: true,
+        courseSlug: course.slug,
+      });
+    }
 
     // สร้างตัวแปร finalAmount เพื่อคำนวณราคาสุดท้าย
     let finalAmount = parseFloat(course.price);
@@ -142,13 +156,17 @@ export default async function handler(req, res) {
     // เก็บ ID ของ payment
     const paymentId = paymentResult.rows[0].id;
 
-    // 6. If card payment is successful, create enrollment immediately
-    // ถ้าการชำระเงินสำเร็จ สร้าง enrollment ทันที
+    // 6. If card payment is successful, create or update enrollment
+    // ถ้าการชำระเงินสำเร็จ สร้าง enrollment หรืออัปเดตจาก wishlist เป็น active
     if (charge.status === "successful") {
       await client.query(
         `INSERT INTO enrollments (user_id, course_id, promo_code_id, status, enrolled_at, updated_at)
          VALUES ($1, $2, $3, 'active', NOW(), NOW())
-         ON CONFLICT (user_id, course_id) DO NOTHING`,
+         ON CONFLICT (user_id, course_id) DO UPDATE SET
+           status = 'active',
+           enrolled_at = NOW(),
+           updated_at = NOW(),
+           promo_code_id = COALESCE(EXCLUDED.promo_code_id, enrollments.promo_code_id)`,
         [userId, courseId, promoCodeId]
       );
 
