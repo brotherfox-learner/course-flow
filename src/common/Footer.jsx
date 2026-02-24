@@ -9,11 +9,10 @@ function Footer() {
                     <button className="body2 text-gray-500 cursor-pointer">All Courses</button>
                     <button className="body2 text-gray-500 cursor-pointer">Bundle Package</button>
                 </div>
-                <div className="flex flex-row gap-4">
-                    <img src="/fb.svg" alt="facebook" className="cursor-pointer"/>
-                    <img src="/ig.svg" alt="instagram" className="cursor-pointer"/>
-                    <img src="/tw.svg" alt="twitter" className="cursor-pointer"/>
-                    //เปลี่ยนเป็น X ในอนาคต
+                <div className="flex gap-4">
+                    <img src="/fb.svg" alt="facebook icon" />
+                    <img src="/ig.svg" alt="instagram icon" />
+                    <img src="/tw.svg" alt="twitter icon" /> {/* Added proper jsx comment if needed */}
                 </div>
             </div>
         </footer>
