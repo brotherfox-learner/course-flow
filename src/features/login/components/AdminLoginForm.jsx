@@ -3,9 +3,12 @@ import { useRouter } from "next/router"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useAuth } from "@/context/AuthContext"
+import axios from "axios"
 
 export function AdminLoginForm() {
   const router = useRouter()
+  const { login, logout } = useAuth()
   const [formData, setFormData] = useState({ email: "", password: "" })
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState("")
@@ -28,8 +31,6 @@ export function AdminLoginForm() {
     }
     if (!formData.password) {
       newErrors.password = "Password is required"
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters"
     }
     return newErrors
   }
@@ -46,19 +47,25 @@ export function AdminLoginForm() {
 
     setIsLoading(true)
 
-    // TODO: Replace with Supabase Auth
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      if (
-        formData.email === "admin@courseflow.com" &&
-        formData.password === "admin123"
-      ) {
-        router.push("/")
+      const data = await login({ email: formData.email, password: formData.password })
+      
+      // Verify admin role
+      const res = await axios.get("/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${data.session.access_token}`,
+        },
+      })
+
+      if (res.data.role !== "admin") {
+        await logout()
+        setSubmitError("Access denied. Admin privileges required.")
       } else {
-        setSubmitError("Invalid email or password")
+        router.push("/admin/courses")
       }
     } catch (err) {
-      setSubmitError("Something went wrong. Please try again.")
+      console.error(err)
+      setSubmitError(err.response?.data?.message || err.message || "Invalid email or password")
     } finally {
       setIsLoading(false)
     }
