@@ -5,15 +5,48 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import AdminLayout from "@/components/layout/AdminLayout"
-import Link from "next/link"
 import { useRouter } from "next/router"
-import { Trash2, Edit } from "lucide-react"
+import { Trash2, Edit, ArrowUp, ArrowDown, Plus } from "lucide-react"
+import axios from "axios"
+import { useAuth } from "@/context/AuthContext"
 
 export default function EditCourse() {
   const router = useRouter()
   const { id } = router.query
+  const { token, loading, logout } = useAuth()
   const [hasPromoCode, setHasPromoCode] = useState(true)
+  const [pageError, setPageError] = useState("")
+  const [isPageLoading, setIsPageLoading] = useState(true)
+
+  const [isAddLessonOpen, setIsAddLessonOpen] = useState(false)
+  const [newLessonName, setNewLessonName] = useState("")
+  const [isSavingLesson, setIsSavingLesson] = useState(false)
+
+  const [isAddSubLessonOpen, setIsAddSubLessonOpen] = useState(false)
+  const [activeLessonId, setActiveLessonId] = useState(null)
+  const [newSubLessonName, setNewSubLessonName] = useState("")
+  const [newSubLessonVdoUrl, setNewSubLessonVdoUrl] = useState("")
+  const [newSubLessonVdoTime, setNewSubLessonVdoTime] = useState("")
+  const [isSavingSubLesson, setIsSavingSubLesson] = useState(false)
+
+  const [isEditLessonOpen, setIsEditLessonOpen] = useState(false)
+  const [editLessonId, setEditLessonId] = useState(null)
+  const [editLessonName, setEditLessonName] = useState("")
+
+  const [isEditSubLessonOpen, setIsEditSubLessonOpen] = useState(false)
+  const [editSubLessonId, setEditSubLessonId] = useState(null)
+  const [editSubLessonName, setEditSubLessonName] = useState("")
+  const [editSubLessonVdoUrl, setEditSubLessonVdoUrl] = useState("")
+  const [editSubLessonVdoTime, setEditSubLessonVdoTime] = useState("")
 
   // Mock data for initial load based on Figma
   const [courseData, setCourseData] = useState({
@@ -35,6 +68,318 @@ export default function EditCourse() {
       { id: 6, name: "Course Summary", subLessons: 10 },
     ]
   })
+
+  useEffect(() => {
+    if (!loading && !token) {
+      router.push("/admin/login")
+    }
+  }, [loading, token, router])
+
+  useEffect(() => {
+    const fetchCourseAndLessons = async () => {
+      if (!id || !token) return
+
+      setIsPageLoading(true)
+      setPageError("")
+      try {
+        const [courseRes, lessonsRes] = await Promise.all([
+          axios.get(`/api/admin/courses/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(`/api/admin/lessons/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ])
+
+        const course = courseRes.data.course
+        setCourseData((prev) => ({
+          ...prev,
+          name: course?.course_name ?? prev.name,
+          price: course?.price != null ? String(course.price) : prev.price,
+          learningTime:
+            course?.total_learning_time != null
+              ? String(course.total_learning_time)
+              : prev.learningTime,
+          summary: course?.course_summary ?? prev.summary,
+          detail: course?.course_detail ?? prev.detail,
+        }))
+
+        const lessons = lessonsRes.data.lessons ?? []
+        setCourseData((prev) => ({
+          ...prev,
+          lessons: lessons.map((l) => ({
+            id: l.id,
+            name: l.name,
+            order_index: l.order_index,
+            subLessons: (l.sub_lessons || []).length,
+            sub_lessons: l.sub_lessons || [],
+          })),
+        }))
+      } catch (error) {
+        console.error("Fetch course/lessons failed:", error)
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          await logout()
+          return
+        }
+        setPageError("Failed to load course")
+      } finally {
+        setIsPageLoading(false)
+      }
+    }
+
+    fetchCourseAndLessons()
+  }, [id, token, logout])
+
+  const refreshLessons = async () => {
+    if (!id || !token) return
+    const lessonsRes = await axios.get(`/api/admin/lessons/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const lessons = lessonsRes.data.lessons ?? []
+    setCourseData((prev) => ({
+      ...prev,
+      lessons: lessons.map((l) => ({
+        id: l.id,
+        name: l.name,
+        order_index: l.order_index,
+        subLessons: (l.sub_lessons || []).length,
+        sub_lessons: l.sub_lessons || [],
+      })),
+    }))
+  }
+
+  const handleAddLesson = async () => {
+    if (!newLessonName.trim()) return
+
+    setIsSavingLesson(true)
+    setPageError("")
+    try {
+      await axios.post(
+        "/api/admin/lessons/create",
+        {
+          course_id: Number(id),
+          name: newLessonName.trim(),
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+
+      setNewLessonName("")
+      setIsAddLessonOpen(false)
+      await refreshLessons()
+    } catch (error) {
+      console.error("Add lesson failed:", error)
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        await logout()
+        return
+      }
+      setPageError(error.response?.data?.message || "Failed to add lesson")
+    } finally {
+      setIsSavingLesson(false)
+    }
+  }
+
+  const openAddSubLesson = (lessonId) => {
+    setActiveLessonId(lessonId)
+    setNewSubLessonName("")
+    setNewSubLessonVdoUrl("")
+    setNewSubLessonVdoTime("")
+    setIsAddSubLessonOpen(true)
+  }
+
+  const openEditLesson = (lesson) => {
+    setEditLessonId(lesson.id)
+    setEditLessonName(lesson.name)
+    setIsEditLessonOpen(true)
+  }
+
+  const openEditSubLesson = (subLesson) => {
+    setEditSubLessonId(subLesson.id)
+    setEditSubLessonName(subLesson.name || "")
+    setEditSubLessonVdoUrl(subLesson.vdo_url || "")
+    setEditSubLessonVdoTime(
+      subLesson.vdo_time != null ? String(subLesson.vdo_time) : ""
+    )
+    setIsEditSubLessonOpen(true)
+  }
+
+  const handleAddSubLesson = async () => {
+    if (!activeLessonId) return
+    if (!newSubLessonName.trim()) return
+
+    setIsSavingSubLesson(true)
+    setPageError("")
+    try {
+      await axios.post(
+        "/api/admin/sub-lessons/create",
+        {
+          lesson_id: activeLessonId,
+          name: newSubLessonName.trim(),
+          vdo_url: newSubLessonVdoUrl || null,
+          vdo_time: newSubLessonVdoTime ? Number(newSubLessonVdoTime) : null,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+
+      setIsAddSubLessonOpen(false)
+      setActiveLessonId(null)
+      await refreshLessons()
+    } catch (error) {
+      console.error("Add sub-lesson failed:", error)
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        await logout()
+        return
+      }
+      setPageError(error.response?.data?.message || "Failed to add sub-lesson")
+    } finally {
+      setIsSavingSubLesson(false)
+    }
+  }
+
+  const handleUpdateLesson = async () => {
+    if (!editLessonId || !editLessonName.trim()) return
+    try {
+      await axios.post(
+        "/api/admin/lessons/update",
+        {
+          lesson_id: editLessonId,
+          name: editLessonName.trim(),
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      setIsEditLessonOpen(false)
+      await refreshLessons()
+    } catch (error) {
+      console.error("Update lesson failed:", error)
+      setPageError(error.response?.data?.message || "Failed to update lesson")
+    }
+  }
+
+  const handleDeleteLesson = async (lessonId) => {
+    const ok = window.confirm("Delete this lesson?")
+    if (!ok) return
+
+    try {
+      await axios.post(
+        "/api/admin/lessons/delete",
+        { lesson_id: lessonId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      await refreshLessons()
+    } catch (error) {
+      console.error("Delete lesson failed:", error)
+      setPageError(error.response?.data?.message || "Failed to delete lesson")
+    }
+  }
+
+  const handleUpdateSubLesson = async () => {
+    if (!editSubLessonId || !editSubLessonName.trim()) return
+    try {
+      await axios.post(
+        "/api/admin/sub-lessons/update",
+        {
+          sub_lesson_id: editSubLessonId,
+          name: editSubLessonName.trim(),
+          vdo_url: editSubLessonVdoUrl || null,
+          vdo_time: editSubLessonVdoTime ? Number(editSubLessonVdoTime) : null,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      setIsEditSubLessonOpen(false)
+      await refreshLessons()
+    } catch (error) {
+      console.error("Update sub-lesson failed:", error)
+      setPageError(error.response?.data?.message || "Failed to update sub-lesson")
+    }
+  }
+
+  const handleDeleteSubLesson = async (subLessonId) => {
+    const ok = window.confirm("Delete this sub-lesson?")
+    if (!ok) return
+
+    try {
+      await axios.post(
+        "/api/admin/sub-lessons/delete",
+        { sub_lesson_id: subLessonId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      await refreshLessons()
+    } catch (error) {
+      console.error("Delete sub-lesson failed:", error)
+      setPageError(
+        error.response?.data?.message || "Failed to delete sub-lesson"
+      )
+    }
+  }
+
+  const moveLesson = async (lessonId, direction) => {
+    const items = [...(courseData.lessons || [])].sort(
+      (a, b) => (a.order_index ?? 0) - (b.order_index ?? 0)
+    )
+    const idx = items.findIndex((l) => l.id === lessonId)
+    if (idx < 0) return
+
+    const target = direction === "up" ? idx - 1 : idx + 1
+    if (target < 0 || target >= items.length) return
+
+    ;[items[idx], items[target]] = [items[target], items[idx]]
+
+    const lesson_orders = items.map((item, i) => ({
+      id: item.id,
+      order_index: i + 1,
+    }))
+
+    try {
+      await axios.post(
+        "/api/admin/lessons/reorder",
+        { course_id: Number(id), lesson_orders },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      await refreshLessons()
+    } catch (error) {
+      console.error("Reorder lessons failed:", error)
+      setPageError(error.response?.data?.message || "Failed to reorder lessons")
+    }
+  }
+
+  const moveSubLesson = async (lesson, subLessonId, direction) => {
+    const subItems = [...(lesson.sub_lessons || [])].sort(
+      (a, b) => (a.order_index ?? 0) - (b.order_index ?? 0)
+    )
+    const idx = subItems.findIndex((s) => s.id === subLessonId)
+    if (idx < 0) return
+
+    const target = direction === "up" ? idx - 1 : idx + 1
+    if (target < 0 || target >= subItems.length) return
+
+    ;[subItems[idx], subItems[target]] = [subItems[target], subItems[idx]]
+
+    const sub_lesson_orders = subItems.map((item, i) => ({
+      id: item.id,
+      order_index: i + 1,
+    }))
+
+    try {
+      await axios.post(
+        "/api/admin/sub-lessons/reorder",
+        { lesson_id: lesson.id, sub_lesson_orders },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      await refreshLessons()
+    } catch (error) {
+      console.error("Reorder sub-lessons failed:", error)
+      setPageError(
+        error.response?.data?.message || "Failed to reorder sub-lessons"
+      )
+    }
+  }
 
   return (
     <AdminLayout>
@@ -58,6 +403,12 @@ export default function EditCourse() {
             Edit
           </Button>
         </div>
+
+      {pageError && (
+        <div className="bg-orange-100/20 border border-orange-500 rounded-lg px-4 py-3 mb-6">
+          <p className="text-orange-500 text-sm">{pageError}</p>
+        </div>
+      )}
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-10 mb-8">
@@ -181,7 +532,11 @@ export default function EditCourse() {
       <div className="mb-12">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-[22px] font-medium text-slate-800">Lesson</h2>
-          <Button className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-12 px-6 rounded-md font-medium shadow-sm text-[15px]">
+          <Button
+            onClick={() => setIsAddLessonOpen(true)}
+            disabled={isPageLoading || loading || !token}
+            className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-12 px-6 rounded-md font-medium shadow-sm text-[15px] disabled:opacity-50"
+          >
             + Add Lesson
           </Button>
         </div>
@@ -195,35 +550,101 @@ export default function EditCourse() {
           </div>
           
           <div className="bg-white">
-            {courseData.lessons.map((lesson) => (
-              <div key={lesson.id} className="grid grid-cols-12 p-4 items-center border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                <div className="col-span-1 text-center text-slate-400">
-                  <div className="grid grid-cols-2 gap-1 w-4 mx-auto cursor-grab">
-                    <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
-                    <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
-                    <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
-                    <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
-                    <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
-                    <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
+            {isPageLoading ? (
+              <div className="p-6 text-slate-500">Loading lessons...</div>
+            ) : (
+              courseData.lessons.map((lesson) => (
+                <>
+                  <div key={lesson.id} className="grid grid-cols-12 p-4 items-center border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                    <div className="col-span-1 text-center text-slate-400">
+                      <div className="grid grid-cols-2 gap-1 w-4 mx-auto cursor-grab">
+                        <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
+                        <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
+                        <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
+                        <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
+                        <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
+                        <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
+                      </div>
+                    </div>
+                    <div className="col-span-6 flex items-center gap-4">
+                      <span className="text-slate-600 font-medium">{lesson.id}</span>
+                      <span className="text-slate-800">{lesson.name}</span>
+                    </div>
+                    <div className="col-span-3 text-slate-600">
+                      {lesson.subLessons}
+                    </div>
+                    <div className="col-span-2 flex justify-center gap-3">
+                      <Button
+                        onClick={() => moveLesson(lesson.id, "up")}
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-[#8BA4D4] hover:text-slate-700 hover:bg-slate-100 rounded-full"
+                      >
+                        <ArrowUp className="h-[18px] w-[18px]" />
+                      </Button>
+                      <Button
+                        onClick={() => moveLesson(lesson.id, "down")}
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-[#8BA4D4] hover:text-slate-700 hover:bg-slate-100 rounded-full"
+                      >
+                        <ArrowDown className="h-[18px] w-[18px]" />
+                      </Button>
+                      <Button
+                        onClick={() => openEditLesson(lesson)}
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-[#8BA4D4] hover:text-[#2F5FAC] hover:bg-blue-50 rounded-full"
+                      >
+                        <Edit className="h-[18px] w-[18px]" />
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteLesson(lesson.id)}
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-[#8BA4D4] hover:text-red-500 hover:bg-red-50 rounded-full"
+                      >
+                        <Trash2 className="h-[18px] w-[18px]" />
+                      </Button>
+                      <Button
+                        onClick={() => openAddSubLesson(lesson.id)}
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-[#8BA4D4] hover:text-[#2F5FAC] hover:bg-blue-50 rounded-full"
+                      >
+                        <Plus className="h-[18px] w-[18px]" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <div className="col-span-6 flex items-center gap-4">
-                  <span className="text-slate-600 font-medium">{lesson.id}</span>
-                  <span className="text-slate-800">{lesson.name}</span>
-                </div>
-                <div className="col-span-3 text-slate-600">
-                  {lesson.subLessons}
-                </div>
-                <div className="col-span-2 flex justify-center gap-3">
-                  <Button variant="ghost" size="icon" className="h-9 w-9 text-[#8BA4D4] hover:text-red-500 hover:bg-red-50 rounded-full">
-                    <Trash2 className="h-[18px] w-[18px]" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-9 w-9 text-[#8BA4D4] hover:text-[#2F5FAC] hover:bg-blue-50 rounded-full">
-                    <Edit className="h-[18px] w-[18px]" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+                  {(lesson.sub_lessons || []).map((sub) => (
+                    <div key={`sub-${sub.id}`} className="grid grid-cols-12 px-4 py-2 items-center border-b border-slate-100 bg-slate-50/40">
+                      <div className="col-span-1" />
+                      <div className="col-span-6 flex items-center gap-3 text-slate-600 text-sm">
+                        <span className="text-slate-400">↳</span>
+                        <span>{sub.name}</span>
+                      </div>
+                      <div className="col-span-3 text-slate-500 text-sm">
+                        {sub.vdo_time != null ? `${sub.vdo_time} min` : "-"}
+                      </div>
+                      <div className="col-span-2 flex justify-center gap-2">
+                        <Button onClick={() => moveSubLesson(lesson, sub.id, "up")} variant="ghost" size="icon" className="h-8 w-8 text-[#8BA4D4] hover:text-slate-700 hover:bg-slate-100 rounded-full">
+                          <ArrowUp className="h-4 w-4" />
+                        </Button>
+                        <Button onClick={() => moveSubLesson(lesson, sub.id, "down")} variant="ghost" size="icon" className="h-8 w-8 text-[#8BA4D4] hover:text-slate-700 hover:bg-slate-100 rounded-full">
+                          <ArrowDown className="h-4 w-4" />
+                        </Button>
+                        <Button onClick={() => openEditSubLesson(sub)} variant="ghost" size="icon" className="h-8 w-8 text-[#8BA4D4] hover:text-[#2F5FAC] hover:bg-blue-50 rounded-full">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button onClick={() => handleDeleteSubLesson(sub.id)} variant="ghost" size="icon" className="h-8 w-8 text-[#8BA4D4] hover:text-red-500 hover:bg-red-50 rounded-full">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ))
+            )}
           </div>
         </div>
         <div className="flex justify-end mt-4">
@@ -232,6 +653,168 @@ export default function EditCourse() {
           </Button>
         </div>
       </div>
+
+      <Dialog open={isAddLessonOpen} onOpenChange={setIsAddLessonOpen}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Add Lesson</DialogTitle>
+            <DialogDescription>
+              Create a new lesson for this course
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="lessonName">Lesson name</Label>
+            <Input
+              id="lessonName"
+              value={newLessonName}
+              onChange={(e) => setNewLessonName(e.target.value)}
+              placeholder="Introduction"
+            />
+          </div>
+          <DialogFooter className="mt-4 flex gap-2 sm:justify-end">
+            <Button
+              variant="outline"
+              className="border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600"
+              onClick={() => setIsAddLessonOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={isSavingLesson || !newLessonName.trim()}
+              onClick={handleAddLesson}
+            >
+              {isSavingLesson ? "Saving..." : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddSubLessonOpen} onOpenChange={setIsAddSubLessonOpen}>
+        <DialogContent className="sm:max-w-[520px]">
+          <DialogHeader>
+            <DialogTitle>Add Sub-lesson</DialogTitle>
+            <DialogDescription>
+              Create a new sub-lesson for the selected lesson
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="subLessonName">Sub-lesson name</Label>
+              <Input
+                id="subLessonName"
+                value={newSubLessonName}
+                onChange={(e) => setNewSubLessonName(e.target.value)}
+                placeholder="Overview"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="subLessonVdoUrl">Video URL</Label>
+              <Input
+                id="subLessonVdoUrl"
+                value={newSubLessonVdoUrl}
+                onChange={(e) => setNewSubLessonVdoUrl(e.target.value)}
+                placeholder="https://..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="subLessonVdoTime">Video time (minutes)</Label>
+              <Input
+                id="subLessonVdoTime"
+                type="number"
+                value={newSubLessonVdoTime}
+                onChange={(e) => setNewSubLessonVdoTime(e.target.value)}
+                placeholder="10"
+              />
+            </div>
+          </div>
+          <DialogFooter className="mt-4 flex gap-2 sm:justify-end">
+            <Button
+              variant="outline"
+              className="border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600"
+              onClick={() => setIsAddSubLessonOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={isSavingSubLesson || !newSubLessonName.trim()}
+              onClick={handleAddSubLesson}
+            >
+              {isSavingSubLesson ? "Saving..." : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditLessonOpen} onOpenChange={setIsEditLessonOpen}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Edit Lesson</DialogTitle>
+            <DialogDescription>Update lesson name</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="editLessonName">Lesson name</Label>
+            <Input
+              id="editLessonName"
+              value={editLessonName}
+              onChange={(e) => setEditLessonName(e.target.value)}
+            />
+          </div>
+          <DialogFooter className="mt-4 flex gap-2 sm:justify-end">
+            <Button variant="outline" onClick={() => setIsEditLessonOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateLesson} disabled={!editLessonName.trim()}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditSubLessonOpen} onOpenChange={setIsEditSubLessonOpen}>
+        <DialogContent className="sm:max-w-[520px]">
+          <DialogHeader>
+            <DialogTitle>Edit Sub-lesson</DialogTitle>
+            <DialogDescription>Update sub-lesson detail</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="editSubLessonName">Sub-lesson name</Label>
+              <Input
+                id="editSubLessonName"
+                value={editSubLessonName}
+                onChange={(e) => setEditSubLessonName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editSubLessonVdoUrl">Video URL</Label>
+              <Input
+                id="editSubLessonVdoUrl"
+                value={editSubLessonVdoUrl}
+                onChange={(e) => setEditSubLessonVdoUrl(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editSubLessonVdoTime">Video time (minutes)</Label>
+              <Input
+                id="editSubLessonVdoTime"
+                type="number"
+                value={editSubLessonVdoTime}
+                onChange={(e) => setEditSubLessonVdoTime(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter className="mt-4 flex gap-2 sm:justify-end">
+            <Button variant="outline" onClick={() => setIsEditSubLessonOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateSubLesson} disabled={!editSubLessonName.trim()}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   )
 }

@@ -4,11 +4,13 @@ import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import AdminLayout from "@/components/layout/AdminLayout"
-import Link from "next/link"
 import { useRouter } from "next/router"
+import axios from "axios"
+import { useAuth } from "@/context/AuthContext"
 
 export default function AddPromoCode() {
   const router = useRouter()
+  const { token, logout } = useAuth()
   const [formData, setFormData] = useState({
     code: "",
     discountType: "thb",
@@ -21,6 +23,8 @@ export default function AddPromoCode() {
   })
 
   const [errors, setErrors] = useState({})
+  const [submitError, setSubmitError] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -52,12 +56,48 @@ export default function AddPromoCode() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (validate()) {
-      // TODO: Save to Supabase
-      console.log("Saving promo code:", formData)
-      router.push('/admin/promocodes')
+    setSubmitError("")
+
+    if (!validate()) {
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      await axios.post(
+        "/api/admin/promocodes/create",
+        {
+          code: formData.code,
+          name: formData.code,
+          discount_type: formData.discountType === "thb" ? "fixed" : "percent",
+          discount_value:
+            formData.discountType === "thb"
+              ? Number(formData.discountAmount)
+              : Number(formData.discountPercent),
+          min_price: Number(formData.minPurchase),
+          max_uses: Number(formData.usageLimit),
+          valid_from: formData.validFrom,
+          valid_until: formData.validTo,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      router.push("/admin/promocodes")
+    } catch (error) {
+      console.error("Create promo code failed:", error)
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        await logout()
+        return
+      }
+      setSubmitError(error.response?.data?.message || "Failed to create promo code")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -69,11 +109,17 @@ export default function AddPromoCode() {
           <Button variant="outline" className="border-orange-500 text-orange-500 hover:bg-orange-50" onClick={() => router.push('/admin/promocodes')}>
             Cancel
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleSubmit}>
+          <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleSubmit} disabled={isSubmitting || !token}>
             Create
           </Button>
         </div>
       </div>
+
+      {submitError && (
+        <div className="bg-orange-100/20 border border-orange-500 rounded-lg px-4 py-3 mb-6">
+          <p className="text-orange-500 text-sm">{submitError}</p>
+        </div>
+      )}
 
       <div className="bg-white rounded-lg border shadow-sm p-8 max-w-4xl">
         <h2 className="text-xl font-semibold mb-6">Promo Code Information</h2>

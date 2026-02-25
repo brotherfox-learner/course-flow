@@ -22,10 +22,12 @@ import { BookOpen, ClipboardList, Ticket, LogOut } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/router"
 import { useState } from "react"
+import { useAuth } from "@/context/AuthContext"
 
 export function AdminSidebar() {
   const router = useRouter()
   const [isLogoutOpen, setIsLogoutOpen] = useState(false)
+  const { logout } = useAuth()
 
   const navigation = [
     {
@@ -46,10 +48,13 @@ export function AdminSidebar() {
   ]
 
   const handleLogout = async () => {
-    // TODO: Implement actual logout logic with Supabase (clear session/token)
-    localStorage.removeItem("adminToken") // Mock clear session
-    setIsLogoutOpen(false)
-    router.push("/admin/login")
+    try {
+      await logout()
+      setIsLogoutOpen(false)
+      router.push("/admin/login")
+    } catch (error) {
+      console.error("Logout failed:", error)
+    }
   }
 
   return (
