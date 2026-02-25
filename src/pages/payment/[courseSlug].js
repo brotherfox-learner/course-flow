@@ -53,7 +53,7 @@ export async function getServerSideProps(context) {
 
 export default function PaymentPage({ course }) {
   const router = useRouter();
-  const { user, isLoggedIn, loading: authLoading } = useAuth();
+  const { user, token, isLoggedIn, loading: authLoading } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -66,6 +66,28 @@ export default function PaymentPage({ course }) {
       return;
     }
   }, [isLoggedIn, authLoading, user, router]);
+
+  // ถ้า enroll คอร์สนี้แล้ว (active/completed) ไม่ต้องแสดงหน้า payment — ไปหน้ารายละเอียดคอร์ส
+  useEffect(() => {
+    if (!token || !user?.id || !course?.id) return;
+
+    const checkEnrolled = async () => {
+      try {
+        const res = await fetch(
+          `/api/enrollments/check?courseId=${encodeURIComponent(course.id)}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.enrolled) {
+          router.replace(`/courses/${course.id}`);
+        }
+      } catch {
+        // ignore
+      }
+    };
+    checkEnrolled();
+  }, [token, user?.id, course?.id, router]);
 
   // Promo code state
   const [promoCode, setPromoCode] = useState("");
@@ -160,6 +182,10 @@ export default function PaymentPage({ course }) {
       const data = await res.json();
 
       if (!res.ok) {
+        if (data.alreadyEnrolled && data.courseSlug) {
+          router.replace(`/courses/${course.id}`);
+          return;
+        }
         const detail = data.failureMessage || data.error || "Payment failed";
         throw new Error(detail);
       }
@@ -233,6 +259,10 @@ export default function PaymentPage({ course }) {
       const data = await res.json();
 
       if (!res.ok) {
+        if (data.alreadyEnrolled && data.courseSlug) {
+          router.replace(`/courses/${course.id}`);
+          return;
+        }
         const detail = data.failureMessage || data.error || "Payment failed";
         throw new Error(detail);
       }
