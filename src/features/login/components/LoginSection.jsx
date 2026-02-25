@@ -1,9 +1,12 @@
 import Button from "@/common/navbar/Button"
 import useLogin from "../hook/useLogin"
 import Link from "next/link"
+import { Eye, EyeClosed } from 'lucide-react';
+import usePasswordVisibility from "../hook/usePasswordVisibility";
 
 function LoginSection() {
     const { form, errors, isLoading, handleChange, submit } = useLogin()
+    const { isVisible, inputType, toggleVisibility, } = usePasswordVisibility()
 
     const styleInput =
         "w-full body2 text-black bg-white border border-gray-400 rounded-lg p-3 placeholder:text-gray-600 focus:outline-none focus:border-orange-500"
@@ -11,9 +14,8 @@ function LoginSection() {
 
     const styleError = "border-purple"
 
-
     return (
-        <div className="relative bg-white min-h-screen px-4 py-10 overflow-hidden">
+        <div className="relative bg-white min-h-[calc(100vh-var(--navbar-height))] px-4 py-10 overflow-hidden">
             <div className="space-y-10 mx-auto lg:max-w-[453px] lg:mt-[120px] relative z-10">
                 <h3 className="headline3 text-dark-blue-500">
                     Welcome back!
@@ -44,17 +46,21 @@ function LoginSection() {
                         <label htmlFor="password" className={styleLabel}>
                             Password
                         </label>
-                        <div className="w-full relative">
+                        <div className={`w-full relative flex flex-row ${styleInput} ${errors.form ? styleError : ""}`} >
                             <input
                                 id="password"
                                 name="password"
-                                type="password"
+                                type={inputType}
                                 placeholder="Enter password"
                                 value={form.password}
                                 onChange={handleChange}
-                                className={`${styleInput} ${errors.form ? styleError : ""}`}
+                                className="grow outline-none placeholder:text-gray-600"
                             />
+                            {!errors.form && <button type="button" className="absolute right-4 top-4 cursor-pointer" onClick={toggleVisibility}>
+                                {isVisible ? <Eye size={20} /> : <EyeClosed size={20} />}
+                            </button>}
                             {errors.form && (<img src="/exclamation_circle.svg" alt="error icon" className="absolute right-4 top-4" />)}
+
                         </div>
                     </div>
                     {errors.form && (

@@ -19,6 +19,7 @@ export function AuthProvider({ children }) {
 
   // Profile จาก users table
   const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   //  Bootstrap session + listener
 
@@ -55,9 +56,10 @@ export function AuthProvider({ children }) {
   const fetchProfile = useCallback(async (accessToken) => {
     if (!accessToken) {
       setProfile(null);
+      setProfileLoading(false);
       return;
     }
-
+    setProfileLoading(true)
     try {
       const res = await axios.get("/api/auth/me", {
         headers: {
@@ -72,6 +74,8 @@ export function AuthProvider({ children }) {
       if (err.response?.status === 401) {
         await supabase.auth.signOut();
       }
+    } finally {
+      setProfileLoading(false)
     }
   }, []);
 
@@ -87,12 +91,12 @@ export function AuthProvider({ children }) {
       email,
       password,
     });
-  
+
     if (error) throw error; // hook จะ catch เอง
     return data;
   };
 
-    // Logout
+  // Logout
 
   const logout = async () => {
     await supabase.auth.signOut();
@@ -107,9 +111,10 @@ export function AuthProvider({ children }) {
         token,
         profile,
         isLoggedIn,
-        loading,
+        loading: loading || profileLoading,
         login,
         logout,
+        fetchProfile,
       }}
     >
       {children}

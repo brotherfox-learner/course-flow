@@ -10,6 +10,12 @@ function isInvalidBirthYear(date) {
   return year < 1900 || year > currentYear
 }
 
+function isUnderAge(date) {
+  const today = new Date()
+  const minAge = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate())
+  return date > minAge
+}
+
 
 export function validateRegister(form) {
   const errors = {}
@@ -29,6 +35,8 @@ export function validateRegister(form) {
     isInvalidBirthYear(form.birthDate)
   ) {
     errors.birthDate = "Invalid date of birth"
+  } else if (isUnderAge(form.birthDate)) {
+    errors.birthDate = "You must be at least 13 years old"
   }
 
   if (!form.email) {

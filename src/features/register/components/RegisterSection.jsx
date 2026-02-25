@@ -2,6 +2,7 @@ import Button from "@/common/navbar/Button"
 import DatePickerInput from "./DatePicker"
 import useRegister from "../hook/useRegister"
 import Link from "next/link"
+import { ComboBox } from "./ComboBox"
 
 function RegisterSection() {
   const { form, errors, isLoading, handleChange, submit } = useRegister()
@@ -79,19 +80,13 @@ function RegisterSection() {
           {/* Educational Background */}
           <div className="flex flex-col gap-1">
             <label className={styleLabel}>Educational Background</label>
-            <input
+            <ComboBox
               name="educationalBackground"
-              type="text"
-              placeholder="Enter Educational Background"
               value={form.educationalBackground}
               onChange={handleChange}
-              className={`${styleInput} ${errors.educationalBackground ? styleError : ""}`}
+              inputClassName={`${styleInput}`}
+              placeholder="Select educational background (optional)"
             />
-            {errors.educationalBackground && (
-              <p className={styleErrortext}>
-                {errors.educationalBackground}
-              </p>
-            )}
           </div>
 
           {/* Email */}
