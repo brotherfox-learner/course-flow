@@ -10,7 +10,7 @@ function DropdownUser() {
 
   return (
     <div className="absolute right-0 top-18 lg:right-2 lg:top-[61px] py-2 min-w-[198px] bg-white rounded-lg shadow-2">
-      
+
       <Link href="/profile" className={styleButton}>
         <User size={16} color="#8DADE0" />
         <span>Profile</span>
@@ -33,10 +33,10 @@ function DropdownUser() {
 
       <hr className="my-1" />
 
-      <button className={styleButton} onClick={logout}>
+      <Link href="/" className={styleButton} onClick={logout}>
         <LogOut size={16} color="#646D89" />
         <span>Log out</span>
-      </button>
+      </Link>
     </div>
   )
 }

@@ -14,9 +14,8 @@ function LoginSection() {
 
     const styleError = "border-purple"
 
-
     return (
-        <div className="relative bg-white min-h-screen px-4 py-10 overflow-hidden">
+        <div className="relative bg-white min-h-[calc(100vh-var(--navbar-height))] px-4 py-10 overflow-hidden">
             <div className="space-y-10 mx-auto lg:max-w-[453px] lg:mt-[120px] relative z-10">
                 <h3 className="headline3 text-dark-blue-500">
                     Welcome back!
@@ -55,7 +54,7 @@ function LoginSection() {
                                 placeholder="Enter password"
                                 value={form.password}
                                 onChange={handleChange}
-                                className="grow outline-none"
+                                className="grow outline-none placeholder:text-gray-600"
                             />
                             {!errors.form && <button type="button" className="absolute right-4 top-4 cursor-pointer" onClick={toggleVisibility}>
                                 {isVisible ? <Eye size={20} /> : <EyeClosed size={20} />}
