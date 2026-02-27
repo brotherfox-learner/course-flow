@@ -88,6 +88,47 @@ export default function useProfile() {
     setIsCropping(true)
     setHasCropped(false)
   }
+  function handleImageChange(e) {
+    const file = e.target.files[0]
+    if (!file) return
+  
+    // clear previous image error
+    setErrors(prev => ({ ...prev, avatar: null }))
+  
+    const allowedTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+    ]
+  
+    if (!allowedTypes.includes(file.type)) {
+      setErrors(prev => ({
+        ...prev,
+        avatar: "Only JPG, PNG, or WebP images are allowed.",
+      }))
+      e.target.value = ""
+      return
+    }
+  
+    const MAX_SIZE = 2 * 1024 * 1024 // 2MB
+    if (file.size > MAX_SIZE) {
+      setErrors(prev => ({
+        ...prev,
+        avatar: "Image size must be smaller than 2MB.",
+      }))
+      e.target.value = ""
+      return
+    }
+  
+    // valid file
+    const objectUrl = URL.createObjectURL(file)
+  
+    setOriginalFile(file)
+    setPendingImageUrl(objectUrl)
+    setIsCropping(true)
+    setHasCropped(false)
+  }
 
   // ✅ Crop again → ใช้ไฟล์ต้นฉบับ
   function handleCropAgain() {

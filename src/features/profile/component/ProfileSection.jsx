@@ -87,6 +87,11 @@ export default function ProfilePage() {
                             className="hidden"
                             onChange={handleImageChange}
                         />
+                        {errors.avatar && (
+                            <p className="body3 text-purple text-center">
+                                {errors.avatar}
+                            </p>
+                        )}
                         {hasCropped && (
                             <Button variant="secondary" size="sm" onClick={handleCropAgain}>
                                 Adjust crop
