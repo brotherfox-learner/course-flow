@@ -46,3 +46,7 @@ next-env.d.ts
 PROJECT_STRUCTURE.md
 MyProjectReq/
 MyTask/
+
+# logs
+assignment-flow.md
+dbsql.md

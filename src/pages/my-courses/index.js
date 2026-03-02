@@ -3,7 +3,10 @@ import { useRouter } from "next/router";
 import Card from "@/common/card";
 import NavBar from "@/common/navbar/NavBar";
 import Footer from "@/common/Footer";
+import Pagination from "@/common/pagination";
 import { useAuth } from "@/context/AuthContext";
+
+const PAGE_SIZE = 8;
 
 export default function MyCourses() {
   const router = useRouter();
@@ -11,6 +14,7 @@ export default function MyCourses() {
   const [courses, setCourses] = useState([]);
   const [stats, setStats] = useState({ inprogress: 0, completed: 0, total: 0 });
   const [activeTab, setActiveTab] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user: authUser, profile, loading: authLoading, token, isLoggedIn } = useAuth();
@@ -99,11 +103,10 @@ export default function MyCourses() {
               {tabs.map((tab) => (
                 <div
                   key={tab.key}
-                  className={`pb-3 body2 font-medium ${
-                    tab.key === "all"
+                  className={`pb-3 body2 font-medium ${tab.key === "all"
                       ? "text-black border-b-2 border-black"
                       : "text-gray-400"
-                  }`}
+                    }`}
                 >
                   {tab.label}
                 </div>
@@ -185,11 +188,11 @@ export default function MyCourses() {
       {/* desktop */}
       <main className="min-h-screen bg-white relative">
         <div className="hidden lg:block">
-          <div className="absolute top-[80px] left-[40px] w-[10px] h-[10px] bg-blue-300 rounded-full opacity-60"></div>
-          <div className="absolute top-[110px] left-[20px] w-[25px] h-[25px] bg-blue-200 rounded-full opacity-40"></div>
-          <div className="absolute top-[140px] left-[120px] text-green-400 text-xl opacity-60">✦</div>
-          <div className="absolute top-[100px] right-[80px] text-orange-300 text-lg opacity-60">▽</div>
-          <div className="absolute top-[110px] right-[10px] w-[30px] h-[30px] bg-blue-200 rounded-full opacity-30"></div>
+          <img src="/ellipse.svg" className=" absolute w-9 h-9  right-[-12px] top-[161px] lg:w-[74px] lg:h-[74px] lg:top-[205px] lg:right-[-21px]" alt="" />
+          <img src="/green_cross.svg" className=" absolute w-[15.56px] h-[15.56px] left-[71px] top-[177px] lg:w-[18px] lg:h-[18px] lg:top-[205px] lg:left-[250px]" alt="" />
+          <div className="absolute  w-[8.56px] h-[8.56px] left-[36px] top-[40px] rounded-full  border-[3px] lg:w-[10px] lg:h-[10px] lg:left-[75px] lg:top-[50px] border-[#2F5FAC] box-sizing-border" aria-hidden="true" />
+          <img src="/orange_polygon.svg" className=" absolute w-[27.75px]  h-[27.75px] right-[45px] top-[60px] lg:w-[35px] lg:h-[35px] lg:right-[106px] lg:top-[125px]" alt="" />
+          <img src="/ellipse.svg" className=" absolute w-[20.25px]  h-[20.25px] left-[-10px] top-[85.92px] lg:w-[25px] lg:h-[25px] lg:left-[32px] lg:top-[107px]" alt="" />
         </div>
         {/* mobile */}
         <div className="lg:hidden absolute top-[30px] left-[20px] w-[8px] h-[8px] bg-blue-300 rounded-full opacity-60"></div>
@@ -214,12 +217,14 @@ export default function MyCourses() {
             {tabs.map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`pb-3 body2 font-medium transition-colors cursor-pointer relative ${
-                  activeTab === tab.key
+                onClick={() => {
+                  setActiveTab(tab.key);
+                  setCurrentPage(1);
+                }}
+                className={`pb-3 body2 font-medium transition-colors cursor-pointer relative ${activeTab === tab.key
                     ? "text-black border-b-2 border-black"
                     : "text-gray-500 hover:text-gray-700"
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
@@ -284,21 +289,35 @@ export default function MyCourses() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-                  {filteredCourses.map((course) => (
-                    <Card
-                      key={course.enrollmentId}
-                      category="Course"
-                      courseName={course.courseName}
-                      description={course.courseSummary}
-                      lessonCount={course.lessonCount}
-                      durationHours={course.totalLearningTime}
-                      imageUrl={course.coverImgUrl}
-                      badge={course.enrollmentStatus === "completed" ? "completed" : "inprogress"}
-                      onClick={() => router.push(`/courses/${course.courseId}/learn`)}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                    {filteredCourses
+                      .slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+                      .map((course) => (
+                        <Card
+                          key={course.enrollmentId}
+                          category="Course"
+                          courseName={course.courseName}
+                          description={course.courseSummary}
+                          lessonCount={course.lessonCount}
+                          durationHours={course.totalLearningTime}
+                          imageUrl={course.coverImgUrl}
+                          badge={course.enrollmentStatus === "completed" ? "completed" : "inprogress"}
+                          onClick={() => router.push(`/courses/${course.courseId}/learn`)}
+                        />
+                      ))}
+                  </div>
+                  {filteredCourses.length > PAGE_SIZE && (
+                    <div className="flex justify-center mt-6">
+                      <Pagination
+                        currentPage={currentPage}
+                        totalItems={filteredCourses.length}
+                        pageSize={PAGE_SIZE}
+                        onPageChange={setCurrentPage}
+                      />
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -307,16 +326,16 @@ export default function MyCourses() {
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] z-50 px-4 py-3">
           <div className=" flex flex-col gap-3">
             <div className="flex items-center justify-center gap-3 ">
-            <div className="w-[40px] h-[40px] rounded-full overflow-hidden border border-gray-200 shrink-0">
-              <img
-                src={displayAvatar}
-                alt={displayName}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <p className="body2 font-medium text-black flex-1 truncate">
-              {displayName}
-            </p>
+              <div className="w-[40px] h-[40px] rounded-full overflow-hidden border border-gray-200 shrink-0">
+                <img
+                  src={displayAvatar}
+                  alt={displayName}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <p className="body2 font-medium text-black flex-1 truncate">
+                {displayName}
+              </p>
             </div>
             <div className="flex items-center justify-center gap-3 shrink-0">
               <div className="flex items-center gap-3 bg-gray-200 rounded-[8px] px-3 py-1.5 w-[163.5px] h-[38px] box-border">
