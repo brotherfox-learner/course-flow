@@ -1,15 +1,34 @@
-import { useEffect } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/router";
 import NavBar from "@/common/navbar/NavBar";
 import Footer from "@/common/Footer";
+import Pagination from "@/common/pagination";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/features/wishlist/hooks";
 import MyWishlist from "@/features/wishlist/components/MyWishlist";
+
+const WISHLIST_PAGE_SIZE = 6;
 
 export default function WishlistPage() {
   const router = useRouter();
   const { user, token, isLoggedIn, loading: authLoading } = useAuth();
   const { courses, loading, error, removeFromWishlist } = useWishlist(user?.id, token);
+  const [page, setPage] = useState(1);
+
+  const visibleCourses = useMemo(() => {
+    const start = (page - 1) * WISHLIST_PAGE_SIZE;
+    return courses.slice(start, start + WISHLIST_PAGE_SIZE);
+  }, [courses, page]);
+
+  const handlePageChange = useCallback((newPage) => {
+    setPage(newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    const totalPages = Math.ceil(courses.length / WISHLIST_PAGE_SIZE) || 1;
+    if (page > totalPages) setPage(1);
+  }, [courses.length, page]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -48,8 +67,16 @@ export default function WishlistPage() {
           </h1>
         </div>
 
-        <div className="w-full flex flex-col items-center px-4 pb-16 lg:pb-24">
-          <MyWishlist courses={courses} loading={loading} error={error} onRemoveCourse={removeFromWishlist} />
+        <div className="w-full flex flex-col items-center px-4 pb-16 lg:pb-24 gap-8">
+          <MyWishlist courses={visibleCourses} loading={loading} error={error} onRemoveCourse={removeFromWishlist} />
+          {!loading && !error && courses.length > 0 && (
+            <Pagination
+              currentPage={page}
+              totalItems={courses.length}
+              pageSize={WISHLIST_PAGE_SIZE}
+              onPageChange={handlePageChange}
+            />
+          )}
         </div>
       </main>
       <Footer />
