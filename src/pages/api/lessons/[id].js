@@ -19,8 +19,12 @@ export default async function handler(req, res) {
             'id', sl.id,
             'name', sl.name,
             'vdo_url', sl.vdo_url,
-            'vdo_time', sl.vdo_time
+            'vdo_time', sl.vdo_time,
+            'content_type', sl.content_type,
+            'content', sl.content,
+            'order_index', sl.order_index
           )
+          ORDER BY sl.order_index ASC NULLS LAST
         ) FILTER (WHERE sl.id IS NOT NULL) as sub_lessons
       FROM lessons l
       LEFT JOIN sub_lessons sl ON l.id = sl.lesson_id
