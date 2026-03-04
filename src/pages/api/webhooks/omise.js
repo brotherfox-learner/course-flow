@@ -64,11 +64,14 @@ export default async function handler(req, res) {
         if (paymentResult.rows.length > 0) {
           const { user_id, course_id } = paymentResult.rows[0];
 
-          // สร้าง enrollment
+          // สร้างหรืออัปเดต enrollment (wishlist → active เมื่อชำระสำเร็จ)
           await client.query(
             `INSERT INTO enrollments (user_id, course_id, status, enrolled_at, updated_at)
              VALUES ($1, $2, 'active', NOW(), NOW())
-             ON CONFLICT (user_id, course_id) DO NOTHING`,
+             ON CONFLICT (user_id, course_id) DO UPDATE SET
+               status = 'active',
+               enrolled_at = NOW(),
+               updated_at = NOW()`,
             [user_id, course_id]
           );
         }
