@@ -42,11 +42,14 @@ export default async function handler(req, res) {
           [charge.transaction || null, payment.id]
         );
 
-        // สร้าง enrollment
+        // สร้างหรืออัปเดต enrollment (wishlist → active เมื่อชำระสำเร็จ)
         await pool.query(
           `INSERT INTO enrollments (user_id, course_id, status, enrolled_at, updated_at)
            VALUES ($1, $2, 'active', NOW(), NOW())
-           ON CONFLICT (user_id, course_id) DO NOTHING`,
+           ON CONFLICT (user_id, course_id) DO UPDATE SET
+             status = 'active',
+             enrolled_at = NOW(),
+             updated_at = NOW()`,
           [payment.user_id, payment.course_id]
         );
 
