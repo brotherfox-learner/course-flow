@@ -247,12 +247,10 @@ export default function useProfile() {
 
       // upload เฉพาะเมื่อมีรูปใหม่
       if (imageFile) {
-        const filePath = `avatars/${profile.id}.jpg`
-
+        const filePath = `avatars/${profile.id}?v=${Date.now()}`
         const { error } = await supabase.storage
           .from("avatars")
           .upload(filePath, imageFile, { upsert: true })
-  
         if (error) throw error
   
         const { data } = supabase.storage

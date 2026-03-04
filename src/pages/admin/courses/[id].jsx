@@ -18,6 +18,8 @@ import { useRouter } from "next/router"
 import { Trash2, Edit, ArrowUp, ArrowDown, Plus } from "lucide-react"
 import axios from "axios"
 import { useAuth } from "@/context/AuthContext"
+// Drag and Drop Section
+import SortableList from "@/features/admin-coureses/component/SortableList"
 
 export default function EditCourse() {
   const router = useRouter()
@@ -329,7 +331,7 @@ export default function EditCourse() {
     const target = direction === "up" ? idx - 1 : idx + 1
     if (target < 0 || target >= items.length) return
 
-    ;[items[idx], items[target]] = [items[target], items[idx]]
+      ;[items[idx], items[target]] = [items[target], items[idx]]
 
     const lesson_orders = items.map((item, i) => ({
       id: item.id,
@@ -359,7 +361,7 @@ export default function EditCourse() {
     const target = direction === "up" ? idx - 1 : idx + 1
     if (target < 0 || target >= subItems.length) return
 
-    ;[subItems[idx], subItems[target]] = [subItems[target], subItems[idx]]
+      ;[subItems[idx], subItems[target]] = [subItems[target], subItems[idx]]
 
     const sub_lesson_orders = subItems.map((item, i) => ({
       id: item.id,
@@ -381,6 +383,16 @@ export default function EditCourse() {
     }
   }
 
+  const setLessons = (updater) => {
+    setCourseData((prev) => ({
+      ...prev,
+      lessons:
+        typeof updater === "function"
+          ? updater(prev.lessons)
+          : updater
+    }))
+  }
+
   return (
     <AdminLayout>
       <Head>
@@ -392,9 +404,9 @@ export default function EditCourse() {
           Course &apos;{courseData.name}&apos;
         </h1>
         <div className="flex gap-4">
-          <Button 
-            variant="outline" 
-            className="border-[#F97316] text-[#F97316] hover:bg-orange-50 hover:text-[#EA580C] h-11 px-8 rounded-md font-medium text-[15px]" 
+          <Button
+            variant="outline"
+            className="border-[#F97316] text-[#F97316] hover:bg-orange-50 hover:text-[#EA580C] h-11 px-8 rounded-md font-medium text-[15px]"
             onClick={() => router.push('/admin/courses')}
           >
             Cancel
@@ -404,11 +416,11 @@ export default function EditCourse() {
           </Button>
         </div>
 
-      {pageError && (
-        <div className="bg-orange-100/20 border border-orange-500 rounded-lg px-4 py-3 mb-6">
-          <p className="text-orange-500 text-sm">{pageError}</p>
-        </div>
-      )}
+        {pageError && (
+          <div className="bg-orange-100/20 border border-orange-500 rounded-lg px-4 py-3 mb-6">
+            <p className="text-orange-500 text-sm">{pageError}</p>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-10 mb-8">
@@ -429,16 +441,16 @@ export default function EditCourse() {
 
         <div className="mb-10 p-8 bg-[#F6F8FE] rounded-xl">
           <div className="flex items-center gap-3 mb-6">
-            <input 
-              type="checkbox" 
-              id="promo" 
+            <input
+              type="checkbox"
+              id="promo"
               className="w-5 h-5 text-[#2F5FAC] rounded border-slate-300 focus:ring-[#2F5FAC]"
               checked={hasPromoCode}
               onChange={(e) => setHasPromoCode(e.target.checked)}
             />
             <Label htmlFor="promo" className="font-medium text-slate-800 text-[16px]">Promo code</Label>
           </div>
-          
+
           {hasPromoCode && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
               <div>
@@ -488,8 +500,8 @@ export default function EditCourse() {
               <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900 flex flex-col justify-between p-2 opacity-80">
                 <div className="w-full h-1/2 bg-blue-500/20 rounded-[2px]"></div>
                 <div className="flex justify-between h-1/3 mt-2">
-                    <div className="w-[45%] h-full bg-green-500/20 rounded-[2px]"></div>
-                    <div className="w-[45%] h-full bg-orange-500/20 rounded-[2px]"></div>
+                  <div className="w-[45%] h-full bg-green-500/20 rounded-[2px]"></div>
+                  <div className="w-[45%] h-full bg-orange-500/20 rounded-[2px]"></div>
                 </div>
               </div>
               <div className="absolute top-2 right-2 w-6 h-6 bg-[#A855F7] rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-[#9333EA] shadow-sm">
@@ -497,7 +509,7 @@ export default function EditCourse() {
               </div>
             </div>
           </div>
-          
+
           <div>
             <Label className="mb-1 block text-slate-700 font-medium text-[15px]">Video Trailer <span className="text-[#C82A2A]">*</span></Label>
             <p className="text-[13px] text-slate-400 mb-3">Supported file types: .mp4, .mov, .avi. Max file size: 20 MB</p>
@@ -506,8 +518,8 @@ export default function EditCourse() {
               <div className="absolute inset-0 bg-gradient-to-br from-slate-700 to-slate-900 flex flex-col justify-between p-2 opacity-50">
                 <div className="w-full h-1/2 bg-blue-500/20 rounded-[2px]"></div>
                 <div className="flex justify-between h-1/3 mt-2">
-                    <div className="w-[45%] h-full bg-green-500/20 rounded-[2px]"></div>
-                    <div className="w-[45%] h-full bg-orange-500/20 rounded-[2px]"></div>
+                  <div className="w-[45%] h-full bg-green-500/20 rounded-[2px]"></div>
+                  <div className="w-[45%] h-full bg-orange-500/20 rounded-[2px]"></div>
                 </div>
               </div>
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm z-10 cursor-pointer hover:bg-white/30 transition-colors">
@@ -540,7 +552,7 @@ export default function EditCourse() {
             + Add Lesson
           </Button>
         </div>
-        
+
         <div className="bg-slate-100 rounded-xl overflow-hidden">
           <div className="grid grid-cols-12 bg-[#E2E8F0] p-4 text-slate-500 font-medium text-[15px]">
             <div className="col-span-1 text-center"></div>
@@ -548,103 +560,15 @@ export default function EditCourse() {
             <div className="col-span-3">Sub-lesson</div>
             <div className="col-span-2 text-center">Action</div>
           </div>
-          
+          {/* Drag and Drop */}
           <div className="bg-white">
-            {isPageLoading ? (
-              <div className="p-6 text-slate-500">Loading lessons...</div>
-            ) : (
-              courseData.lessons.map((lesson) => (
-                <>
-                  <div key={lesson.id} className="grid grid-cols-12 p-4 items-center border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                    <div className="col-span-1 text-center text-slate-400">
-                      <div className="grid grid-cols-2 gap-1 w-4 mx-auto cursor-grab">
-                        <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
-                        <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
-                        <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
-                        <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
-                        <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
-                        <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
-                      </div>
-                    </div>
-                    <div className="col-span-6 flex items-center gap-4">
-                      <span className="text-slate-600 font-medium">{lesson.id}</span>
-                      <span className="text-slate-800">{lesson.name}</span>
-                    </div>
-                    <div className="col-span-3 text-slate-600">
-                      {lesson.subLessons}
-                    </div>
-                    <div className="col-span-2 flex justify-center gap-3">
-                      <Button
-                        onClick={() => moveLesson(lesson.id, "up")}
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 text-[#8BA4D4] hover:text-slate-700 hover:bg-slate-100 rounded-full"
-                      >
-                        <ArrowUp className="h-[18px] w-[18px]" />
-                      </Button>
-                      <Button
-                        onClick={() => moveLesson(lesson.id, "down")}
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 text-[#8BA4D4] hover:text-slate-700 hover:bg-slate-100 rounded-full"
-                      >
-                        <ArrowDown className="h-[18px] w-[18px]" />
-                      </Button>
-                      <Button
-                        onClick={() => openEditLesson(lesson)}
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 text-[#8BA4D4] hover:text-[#2F5FAC] hover:bg-blue-50 rounded-full"
-                      >
-                        <Edit className="h-[18px] w-[18px]" />
-                      </Button>
-                      <Button
-                        onClick={() => handleDeleteLesson(lesson.id)}
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 text-[#8BA4D4] hover:text-red-500 hover:bg-red-50 rounded-full"
-                      >
-                        <Trash2 className="h-[18px] w-[18px]" />
-                      </Button>
-                      <Button
-                        onClick={() => openAddSubLesson(lesson.id)}
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 text-[#8BA4D4] hover:text-[#2F5FAC] hover:bg-blue-50 rounded-full"
-                      >
-                        <Plus className="h-[18px] w-[18px]" />
-                      </Button>
-                    </div>
-                  </div>
-                  {(lesson.sub_lessons || []).map((sub) => (
-                    <div key={`sub-${sub.id}`} className="grid grid-cols-12 px-4 py-2 items-center border-b border-slate-100 bg-slate-50/40">
-                      <div className="col-span-1" />
-                      <div className="col-span-6 flex items-center gap-3 text-slate-600 text-sm">
-                        <span className="text-slate-400">↳</span>
-                        <span>{sub.name}</span>
-                      </div>
-                      <div className="col-span-3 text-slate-500 text-sm">
-                        {sub.vdo_time != null ? `${sub.vdo_time} min` : "-"}
-                      </div>
-                      <div className="col-span-2 flex justify-center gap-2">
-                        <Button onClick={() => moveSubLesson(lesson, sub.id, "up")} variant="ghost" size="icon" className="h-8 w-8 text-[#8BA4D4] hover:text-slate-700 hover:bg-slate-100 rounded-full">
-                          <ArrowUp className="h-4 w-4" />
-                        </Button>
-                        <Button onClick={() => moveSubLesson(lesson, sub.id, "down")} variant="ghost" size="icon" className="h-8 w-8 text-[#8BA4D4] hover:text-slate-700 hover:bg-slate-100 rounded-full">
-                          <ArrowDown className="h-4 w-4" />
-                        </Button>
-                        <Button onClick={() => openEditSubLesson(sub)} variant="ghost" size="icon" className="h-8 w-8 text-[#8BA4D4] hover:text-[#2F5FAC] hover:bg-blue-50 rounded-full">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button onClick={() => handleDeleteSubLesson(sub.id)} variant="ghost" size="icon" className="h-8 w-8 text-[#8BA4D4] hover:text-red-500 hover:bg-red-50 rounded-full">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </>
-              ))
-            )}
+            {isPageLoading
+              ? <div className="p-6 text-slate-500">Loading lessons...</div>
+              : <SortableList
+                lessons={courseData.lessons}
+                setLessons={setLessons}
+              />
+            }
           </div>
         </div>
         <div className="flex justify-end mt-4">
