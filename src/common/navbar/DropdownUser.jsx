@@ -9,7 +9,7 @@ function DropdownUser() {
     "flex w-full items-center gap-3 px-4 py-2 body3 text-gray-700 hover:bg-gray-100"
 
   return (
-    <div className="absolute right-0 top-18 lg:right-2 lg:top-[61px] py-2 min-w-[198px] bg-white rounded-lg shadow-2">
+    <div className="absolute right-0 top-17 lg:right-2 lg:top-[61px] py-2 min-w-[198px] bg-white rounded-lg shadow-2">
 
       <Link href="/profile" className={styleButton}>
         <User size={16} color="#8DADE0" />
