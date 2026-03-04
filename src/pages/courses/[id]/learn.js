@@ -263,13 +263,12 @@ export default function CourseLearnPage() {
               <CourseContent
                 subLessonName={selectedSubLesson?.sub?.name ?? null}
                 courseCoverImageUrl={course.cover_img_url ?? null}
-                assignmentQuestion="What are the 4 elements of service design?"
-                assignmentStatus="Pending"
                 videoSectionRef={videoSectionRef}
                 contentType={selectedSubLesson?.sub?.content_type ?? "video"}
                 content={selectedSubLesson?.sub?.content ?? null}
                 subLessonId={selectedSubLesson?.sub?.id ?? null}
                 onMarkComplete={handleMarkComplete}
+                token={token}
               />
             </div>
           </section>
