@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -73,6 +74,44 @@ export default function CourseProgress({
   const inProgressSet = inProgressSubLessonKeys ?? new Set();
   const percent = Math.min(100, Math.max(0, Number(progressPercent) || 0));
 
+  const [userOpenLessonValue, setUserOpenLessonValue] = useState(null);
+  const currentItemRef = useRef(null);
+
+  // หาว่า current sub-lesson อยู่ใน lesson ไหน เพื่อเปิด panel นั้นโดยอัตโนมัติ
+  const currentLessonValue = useMemo(() => {
+    if (!lessons || !lessons.length || !currentSubLessonKey) return null;
+
+    for (let lessonIndex = 0; lessonIndex < lessons.length; lessonIndex += 1) {
+      const subLessons = lessons[lessonIndex].sub_lessons || [];
+      for (let subIndex = 0; subIndex < subLessons.length; subIndex += 1) {
+        const sub = subLessons[subIndex];
+        const key = `${lessonIndex}-${sub.id ?? subIndex}`;
+        if (
+          key === currentSubLessonKey ||
+          (sub.id != null && String(sub.id) === String(currentSubLessonKey))
+        ) {
+          return `lesson-${lessonIndex}`;
+        }
+      }
+    }
+    return null;
+  }, [lessons, currentSubLessonKey]);
+
+  const accordionValue = userOpenLessonValue ?? currentLessonValue ?? "lesson-0";
+
+  // เลื่อน sidebar ให้ sub-lesson ปัจจุบันอยู่ในมุมมอง
+  useEffect(() => {
+    if (!currentItemRef.current) return;
+    try {
+      currentItemRef.current.scrollIntoView({
+        block: "nearest",
+        behavior: "smooth",
+      });
+    } catch {
+      // ignore scroll errors
+    }
+  }, [currentSubLessonKey]);
+
   return (
     <aside
       className={`flex flex-col items-start p-4 gap-4 w-full max-w-[343px] mx-auto bg-white rounded-[8px] shadow-[4px_4px_24px_rgba(0,0,0,0.08)] box-border lg:max-w-none lg:w-[357px] lg:shrink-0 lg:p-8 lg:px-6 lg:gap-6 ${className}`}
@@ -104,7 +143,13 @@ export default function CourseProgress({
         </div>
       </section>
 
-      <Accordion type="single" collapsible defaultValue="lesson-0" className="w-full flex flex-col gap-0 flex-none order-3 self-stretch border-0">
+      <Accordion
+        type="single"
+        collapsible
+        value={accordionValue}
+        onValueChange={(val) => setUserOpenLessonValue(val || null)}
+        className="w-full flex flex-col gap-0 flex-none order-3 self-stretch border-0"
+      >
         {lessons.map((lesson, lessonIndex) => {
           const subLessons = lesson.sub_lessons || [];
           const value = `lesson-${lessonIndex}`;
@@ -144,6 +189,7 @@ export default function CourseProgress({
                       <li key={key}>
                         <button
                           type="button"
+                          ref={isCurrent ? currentItemRef : null}
                           onClick={() => onSubLessonClick?.(lesson, sub, lessonIndex, subIndex)}
                           className={`w-full flex flex-row items-center p-2 gap-4 rounded-[8px] text-left min-h-[37px] ${
                             isCurrent ? "bg-gray-100" : ""

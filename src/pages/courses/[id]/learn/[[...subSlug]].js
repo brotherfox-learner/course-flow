@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
 import NavBar from "@/common/navbar/NavBar";
@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCourseDetail } from "@/features/course/hooks/useCourseDetail";
 import { CourseProgress, CourseContent, CourseContentFooter } from "@/features/course-learning";
 
-/** แปลง lessons เป็นรายการ sub-lesson แบบแบน (ใช้สำหรับ Previous/Next) */
+/** แปลง lessons เป็นรายการ sub-lesson แบบแบน (ใช้สำหรับ Previous/Next และค้นหาตาม slug/id) */
 function getFlatSubLessons(lessons) {
   const flat = [];
   (lessons || []).forEach((lesson, lessonIndex) => {
@@ -18,25 +18,45 @@ function getFlatSubLessons(lessons) {
   return flat;
 }
 
-/** หน้ารายวิชาเรียน — เลือกหัวข้อ, บันทึกความคืบหน้า (จบแล้ว/กำลังเรียน) */
+/** สร้าง slug สำหรับ sub-lesson โดยอิงจาก id + name เพื่อให้ unique และอ่านง่าย */
+function slugifySubLesson(sub) {
+  if (!sub) return null;
+  const namePart = typeof sub.name === "string" ? sub.name : "";
+  const base = `${namePart}`.trim();
+  if (!base) return null;
+  return base
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+/** หน้ารายวิชาเรียน — เลือกหัวข้อ, บันทึกความคืบหน้า (จบแล้ว/กำลังเรียน) + sync URL slug ตาม sub-lesson */
 export default function CourseLearnPage() {
   const router = useRouter();
-  const { id } = router.query;
+  const { id, subSlug: subSlugParam } = router.query;
+  const subSlug = Array.isArray(subSlugParam) ? subSlugParam[0] : subSlugParam || null;
+
   const { isLoggedIn, loading: authLoading, token } = useAuth();
   const { course, lessons, loading: courseLoading } = useCourseDetail(id);
+
   const [enrollmentStatus, setEnrollmentStatus] = useState(null);
   const [selectedSubLesson, setSelectedSubLesson] = useState(null);
   const [progressPercent, setProgressPercent] = useState(0);
   const [completedSubLessonIds, setCompletedSubLessonIds] = useState([]);
   const [inProgressSubLessonIds, setInProgressSubLessonIds] = useState([]);
+  const [hasInitializedSelection, setHasInitializedSelection] = useState(false);
+
   const videoSectionRef = useRef(null);
+
+  const flatSubLessons = useMemo(() => getFlatSubLessons(lessons), [lessons]);
 
   // ยังไม่ล็อกอินให้ redirect ไปหน้า login
   useEffect(() => {
     if (authLoading) return;
     if (!isLoggedIn) {
       router.replace("/login");
-      return;
     }
   }, [authLoading, isLoggedIn, router]);
 
@@ -56,11 +76,13 @@ export default function CourseLearnPage() {
         if (!cancelled) setEnrollmentStatus(null);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [token, id]);
 
   /** ดึงความคืบหน้าเรียน (หัวข้อจบแล้ว, กำลังเรียน, เปอร์เซ็นต์) จาก API */
-  const fetchProgress = async () => {
+  const fetchProgress = useCallback(async () => {
     if (!token || !id) return;
     try {
       const res = await axios.get(`/api/courses/${id}/progress`, {
@@ -73,48 +95,89 @@ export default function CourseLearnPage() {
       setCompletedSubLessonIds([]);
       setInProgressSubLessonIds([]);
       setProgressPercent(0);
+    } finally {
+      // keep silent on errors; progress UI will just show 0%
     }
-  };
+  }, [token, id]);
 
   // โหลด progress ตอนเข้าเพจ
   useEffect(() => {
     if (!token || !id) return;
     fetchProgress();
-  }, [token, id]);
+  }, [token, id, fetchProgress]);
+
+  /** ฟังก์ชันช่วยเลือก sub-lesson + sync URL slug ให้ตรงกับ sub-lesson ที่เลือก */
+  const goToSubLesson = useCallback(
+    (target) => {
+      if (!target || !target.sub) {
+        setSelectedSubLesson(target || null);
+        return;
+      }
+      setSelectedSubLesson(target);
+
+      const slug = slugifySubLesson(target.sub);
+      if (!slug || !id) return;
+
+      // บันทึก sub-lesson ล่าสุดของคอร์สนี้ไว้ใน localStorage
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(`course:lastSubLesson:${id}`, slug);
+        } catch {
+          // ignore storage errors
+        }
+      }
+
+      const currentSlug = subSlug;
+      if (currentSlug === slug) return;
+
+      router.replace(`/courses/${id}/learn/${slug}`, undefined, { shallow: true });
+    },
+    [id, router, subSlug]
+  );
 
   /** บันทึกว่าหัวข้อนี้เรียนจบแล้ว (วงกลมเต็ม) */
-  const handleMarkComplete = async (subLessonId) => {
-    if (!token || !id || !subLessonId) return;
-    try {
-      await axios.post(
-        `/api/courses/${id}/progress`,
-        { sub_lesson_id: subLessonId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      await fetchProgress();
-    } catch {
-      // ignore
-    }
-  };
+  const handleMarkComplete = useCallback(
+    async (subLessonId) => {
+      if (!token || !id || !subLessonId) return;
+      try {
+        await axios.post(
+          `/api/courses/${id}/progress`,
+          { sub_lesson_id: subLessonId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        await fetchProgress();
+      } catch {
+        // ignore
+      }
+    },
+    [token, id, fetchProgress]
+  );
 
   /** คลิกหัวข้อใน sidebar — เลือกหัวข้อ + บันทึกสถานะกำลังเรียน (ครึ่งวงกลม) */
-  const handleSubLessonClick = async (lesson, sub, lessonIndex, subIndex) => {
-    setSelectedSubLesson({ lesson, sub, lessonIndex, subIndex });
-    const subId = sub?.id;
-    if (!token || !id || !subId) return;
-    const alreadyCompleted = (completedSubLessonIds || []).some((cid) => String(cid) === String(subId));
-    if (alreadyCompleted) return;
-    try {
-      await axios.post(
-        `/api/courses/${id}/progress`,
-        { sub_lesson_id: subId, status: "in_progress" },
-        { headers: { Authorization: `Bearer ${token}` } }
+  const handleSubLessonClick = useCallback(
+    async (lesson, sub, lessonIndex, subIndex) => {
+      const next = { lesson, sub, lessonIndex, subIndex };
+      goToSubLesson(next);
+
+      const subId = sub?.id;
+      if (!token || !id || !subId) return;
+      const alreadyCompleted = (completedSubLessonIds || []).some(
+        (cid) => String(cid) === String(subId)
       );
-      await fetchProgress();
-    } catch {
-      // ignore
-    }
-  };
+      if (alreadyCompleted) return;
+      try {
+        await axios.post(
+          `/api/courses/${id}/progress`,
+          { sub_lesson_id: subId, status: "in_progress" },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        await fetchProgress();
+      } catch {
+        // ignore
+      }
+    },
+    [goToSubLesson, token, id, completedSubLessonIds, fetchProgress]
+  );
 
   // มือถือ: เลื่อนไปที่วิดีโอเมื่อเปลี่ยนหัวข้อ
   useEffect(() => {
@@ -128,32 +191,36 @@ export default function CourseLearnPage() {
     }
   }, [selectedSubLesson]);
 
+  /** คำนวณ key สำหรับระบุตำแหน่ง sub-lesson ปัจจุบัน (ใช้กับ CourseProgress + previous/next) */
   const currentSubLessonKey =
     selectedSubLesson != null
       ? `${selectedSubLesson.lessonIndex}-${selectedSubLesson.sub?.id ?? selectedSubLesson.subIndex}`
       : null;
 
-  const flatSubLessons = getFlatSubLessons(lessons);
   const currentIndex = flatSubLessons.findIndex(
-    (item) =>
-      `${item.lessonIndex}-${item.sub?.id ?? item.subIndex}` === currentSubLessonKey
+    (item) => `${item.lessonIndex}-${item.sub?.id ?? item.subIndex}` === currentSubLessonKey
   );
   const hasPreviousLesson = currentIndex > 0;
   const hasNextLesson = currentIndex >= 0 && currentIndex < flatSubLessons.length - 1;
+
   /** กด Previous — กลับไปหัวข้อก่อนหน้า */
-  const handlePreviousLesson = () => {
+  const handlePreviousLesson = useCallback(() => {
     if (!hasPreviousLesson) return;
     const prev = flatSubLessons[currentIndex - 1];
-    setSelectedSubLesson(prev);
-  };
+    goToSubLesson(prev);
+  }, [hasPreviousLesson, flatSubLessons, currentIndex, goToSubLesson]);
+
   /** กด Next — ไปหัวข้อถัดไป + บันทึกสถานะกำลังเรียน */
-  const handleNextLesson = async () => {
+  const handleNextLesson = useCallback(async () => {
     if (!hasNextLesson) return;
     const next = flatSubLessons[currentIndex + 1];
-    setSelectedSubLesson(next);
+    goToSubLesson(next);
+
     const subId = next?.sub?.id;
     if (!token || !id || !subId) return;
-    const alreadyCompleted = (completedSubLessonIds || []).some((cid) => String(cid) === String(subId));
+    const alreadyCompleted = (completedSubLessonIds || []).some(
+      (cid) => String(cid) === String(subId)
+    );
     if (alreadyCompleted) return;
     try {
       await axios.post(
@@ -165,7 +232,70 @@ export default function CourseLearnPage() {
     } catch {
       // ignore
     }
-  };
+  }, [
+    hasNextLesson,
+    flatSubLessons,
+    currentIndex,
+    goToSubLesson,
+    token,
+    id,
+    completedSubLessonIds,
+    fetchProgress,
+  ]);
+
+  /**
+   * เลือก sub-lesson เริ่มต้นเมื่อเข้าเพจ:
+   * - ถ้ามี slug ใน URL → ใช้อันนั้น (หาตรง slug ก่อน)
+   * - ถ้าไม่มี slug → ใช้ slug ที่เคยเรียนค้างไว้จาก localStorage (sub-lesson เดิมล่าสุด)
+   * - ถ้ายังไม่มีเลย → fallback เป็น sub-lesson แรกของคอร์ส
+   *
+   * ไม่พึ่งสถานะ progress (none / in_progress / completed) ในการเลือกบทเริ่มต้น
+   */
+  useEffect(() => {
+    if (hasInitializedSelection) return;
+    if (!router.isReady || !id || courseLoading) return;
+    if (!flatSubLessons.length) return;
+
+    const findBySlug = (slug) => {
+      if (!slug) return null;
+      const index = flatSubLessons.findIndex((item) => slugifySubLesson(item.sub) === slug);
+      if (index === -1) return null;
+      const item = flatSubLessons[index];
+      return { ...item, index };
+    };
+
+    let target = findBySlug(subSlug);
+
+    // ถ้าเข้าโดยไม่เจาะ slug (เช่น /courses/:id/learn) ให้ดู slug ล่าสุดจาก localStorage
+    if (!target && typeof window !== "undefined") {
+      try {
+        const savedSlug = window.localStorage.getItem(`course:lastSubLesson:${id}`);
+        if (savedSlug) {
+          target = findBySlug(savedSlug);
+        }
+      } catch {
+        // ignore storage errors
+      }
+    }
+
+    // ถ้ายังไม่เจอเลย ให้ fallback เป็น sub-lesson แรกของคอร์ส
+    if (!target) {
+      target = { ...flatSubLessons[0] };
+    }
+
+    if (target) {
+      goToSubLesson(target);
+      setHasInitializedSelection(true);
+    }
+  }, [
+    router.isReady,
+    id,
+    courseLoading,
+    flatSubLessons,
+    subSlug,
+    hasInitializedSelection,
+    goToSubLesson,
+  ]);
 
   if (authLoading || !isLoggedIn) {
     return (
@@ -245,9 +375,12 @@ export default function CourseLearnPage() {
   return (
     <>
       <NavBar />
-      <main className="min-h-screen bg-white  ">
+      <main className="min-h-screen bg-white">
         <div className="w-full max-w-[375px] md:max-w-[768px] lg:max-w-[1440px] mx-auto px-4 pt-4 md:pt-6 md:px-6 lg:px-[10vw] xl:px-[160px] lg:pt-[100px]">
-          <section className="flex flex-col lg:flex-row lg:items-start gap-8 lg:gap-6" aria-label="Course learning">
+          <section
+            className="flex flex-col lg:flex-row lg:items-start gap-8 lg:gap-6"
+            aria-label="Course learning"
+          >
             <CourseProgress
               courseName={course.course_name}
               courseSummary={course.course_summary}
@@ -285,3 +418,4 @@ export default function CourseLearnPage() {
     </>
   );
 }
+
