@@ -20,6 +20,9 @@ export default function SortableLesson({ item }) {
         isDragging,
     } = useSortable({
         id: `lesson-${item.id}`,
+        data: {
+            type: "lesson"
+        }
     });
 
     const style = {

@@ -1,5 +1,5 @@
 import Head from "next/head"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/dialog"
 import AdminLayout from "@/components/layout/AdminLayout"
 import { useRouter } from "next/router"
-import { Trash2, Edit, ArrowUp, ArrowDown, Plus } from "lucide-react"
 import axios from "axios"
 import { useAuth } from "@/context/AuthContext"
 // Drag and Drop Section
@@ -50,26 +49,8 @@ export default function EditCourse() {
   const [editSubLessonVdoUrl, setEditSubLessonVdoUrl] = useState("")
   const [editSubLessonVdoTime, setEditSubLessonVdoTime] = useState("")
 
-  // Mock data for initial load based on Figma
-  const [courseData, setCourseData] = useState({
-    name: "Service Design Essentials",
-    price: "3559.00",
-    learningTime: "6",
-    promoCode: "NEWYEAR200",
-    promoAmount: "0",
-    discountType: "thb",
-    discountValue: "200",
-    summary: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    detail: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Elementum aenean fermentum, velit vel, scelerisque morbi accumsan. Nec, tellus leo id leo id felis egestas. Quam sit lorem quis vitae ut mus imperdiet. Volutpat placerat dignissim dolor faucibus elit ornare fringilla. Vivamus amet risus ullamcorper auctor nibh. Maecenas morbi nec vestibulum ac tempus vehicula.\n\nVel, sit magna nisl cras non cursus. Sed sed sit ullamcorper neque. Dictum sapien amet, dictumst maecenas. Mattis nulla tellus ut neque euismod cras amet, volutpat purus. Semper purus viverra turpis in tempus ac nunc. Morbi ullamcorper sed elit enim turpis. Scelerisque rhoncus morbi pulvinar donec at sed fermentum. Duis non urna lacus, sit amet. Accumsan orci elementum nisl tellus sit quis. Integer turpis lectus eu blandit sit. At at cras viverra odio neque nisl consectetur. Arcu senectus aliquet vulputate urna, ornare. Mi sem tellus elementum at commodo blandit nunc. Viverra elit adipiscing ut dui, tellus viverra nec.\n\nLectus pharetra eget curabitur lobortis gravida gravida eget ut. Nullam velit morbi quam a at. Sed eu orci, mollis nulla at sit. Nunc quam integer metus vitae elementum pulvinar mattis nulla molestie. Quis eget vestibulum, faucibus malesuada eu. Et lectus molestie egestas faucibus auctor auctor.",
-    lessons: [
-      { id: 1, name: "Introduction", subLessons: 10 },
-      { id: 2, name: "Service Design Theories and Principles", subLessons: 10 },
-      { id: 3, name: "Understanding Users and Finding Opportunities", subLessons: 10 },
-      { id: 4, name: "Identifying and Validating Opportunities for Design", subLessons: 10 },
-      { id: 5, name: "Prototyping", subLessons: 10 },
-      { id: 6, name: "Course Summary", subLessons: 10 },
-    ]
-  })
+
+  const [courseData, setCourseData] = useState([])
 
   useEffect(() => {
     if (!loading && !token) {
