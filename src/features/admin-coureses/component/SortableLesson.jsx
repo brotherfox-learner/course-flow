@@ -7,7 +7,7 @@ import Button from "@/common/navbar/Button";
 import { useToggle } from "@/hooks/useToggle";
 import SortableSubLesson from "./SortableSubLesson";
 
-export default function SortableLesson({ item }) {
+export default function SortableLesson({ item, onDelete }) {
 
     const { isShow, switchToggle } = useToggle();
 
@@ -21,9 +21,10 @@ export default function SortableLesson({ item }) {
     } = useSortable({
         id: `lesson-${item.id}`,
         data: {
-            type: "lesson"
+            type: "lesson",
+            lessonId: item.id
         }
-    });
+    })
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -72,7 +73,11 @@ export default function SortableLesson({ item }) {
                 {/* action */}
                 <div className="col-span-2 flex justify-center gap-3">
 
-                    <Button iconOnly className="h-9 w-9 text-blue-300 cursor-pointer hover:text-red-500 hover:bg-red-50 active:bg-red-100 rounded-full">
+                    <Button
+                        iconOnly
+                        onClick={() => onDelete(item.id)}
+                        className="h-9 w-9 text-blue-300 cursor-pointer hover:text-red-500 hover:bg-red-50 active:bg-red-100 rounded-full"
+                    >
                         <Trash2 className="h-[18px] w-[18px]" />
                     </Button>
 

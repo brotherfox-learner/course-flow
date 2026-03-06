@@ -13,6 +13,7 @@ export default function SortableSubLesson({ sub, lessonId }) {
   } = useSortable({
     id: `sub-${sub.id}`,
     data: {
+      type: "sublesson",
       lessonId
     }
   });
@@ -27,7 +28,7 @@ export default function SortableSubLesson({ sub, lessonId }) {
     <li
       ref={setNodeRef}
       style={style}
-      className="flex items-center rounded-2xl border border-gray-200 bg-white"
+      className="flex items-center gap-6 rounded-2xl border border-gray-200 bg-white"
     >
 
       <div
@@ -42,8 +43,12 @@ export default function SortableSubLesson({ sub, lessonId }) {
           />
         ))}
       </div>
-
-      <span>{sub.name}</span>
+      <div className="flex items-center gap-4">
+        <span className="text-slate-600 font-medium">
+          {sub.order_index}
+        </span>
+        <span>{sub.name}</span>
+      </div>
 
     </li>
   );

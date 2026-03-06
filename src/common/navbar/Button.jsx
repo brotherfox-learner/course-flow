@@ -7,7 +7,7 @@ function Button({
     ...props
   }) {
     const baseBehavior =
-      "inline-flex items-center justify-center transition-colors duration-200 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-black";
+      "inline-flex items-center justify-center transition-colors duration-200 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-black cursor-pointer";
   
     const sizes = {
       sm: "text-xs p-[8px]",
@@ -21,7 +21,7 @@ function Button({
         font-bold rounded-xl shadow-1
         text-white bg-blue-500
         hover:bg-blue-400
-        active:bg-blue-700
+        active:bg-blue-600
         disabled:bg-gray-400
         disabled:text-gray-600
       `,

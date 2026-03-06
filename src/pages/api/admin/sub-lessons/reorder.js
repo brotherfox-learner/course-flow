@@ -6,65 +6,96 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-async function ensureAdmin(req) {
+async function ensureAdmin(req){
+
   const authHeader = req.headers.authorization
-  if (!authHeader?.startsWith("Bearer ")) {
-    return { ok: false, status: 401, message: "Unauthorized" }
+
+  if(!authHeader?.startsWith("Bearer ")){
+    return { ok:false, status:401 }
   }
 
   const token = authHeader.split(" ")[1]
+
   const {
-    data: { user },
-    error: authError,
+    data:{ user },
+    error
   } = await supabase.auth.getUser(token)
 
-  if (authError || !user) {
-    return { ok: false, status: 401, message: "Invalid token" }
+  if(error || !user){
+    return { ok:false, status:401 }
   }
 
-  const roleCheck = await pool.query(`SELECT role FROM users WHERE id = $1`, [user.id])
-  if (roleCheck.rows.length === 0 || roleCheck.rows[0].role !== "admin") {
-    return { ok: false, status: 403, message: "Forbidden" }
+  const roleCheck = await pool.query(
+    `SELECT role FROM users WHERE id=$1`,
+    [user.id]
+  )
+
+  if(roleCheck.rows[0]?.role !== "admin"){
+    return { ok:false, status:403 }
   }
 
-  return { ok: true }
+  return { ok:true }
+
 }
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" })
+export default async function handler(req,res){
+
+  if(req.method !== "PATCH"){
+    return res.status(405).json({message:"Method not allowed"})
   }
 
   const auth = await ensureAdmin(req)
-  if (!auth.ok) {
-    return res.status(auth.status).json({ message: auth.message })
+
+  if(!auth.ok){
+    return res.status(auth.status).json({message:"Forbidden"})
   }
 
   const { lesson_id, sub_lesson_orders } = req.body
-  if (!lesson_id || !Array.isArray(sub_lesson_orders) || sub_lesson_orders.length === 0) {
-    return res.status(400).json({ message: "lesson_id and sub_lesson_orders are required" })
-  }
 
   const client = await pool.connect()
-  try {
+
+  try{
+
     await client.query("BEGIN")
 
-    for (const item of sub_lesson_orders) {
-      await client.query(
-        `UPDATE sub_lessons
-         SET order_index = $1, updated_at = NOW()
-         WHERE id = $2 AND lesson_id = $3`,
-        [item.order_index, item.id, lesson_id]
-      )
-    }
+    const cases = sub_lesson_orders
+      .map(s => `WHEN ${s.id} THEN ${s.order_index}`)
+      .join(" ")
+
+    const ids = sub_lesson_orders.map(s=>s.id)
+
+    const query = `
+      UPDATE sub_lessons
+      SET order_index = CASE id
+        ${cases}
+      END,
+      updated_at = NOW()
+      WHERE id = ANY($1)
+      AND lesson_id = $2
+    `
+
+    await client.query(query,[ids,lesson_id])
 
     await client.query("COMMIT")
-    return res.status(200).json({ message: "Sub-lesson order updated" })
-  } catch (error) {
+
+    return res.status(200).json({
+      message:"Sub lesson order updated"
+    })
+
+  }catch(err){
+
     await client.query("ROLLBACK")
-    console.error("Reorder sub-lessons error:", error)
-    return res.status(500).json({ message: "Internal server error" })
-  } finally {
+
+    console.error(err)
+
+    return res.status(500).json({
+      message:"Internal server error"
+    })
+
+  }finally{
+
     client.release()
+
   }
+
 }
