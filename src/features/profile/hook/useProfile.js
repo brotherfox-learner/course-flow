@@ -182,34 +182,34 @@ export default function useProfile() {
   /* ================= submit ================= */
   const submit = async (e) => {
     e.preventDefault()
+  
     const validationErrors = validateProfile(form)
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
       return
     }
-
+  
     try {
       setIsLoading(true)
-
+  
       let uploadedAvatarUrl = imageUrl
-
+  
       if (imageFile) {
-        const ext = imageFile.name.split(".").pop()
-        const filePath = `avatars/${profile.id}.${ext}`
-
+        const filePath = `avatars/${profile.id}?v=${Date.now()}`
+  
         const { error } = await supabase.storage
           .from("avatars")
           .upload(filePath, imageFile, { upsert: true })
-
+  
         if (error) throw error
-
+  
         const { data } = supabase.storage
           .from("avatars")
           .getPublicUrl(filePath)
-
+  
         uploadedAvatarUrl = data.publicUrl
       }
-
+  
       await axios.put(
         "/api/auth/profile",
         {
@@ -219,8 +219,15 @@ export default function useProfile() {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-
+  
       await fetchProfile(token)
+  
+      // 🔥 reset avatar states
+      setHasCropped(false)
+      setOriginalFile(null)
+      setImageFile(null)
+      setPendingImageUrl(null)
+      
     } finally {
       setIsLoading(false)
     }
