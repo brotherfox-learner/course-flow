@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import NavBar from "@/common/navbar/NavBar";
 const QR_EXPIRY_MINUTES = 15;
 
-export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug }) {
+export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug, courseId }) {
   const router = useRouter();
   const [status, setStatus] = useState("pending");
   const intervalRef = useRef(null);
@@ -28,7 +28,7 @@ export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug 
           clearInterval(timerRef.current);
           clearInterval(intervalRef.current);
           router.push(
-            `/payment/complete?status=failed&courseSlug=${courseSlug}`
+            `/payment/complete?status=failed&courseSlug=${courseSlug}${courseId ? `&courseId=${courseId}` : ""}`
           );
           return 0;
         }
@@ -39,7 +39,7 @@ export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [courseSlug, router]);
+  }, [courseSlug, courseId, router]);
 
   // Poll for payment status every 5 seconds
   useEffect(() => {
@@ -56,14 +56,14 @@ export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug 
           clearInterval(timerRef.current);
           // Redirect to success page
           router.push(
-            `/payment/complete?status=success&courseSlug=${courseSlug}`
+            `/payment/complete?status=success&courseSlug=${courseSlug}${courseId ? `&courseId=${courseId}` : ""}`
           );
         } else if (data.status === "failed" || data.status === "expired") {
           setStatus("failed");
           clearInterval(intervalRef.current);
           clearInterval(timerRef.current);
           router.push(
-            `/payment/complete?status=failed&courseSlug=${courseSlug}`
+            `/payment/complete?status=failed&courseSlug=${courseSlug}${courseId ? `&courseId=${courseId}` : ""}`
           );
         }
       } catch (error) {
@@ -78,7 +78,7 @@ export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [chargeId, courseSlug, router]);
+  }, [chargeId, courseSlug, courseId, router]);
 
   const handleSaveQR = () => {
     if (qrCodeUri) {

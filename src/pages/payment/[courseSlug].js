@@ -192,11 +192,11 @@ export default function PaymentPage({ course }) {
 
       if (data.status === "successful") {
         router.push(
-          `/payment/complete?status=success&courseSlug=${course.slug}`
+          `/payment/complete?status=success&courseSlug=${course.slug}&courseId=${course.id}`
         );
       } else {
         router.push(
-          `/payment/complete?status=failed&courseSlug=${course.slug}`
+          `/payment/complete?status=failed&courseSlug=${course.slug}&courseId=${course.id}`
         );
       }
     } catch (err) {
@@ -311,6 +311,7 @@ export default function PaymentPage({ course }) {
         chargeId={qrData.chargeId}
         amount={qrData.amount}
         courseSlug={course.slug}
+        courseId={course.id}
       />
     );
   }
