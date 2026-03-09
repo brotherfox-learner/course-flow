@@ -211,7 +211,12 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Submit */}
-                    <Button type="submit" variant="primary" size="lg" disabled={isLoading}>
+                    <Button
+                        type="submit"
+                        variant="primary"
+                        size="lg"
+                        disabled={isLoading || isCropping || pendingImageUrl}
+                    >
                         {isLoading ? "Updating..." : "Update Profile"}
                     </Button>
                 </form>

@@ -6,6 +6,9 @@ import { supabase } from "@/context/AuthContext"
 import { validateProfile } from "./validateProfile"
 import { getCroppedImage } from "../utils/cropImage"
 
+/**
+ * Convert JS Date -> YYYY-MM-DD (API format)
+ */
 function formatDateForApi(date) {
   if (!date) return null
   const y = date.getFullYear()
@@ -17,7 +20,9 @@ function formatDateForApi(date) {
 export default function useProfile() {
   const { profile, token, fetchProfile } = useAuth()
 
-  /* ================= form ================= */
+  /* =========================
+   * FORM STATE
+   * ========================= */
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -26,26 +31,41 @@ export default function useProfile() {
     email: "",
   })
 
-  /* ================= avatar states ================= */
-  const [imageUrl, setImageUrl] = useState(null)          // รูปที่แสดง (หลัง confirm)
-  const [imageFile, setImageFile] = useState(null)        // ไฟล์ที่พร้อม upload
-  const [originalFile, setOriginalFile] = useState(null) // 🔥 ไฟล์ต้นฉบับ
-  const [pendingImageUrl, setPendingImageUrl] = useState(null) // blob สำหรับ crop
+  /* =========================
+   * AVATAR STATE (สำคัญ)
+   * =========================
+   * imageUrl        -> รูปที่แสดงจริง (หลัง confirm crop)
+   * imageFile       -> ไฟล์ที่พร้อม upload เข้า Supabase
+   * originalFile    -> ไฟล์ต้นฉบับจาก user (ใช้ crop กี่รอบก็ได้)
+   * pendingImageUrl -> blob URL สำหรับ modal crop เท่านั้น
+   */
+  const [imageUrl, setImageUrl] = useState(null)
+  const [imageFile, setImageFile] = useState(null)
+  const [originalFile, setOriginalFile] = useState(null)
+  const [pendingImageUrl, setPendingImageUrl] = useState(null)
 
   const [isCropping, setIsCropping] = useState(false)
   const [hasCropped, setHasCropped] = useState(false)
 
-  /* ================= crop states ================= */
+  /* =========================
+   * CROP STATE
+   * ========================= */
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
 
+  /* =========================
+   * UI STATE
+   * ========================= */
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
-  /* ================= effects ================= */
+  /* =========================
+   * INIT PROFILE DATA
+   * ========================= */
   useEffect(() => {
     if (!profile) return
+
     setForm({
       firstName: profile.firstName || "",
       lastName: profile.lastName || "",
@@ -53,10 +73,14 @@ export default function useProfile() {
       educationalBackground: profile.educationalBackground || "",
       email: profile.email || "",
     })
+
+    // avatarUrl จาก backend (ไม่ใช่ blob)
     setImageUrl(profile.avatarUrl || null)
   }, [profile])
 
-  // cleanup เฉพาะ pending blob
+  /* =========================
+   * CLEANUP blob สำหรับ modal crop
+   * ========================= */
   useEffect(() => {
     return () => {
       if (pendingImageUrl?.startsWith("blob:")) {
@@ -65,7 +89,22 @@ export default function useProfile() {
     }
   }, [pendingImageUrl])
 
-  /* ================= handlers ================= */
+  /* =========================
+   * CLEANUP blob สำหรับ avatar preview
+   * ========================= */
+  useEffect(() => {
+    return () => {
+      if (imageUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(imageUrl)
+      }
+    }
+  }, [imageUrl])
+
+  /* =========================
+   * HANDLERS
+   * ========================= */
+
+  // react-easy-crop callback
   function onCropComplete(_, croppedPixels) {
     setCroppedAreaPixels(croppedPixels)
   }
@@ -73,35 +112,24 @@ export default function useProfile() {
   function handleChange(e) {
     const { name, value } = e.target
     setForm(prev => ({ ...prev, [name]: value }))
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }))
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }))
+    }
   }
 
-  // ✅ เลือกรูป (ครั้งแรก)
+  /**
+   * User เลือกรูปใหม่ (ครั้งแรก)
+   * - validate type / size
+   * - เก็บ originalFile ไว้เป็น source กลาง
+   * - เปิด modal crop
+   */
   function handleImageChange(e) {
     const file = e.target.files[0]
     if (!file) return
 
-    setOriginalFile(file) // 🔥 เก็บไฟล์ต้นฉบับ
-
-    const previewUrl = URL.createObjectURL(file)
-    setPendingImageUrl(previewUrl)
-    setIsCropping(true)
-    setHasCropped(false)
-  }
-  function handleImageChange(e) {
-    const file = e.target.files[0]
-    if (!file) return
-  
-    // clear previous image error
     setErrors(prev => ({ ...prev, avatar: null }))
-  
-    const allowedTypes = [
-      "image/jpeg",
-      "image/jpg",
-      "image/png",
-      "image/webp",
-    ]
-  
+
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
     if (!allowedTypes.includes(file.type)) {
       setErrors(prev => ({
         ...prev,
@@ -110,8 +138,8 @@ export default function useProfile() {
       e.target.value = ""
       return
     }
-  
-    const MAX_SIZE = 2 * 1024 * 1024 // 2MB
+
+    const MAX_SIZE = 2 * 1024 * 1024
     if (file.size > MAX_SIZE) {
       setErrors(prev => ({
         ...prev,
@@ -120,17 +148,19 @@ export default function useProfile() {
       e.target.value = ""
       return
     }
-  
-    // valid file
+
     const objectUrl = URL.createObjectURL(file)
-  
+
     setOriginalFile(file)
     setPendingImageUrl(objectUrl)
     setIsCropping(true)
     setHasCropped(false)
   }
 
-  // ✅ Crop again → ใช้ไฟล์ต้นฉบับ
+  /**
+   * Crop again
+   * - ใช้ originalFile เสมอ (ไม่ crop ต่อจาก crop)
+   */
   function handleCropAgain() {
     if (!originalFile) return
 
@@ -141,7 +171,12 @@ export default function useProfile() {
     setZoom(1)
   }
 
-  // ✅ Confirm crop
+  /**
+   * Confirm crop
+   * - crop จาก originalFile
+   * - สร้าง imageFile สำหรับ upload
+   * - แสดง preview
+   */
   async function handleConfirmCrop() {
     if (!croppedAreaPixels || !originalFile) return
 
@@ -160,7 +195,10 @@ export default function useProfile() {
     setZoom(1)
   }
 
-  // ✅ Cancel crop → ไม่เปลี่ยนรูป
+  /**
+   * Cancel crop
+   * - ไม่แตะ imageUrl
+   */
   function handleCancelCrop() {
     setPendingImageUrl(null)
     setIsCropping(false)
@@ -168,7 +206,9 @@ export default function useProfile() {
     setZoom(1)
   }
 
-  // ✅ Remove photo
+  /**
+   * Remove avatar ทั้งหมด
+   */
   function handleRemovePhoto() {
     setOriginalFile(null)
     setImageFile(null)
@@ -179,28 +219,38 @@ export default function useProfile() {
     setZoom(1)
   }
 
-  /* ================= submit ================= */
+  /* =========================
+   * SUBMIT PROFILE
+   * ========================= */
   const submit = async (e) => {
     e.preventDefault()
-  
+
     const validationErrors = validateProfile(form)
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
       return
     }
-  
+
+    // ป้องกัน user ลืมกด confirm crop
+    if (pendingImageUrl && !hasCropped) {
+      setErrors(prev => ({
+        ...prev,
+        avatar: "Please confirm the photo crop before updating profile.",
+      }))
+      return
+    }
+
     try {
       setIsLoading(true)
   
       let uploadedAvatarUrl = imageUrl
-  
+
+      // upload เฉพาะเมื่อมีรูปใหม่
       if (imageFile) {
         const filePath = `avatars/${profile.id}?v=${Date.now()}`
-  
         const { error } = await supabase.storage
           .from("avatars")
           .upload(filePath, imageFile, { upsert: true })
-  
         if (error) throw error
   
         const { data } = supabase.storage
@@ -219,15 +269,15 @@ export default function useProfile() {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-  
+
+      // refresh profile จาก backend
       await fetchProfile(token)
-  
-      // 🔥 reset avatar states
+
+      // clear transient states
+      setErrors(prev => ({ ...prev, avatar: null }))
       setHasCropped(false)
       setOriginalFile(null)
       setImageFile(null)
-      setPendingImageUrl(null)
-      
     } finally {
       setIsLoading(false)
     }

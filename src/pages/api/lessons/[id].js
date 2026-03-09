@@ -14,9 +14,10 @@ export default async function handler(req, res) {
       SELECT 
         l.id,
         l.name,
+        l.order_index,
         json_agg(
           json_build_object(
-            'id', sl.id,
+            'id', sl.id::text,
             'name', sl.name,
             'vdo_url', sl.vdo_url,
             'vdo_time', sl.vdo_time,
@@ -39,6 +40,7 @@ export default async function handler(req, res) {
     const lessons = result.rows.map((row) => ({
       id: row.id,
       name: row.name,
+      order_index:row.order_index,
       sub_lessons: row.sub_lessons || [],
     }));
 

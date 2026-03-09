@@ -1,0 +1,121 @@
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { Trash2, Edit, ChevronDown, ChevronUp } from "lucide-react";
+
+import Button from "@/common/navbar/Button";
+import { useToggle } from "@/hooks/useToggle";
+import SortableSubLesson from "./SortableSubLesson";
+
+export default function SortableLesson({ item, onDelete }) {
+
+    const { isShow, switchToggle } = useToggle();
+
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
+        id: `lesson-${item.id}`,
+        data: {
+            type: "lesson",
+            lessonId: item.id
+        }
+    })
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+        <div className="py-8 border-b border-gray-200">
+
+            <li
+                ref={setNodeRef}
+                style={style}
+                className="grid grid-cols-12 items-center bg-white"
+            >
+
+                {/* drag handle */}
+                <div
+                    {...attributes}
+                    {...listeners}
+                    className="col-span-1 flex justify-center cursor-grab"
+                >
+                    <div className="grid grid-cols-2 gap-1">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div
+                                key={i}
+                                className="w-1 h-1 bg-slate-300 rounded-full"
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                {/* lesson name */}
+                <div className="col-span-6 flex items-center gap-4">
+                    <span className="text-slate-600 font-medium">
+                        {item.order_index}
+                    </span>
+                    <span>{item.name}</span>
+                </div>
+
+                {/* sub lesson count */}
+                <div className="col-span-3 text-slate-600">
+                    {item.sub_lessons.length}
+                </div>
+
+                {/* action */}
+                <div className="col-span-2 flex justify-center gap-3">
+
+                    <Button
+                        iconOnly
+                        onClick={() => onDelete(item.id)}
+                        className="h-9 w-9 text-blue-300 cursor-pointer hover:text-red-500 hover:bg-red-50 active:bg-red-100 rounded-full"
+                    >
+                        <Trash2 className="h-[18px] w-[18px]" />
+                    </Button>
+
+                    <Button iconOnly className="h-9 w-9 text-blue-300 cursor-pointer hover:text-blue-500 hover:bg-blue-50 active:bg-blue-100 rounded-full">
+                        <Edit className="h-[18px] w-[18px]" />
+                    </Button>
+
+                    <Button iconOnly onClick={switchToggle} className="h-9 w-9 cursor-pointer hover:bg-gray-50 active:bg-gray-200 rounded-full">
+                        {!isShow
+                            ? <ChevronDown className="h-[18px] w-[18px]" />
+                            : <ChevronUp className="h-[18px] w-[18px]" />}
+                    </Button>
+
+                </div>
+
+            </li>
+
+            {isShow && (
+                <SortableContext
+                    items={item.sub_lessons.map((s) => `sub-${s.id}`)}
+                    strategy={verticalListSortingStrategy}
+                >
+
+                    <ul className="space-y-2 px-15 pt-8">
+
+                        {item.sub_lessons.map((sub) => (
+                            <SortableSubLesson
+                                key={sub.id}
+                                sub={sub}
+                                lessonId={item.id}
+                            />
+                        ))}
+
+                    </ul>
+
+                </SortableContext>
+            )}
+
+        </div>
+    );
+}
