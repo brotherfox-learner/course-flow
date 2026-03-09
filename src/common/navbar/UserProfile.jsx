@@ -12,7 +12,11 @@ export function UserProfile({ profile, onToggle, isLoading }) {
     <div className="flex flex-row items-center lg:py-2 lg:gap-2">
       <Link href="/profile" className="cursor-pointer">
         <Avatar className="w-12 h-12 cursor-pointer hover:opacity-80 transition-opacity">
-          <AvatarImage src={profile?.avatarUrl} alt={profile?.firstName} className="object-cover" />
+          <AvatarImage
+            src={profile?.avatarUrl || "/profile_dummie.svg"}
+            alt={profile?.firstName}
+            className="object-cover border-none"
+          />
           <AvatarFallback>{firstInitial}</AvatarFallback>
         </Avatar>
       </Link>
