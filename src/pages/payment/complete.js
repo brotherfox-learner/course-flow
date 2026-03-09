@@ -3,7 +3,7 @@ import NavBar from "@/common/navbar/NavBar";
 
 export default function PaymentComplete() {
   const router = useRouter();
-  const { status, courseSlug } = router.query;
+  const { status, courseSlug, courseId } = router.query;
 
   const isSuccess = status === "success";
 
@@ -77,7 +77,7 @@ export default function PaymentComplete() {
                 <button
                   onClick={() =>
                     router.push(
-                      courseSlug ? `/courses/${courseSlug}/learn` : "/"
+                      courseId ? `/courses/${courseId}/learn` : courseSlug ? `/my-courses` : "/"
                     )
                   }
                   className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white body2 font-medium rounded-xl transition-colors"
