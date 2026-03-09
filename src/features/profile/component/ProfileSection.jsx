@@ -4,6 +4,7 @@ import { ComboBox } from "@/features/register/components/ComboBox";
 import useProfile from "../hook/useProfile";
 import LoadingOverlay from "./LoadingOverlay";
 import { useAuth } from "@/context/AuthContext";
+import AvatarCrop from "./AvatarCrop";
 
 export default function ProfilePage() {
     /* ================= styles ================= */
@@ -18,17 +19,28 @@ export default function ProfilePage() {
     const {
         form,
         imageUrl,
+        handleCancelCrop,
+        pendingImageUrl,
+        crop,
+        setCrop,
+        zoom,
+        setZoom,
         errors,
         isLoading,
+        isCropping,
+        hasCropped,
+        handleCropAgain,
         handleChange,
         handleImageChange,
+        handleConfirmCrop,
         handleRemovePhoto,
+        onCropComplete,
         submit,
     } = useProfile();
     const { loading } = useAuth()
 
     if (loading) {
-        return (<LoadingOverlay/>)
+        return (<LoadingOverlay />)
     }
 
     return (
@@ -71,16 +83,51 @@ export default function ProfilePage() {
                         <input
                             id="upload"
                             type="file"
-                            accept="image/*"
+                            accept="image/jpeg, image/png, image/jpg"
                             className="hidden"
                             onChange={handleImageChange}
                         />
-
+                        {errors.avatar && (
+                            <p className="body3 text-purple text-center">
+                                {errors.avatar}
+                            </p>
+                        )}
+                        {hasCropped && (
+                            <Button variant="secondary" size="sm" onClick={handleCropAgain}>
+                                Adjust crop
+                            </Button>
+                        )}
                         <Button variant="ghost" size="ghost" onClick={handleRemovePhoto}>
                             Remove photo
                         </Button>
                     </div>
                 </div>
+                {isCropping && (
+                    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
+                        <div className="bg-white p-4 rounded-lg w-[50vw] h-[50vh] flex flex-col">
+                            <div className="flex-1 relative">
+                                <AvatarCrop
+                                    imageUrl={pendingImageUrl}
+                                    crop={crop}
+                                    zoom={zoom}
+                                    setCrop={setCrop}
+                                    setZoom={setZoom}
+                                    onCropComplete={onCropComplete}
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-2 mt-4">
+                                <Button variant="ghost" size="sm" onClick={handleCancelCrop}>
+                                    Cancel
+                                </Button>
+                                <Button variant="primary" size="sm" onClick={handleConfirmCrop}>
+                                    Confirm
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
 
                 {/* ================= Form ================= */}
                 <form
@@ -168,7 +215,7 @@ export default function ProfilePage() {
                         {isLoading ? "Updating..." : "Update Profile"}
                     </Button>
                 </form>
-            </section>
-        </div>
+            </section >
+        </div >
     );
 }

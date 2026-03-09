@@ -49,9 +49,15 @@ export function ComboBox({ name, value, onChange, className, inputClassName, pla
                 className={className}
                 inputClassName={inputClassName}
             />
-            <ComboboxContent className="w-(--anchor-width) min-w-(--anchor-width)">
+
+            <ComboboxContent
+                side="bottom"
+                align="start"
+                sideOffset={4}
+                className="w-(--anchor-width) min-w-(--anchor-width)"
+            >
                 <ComboboxEmpty>No items found.</ComboboxEmpty>
-                <ComboboxList>
+                <ComboboxList className="max-h-60">
                     {(item) => (
                         <ComboboxItem key={item} value={item}>
                             {item}

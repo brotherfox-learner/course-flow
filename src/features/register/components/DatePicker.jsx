@@ -57,6 +57,17 @@ function isFutureDate(date) {
   return date > today
 }
 
+function isUnder18(date) {
+  const today = new Date()
+  const minBirthDate = new Date(
+    today.getFullYear() - 18,
+    today.getMonth(),
+    today.getDate()
+  )
+
+  return date > minBirthDate
+}
+
 /* ================= component ================= */
 
 export default function DatePickerInput({
@@ -138,10 +149,10 @@ export default function DatePickerInput({
             selected={date}
             captionLayout="dropdown"
             fromYear={1900}
-            toYear={currentYear}
-            disabled={(d) => isFutureDate(d)}
+            toYear={currentYear - 18}
+            disabled={(d) => isFutureDate(d) || isUnder18(d)}
             onSelect={(selectedDate) => {
-              if (!selectedDate || isFutureDate(selectedDate)) return
+              if (!selectedDate || isFutureDate(selectedDate) || isUnder18(selectedDate)) return
 
               setDate(selectedDate)
               setInputValue(formatDate(selectedDate))
