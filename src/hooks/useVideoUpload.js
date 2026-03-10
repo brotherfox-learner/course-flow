@@ -62,13 +62,17 @@ export function useVideoUpload() {
     setProgress(0);
 
     try {
-      // Step 1: Get signature from API
+      // Step 1: Get signature from API (request video-specific params)
       const signatureResponse = await fetch('/api/upload/signature', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          resource_type: 'video',
+          folder: 'course-flow/videos',
+        }),
       });
 
       if (!signatureResponse.ok) {
@@ -85,7 +89,6 @@ export function useVideoUpload() {
         formData.append('signature', signatureData.signature);
         formData.append('api_key', signatureData.api_key);
         formData.append('folder', signatureData.folder);
-        formData.append('resource_type', signatureData.resource_type);
         formData.append('upload_preset', signatureData.upload_preset);
 
         const xhr = new XMLHttpRequest();
