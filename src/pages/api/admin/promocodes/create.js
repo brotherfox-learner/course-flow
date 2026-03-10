@@ -62,6 +62,24 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: "Invalid discount_type" })
   }
 
+  const parsedDiscountValue = Number(discount_value)
+  const parsedMinPrice =
+    min_price != null && min_price !== "" ? Number(min_price) : 0
+  const parsedMaxUses =
+    max_uses != null && max_uses !== "" ? Number(max_uses) : null
+
+  if (!Number.isFinite(parsedDiscountValue) || parsedDiscountValue < 0) {
+    return res.status(400).json({ message: "Invalid discount_value" })
+  }
+
+  if (!Number.isFinite(parsedMinPrice) || parsedMinPrice < 0) {
+    return res.status(400).json({ message: "Invalid min_price" })
+  }
+
+  if (parsedMaxUses != null && (!Number.isInteger(parsedMaxUses) || parsedMaxUses < 1)) {
+    return res.status(400).json({ message: "Invalid max_uses" })
+  }
+
   const validFromDate = new Date(valid_from)
   const validUntilDate = new Date(valid_until)
   if (Number.isNaN(validFromDate.getTime()) || Number.isNaN(validUntilDate.getTime())) {
@@ -88,9 +106,9 @@ export default async function handler(req, res) {
         code.trim().toUpperCase(),
         name?.trim() || code.trim().toUpperCase(),
         discount_type,
-        Number(discount_value),
-        min_price != null && min_price !== "" ? Number(min_price) : null,
-        max_uses != null && max_uses !== "" ? Number(max_uses) : null,
+        parsedDiscountValue,
+        parsedMinPrice,
+        parsedMaxUses,
         valid_from,
         valid_until,
       ]

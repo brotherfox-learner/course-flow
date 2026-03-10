@@ -7,7 +7,7 @@ const supabase = createClient(
 )
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
+  if (req.method !== "GET" && req.method !== "DELETE") {
     return res.status(405).json({ message: "Method not allowed" })
   }
 
@@ -35,19 +35,65 @@ export default async function handler(req, res) {
 
   const { id } = req.query
 
-  try {
-    const result = await pool.query(
-      `SELECT * FROM courses WHERE id = $1`,
-      [id]
-    )
+  if (req.method === "GET") {
+    try {
+      const result = await pool.query(
+        `SELECT * FROM courses WHERE id = $1`,
+        [id]
+      )
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Course not found" })
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: "Course not found" })
+      }
+
+      return res.status(200).json({ course: result.rows[0] })
+    } catch (error) {
+      console.error("Fetch admin course error:", error)
+      return res.status(500).json({ message: "Internal server error" })
     }
+  }
 
-    return res.status(200).json({ course: result.rows[0] })
-  } catch (error) {
-    console.error("Fetch admin course error:", error)
-    return res.status(500).json({ message: "Internal server error" })
+  if (req.method === "DELETE") {
+    try {
+      // Start transaction
+      await pool.query('BEGIN')
+
+      // Delete sub-lessons first (cascade through lessons)
+      const deleteSubLessonsQuery = `
+        DELETE FROM sub_lessons 
+        WHERE lesson_id IN (
+          SELECT id FROM lessons WHERE course_id = $1
+        )
+      `
+      await pool.query(deleteSubLessonsQuery, [id])
+
+      // Delete lessons
+      const deleteLessonsQuery = `DELETE FROM lessons WHERE course_id = $1`
+      await pool.query(deleteLessonsQuery, [id])
+
+      // Delete course
+      const deleteCourseQuery = `DELETE FROM courses WHERE id = $1`
+      const result = await pool.query(deleteCourseQuery, [id])
+
+      if (result.rowCount === 0) {
+        await pool.query('ROLLBACK')
+        return res.status(404).json({ message: "Course not found" })
+      }
+
+      // Commit transaction
+      await pool.query('COMMIT')
+
+      return res.status(200).json({ 
+        success: true, 
+        message: "Course deleted successfully" 
+      })
+    } catch (error) {
+      console.error("Delete course error:", error)
+      await pool.query('ROLLBACK')
+      return res.status(500).json({ 
+        message: "Failed to delete course",
+        error: error.message 
+      })
+    }
   }
 }

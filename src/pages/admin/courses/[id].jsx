@@ -18,6 +18,7 @@ import { useRouter } from "next/router"
 import { Trash2, Edit, ArrowUp, ArrowDown, Plus } from "lucide-react"
 import axios from "axios"
 import { useAuth } from "@/context/AuthContext"
+import VideoUpload from "@/components/upload/VideoUpload"
 
 export default function EditCourse() {
   const router = useRouter()
@@ -59,6 +60,9 @@ export default function EditCourse() {
     discountValue: "200",
     summary: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
     detail: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Elementum aenean fermentum, velit vel, scelerisque morbi accumsan. Nec, tellus leo id leo id felis egestas. Quam sit lorem quis vitae ut mus imperdiet. Volutpat placerat dignissim dolor faucibus elit ornare fringilla. Vivamus amet risus ullamcorper auctor nibh. Maecenas morbi nec vestibulum ac tempus vehicula.\n\nVel, sit magna nisl cras non cursus. Sed sed sit ullamcorper neque. Dictum sapien amet, dictumst maecenas. Mattis nulla tellus ut neque euismod cras amet, volutpat purus. Semper purus viverra turpis in tempus ac nunc. Morbi ullamcorper sed elit enim turpis. Scelerisque rhoncus morbi pulvinar donec at sed fermentum. Duis non urna lacus, sit amet. Accumsan orci elementum nisl tellus sit quis. Integer turpis lectus eu blandit sit. At at cras viverra odio neque nisl consectetur. Arcu senectus aliquet vulputate urna, ornare. Mi sem tellus elementum at commodo blandit nunc. Viverra elit adipiscing ut dui, tellus viverra nec.\n\nLectus pharetra eget curabitur lobortis gravida gravida eget ut. Nullam velit morbi quam a at. Sed eu orci, mollis nulla at sit. Nunc quam integer metus vitae elementum pulvinar mattis nulla molestie. Quis eget vestibulum, faucibus malesuada eu. Et lectus molestie egestas faucibus auctor auctor.",
+    coverImgUrl: "",
+    vdoTrailerUrl: "",
+    videoTrailerData: null,
     lessons: [
       { id: 1, name: "Introduction", subLessons: 10 },
       { id: 2, name: "Service Design Theories and Principles", subLessons: 10 },
@@ -102,6 +106,15 @@ export default function EditCourse() {
               : prev.learningTime,
           summary: course?.course_summary ?? prev.summary,
           detail: course?.course_detail ?? prev.detail,
+          coverImgUrl: course?.cover_img_url ?? prev.coverImgUrl,
+          vdoTrailerUrl: course?.vdo_trailer_url ?? prev.vdoTrailerUrl,
+          videoTrailerData: course?.video_trailer_cloudinary_id ? {
+            public_id: course.video_trailer_cloudinary_id,
+            secure_url: course.vdo_trailer_url,
+            duration: course.video_trailer_duration,
+            format: course.video_trailer_format,
+            size: course.video_trailer_size,
+          } : null,
         }))
 
         const lessons = lessonsRes.data.lessons ?? []
@@ -319,6 +332,52 @@ export default function EditCourse() {
     }
   }
 
+  const handleVideoUpload = (videoData) => {
+    setCourseData(prev => ({ 
+      ...prev, 
+      videoTrailerData: videoData,
+      vdoTrailerUrl: videoData?.secure_url || "" 
+    }))
+  }
+
+  const handleUpdateCourse = async () => {
+    if (!id || !token) return
+
+    setPageError("")
+    try {
+      await axios.post(
+        "/api/admin/courses/update",
+        {
+          course_id: Number(id),
+          course_name: courseData.name,
+          price: Number(courseData.price),
+          total_learning_time: Number(courseData.learningTime),
+          course_summary: courseData.summary,
+          course_detail: courseData.detail,
+          cover_img_url: courseData.coverImgUrl,
+          vdo_trailer_url: courseData.videoTrailerData?.secure_url || courseData.vdoTrailerUrl,
+          video_trailer_cloudinary_id: courseData.videoTrailerData?.public_id || null,
+          video_trailer_duration: courseData.videoTrailerData?.duration || null,
+          video_trailer_format: courseData.videoTrailerData?.format || null,
+          video_trailer_size: courseData.videoTrailerData?.size || null,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      
+      // Show success message or redirect
+      alert("Course updated successfully!")
+    } catch (error) {
+      console.error("Update course failed:", error)
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        await logout()
+        return
+      }
+      setPageError(error.response?.data?.message || "Failed to update course")
+    }
+  }
+
   const moveLesson = async (lessonId, direction) => {
     const items = [...(courseData.lessons || [])].sort(
       (a, b) => (a.order_index ?? 0) - (b.order_index ?? 0)
@@ -399,8 +458,11 @@ export default function EditCourse() {
           >
             Cancel
           </Button>
-          <Button className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-11 px-8 rounded-md font-medium shadow-sm text-[15px]">
-            Edit
+          <Button 
+            onClick={handleUpdateCourse}
+            className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-11 px-8 rounded-md font-medium shadow-sm text-[15px]"
+          >
+            Save Changes
           </Button>
         </div>
 
@@ -500,23 +562,27 @@ export default function EditCourse() {
           
           <div>
             <Label className="mb-1 block text-slate-700 font-medium text-[15px]">Video Trailer <span className="text-[#C82A2A]">*</span></Label>
-            <p className="text-[13px] text-slate-400 mb-3">Supported file types: .mp4, .mov, .avi. Max file size: 20 MB</p>
-            <div className="w-[240px] h-[240px] relative rounded-xl overflow-hidden bg-[#1E293B] flex items-center justify-center group">
-              {/* Mock loaded video */}
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700 to-slate-900 flex flex-col justify-between p-2 opacity-50">
-                <div className="w-full h-1/2 bg-blue-500/20 rounded-[2px]"></div>
-                <div className="flex justify-between h-1/3 mt-2">
-                    <div className="w-[45%] h-full bg-green-500/20 rounded-[2px]"></div>
-                    <div className="w-[45%] h-full bg-orange-500/20 rounded-[2px]"></div>
-                </div>
-              </div>
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm z-10 cursor-pointer hover:bg-white/30 transition-colors">
-                <div className="w-0 h-0 border-t-8 border-b-8 border-l-12 border-transparent border-l-white ml-2"></div>
-              </div>
-              <div className="absolute top-2 right-2 w-6 h-6 bg-[#A855F7] rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-[#9333EA] shadow-sm z-10">
-                <span className="text-xs font-bold pb-[1px]">x</span>
-              </div>
+            
+            {/* Video Upload Component */}
+            <VideoUpload
+              value={courseData.videoTrailerData}
+              onChange={handleVideoUpload}
+              className="mb-3"
+            />
+            
+            {/* Fallback URL input for manual entry */}
+            <div className="mt-4">
+              <Input
+                placeholder="Or enter video trailer URL manually"
+                value={courseData.vdoTrailerUrl}
+                onChange={(e) => setCourseData(prev => ({ ...prev, vdoTrailerUrl: e.target.value }))}
+                className="h-12 border-slate-300 text-[15px]"
+              />
             </div>
+            
+            <p className="text-[13px] text-slate-400 mt-2">
+              Upload a video file or enter a URL. Supported formats: .mp4, .mov, .avi, .webm. Max file size: 50 MB
+            </p>
           </div>
 
           <div>
