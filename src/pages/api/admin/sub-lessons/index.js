@@ -56,9 +56,9 @@ export default async function handler(req, res) {
 
     if (search && search.trim()) {
       if (whereClause) {
-        whereClause += `AND sl.name ILIKE $${paramIndex} `
+        whereClause += `AND sl.sublesson_title ILIKE $${paramIndex} `
       } else {
-        whereClause = `WHERE sl.name ILIKE $${paramIndex} `
+        whereClause = `WHERE sl.sublesson_title ILIKE $${paramIndex} `
       }
       queryParams.push(`%${search.trim()}%`)
       paramIndex++
@@ -67,39 +67,39 @@ export default async function handler(req, res) {
     // Get total count for pagination
     const countQuery = `
       SELECT COUNT(*) as total
-      FROM sub_lessons sl
+      FROM sublessons sl
       ${whereClause}
     `
     
     const countResult = await pool.query(countQuery, queryParams)
     const total = parseInt(countResult.rows[0].total)
 
-    // Get paginated sub-lessons with lesson and course info
+    // Get paginated sublessons with lesson and course info
     const sublessonsQuery = `
       SELECT 
         sl.id,
-        sl.name,
-        sl.vdo_url,
-        sl.vdo_time,
-        sl.order_index,
-        sl.content_type,
-        sl.content,
+        sl.sublesson_title as title,
+        sl.sublesson_description as description,
+        sl.video_url,
+        sl.video_cloudinary_id,
+        sl.video_duration,
+        sl.sublesson_order,
         sl.created_at,
         sl.updated_at,
         sl.lesson_id,
-        l.name as lesson_name,
+        l.lesson_title as lesson_title,
         l.course_id,
         c.course_name as course_name
-      FROM sub_lessons sl
+      FROM sublessons sl
       LEFT JOIN lessons l ON sl.lesson_id = l.id
       LEFT JOIN courses c ON l.course_id = c.id
       ${whereClause}
-      ORDER BY sl.lesson_id, sl.order_index ASC
+      ORDER BY sl.lesson_id, sl.sublesson_order ASC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `
     
     queryParams.push(parsedLimit, offset)
-    const result = await pool.query(sublessonsQuery, queryParams)
+    const result = await pool.query(sublessonsQuery)
 
     return res.status(200).json({ 
       subLessons: result.rows,

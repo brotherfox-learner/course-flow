@@ -56,9 +56,9 @@ export default async function handler(req, res) {
 
     if (search && search.trim()) {
       if (whereClause) {
-        whereClause += `AND l.name ILIKE $${paramIndex} `
+        whereClause += `AND l.lesson_title ILIKE $${paramIndex} `
       } else {
-        whereClause = `WHERE l.name ILIKE $${paramIndex} `
+        whereClause = `WHERE l.lesson_title ILIKE $${paramIndex} `
       }
       queryParams.push(`%${search.trim()}%`)
       paramIndex++
@@ -78,8 +78,12 @@ export default async function handler(req, res) {
     const lessonsQuery = `
       SELECT 
         l.id,
-        l.name,
-        l.order_index,
+        l.lesson_title as title,
+        l.lesson_description as description,
+        l.video_url,
+        l.video_cloudinary_id,
+        l.video_duration,
+        l.lesson_order,
         l.created_at,
         l.updated_at,
         l.course_id,
@@ -87,15 +91,15 @@ export default async function handler(req, res) {
         COUNT(sl.id)::int AS sublessons
       FROM lessons l
       LEFT JOIN courses c ON l.course_id = c.id
-      LEFT JOIN sub_lessons sl ON sl.lesson_id = l.id
+      LEFT JOIN sublessons sl ON sl.lesson_id = l.id
       ${whereClause}
       GROUP BY l.id, c.course_name
-      ORDER BY l.course_id, l.order_index ASC
+      ORDER BY l.course_id, l.lesson_order ASC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `
     
     queryParams.push(parsedLimit, offset)
-    const result = await pool.query(lessonsQuery, queryParams)
+    const result = await pool.query(lessonsQuery)
 
     return res.status(200).json({ 
       lessons: result.rows,
