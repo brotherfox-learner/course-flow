@@ -37,10 +37,6 @@ export default async function handler(req, res) {
     course_detail,
     cover_img_url,
     vdo_trailer_url,
-    video_trailer_cloudinary_id,
-    video_trailer_duration,
-    video_trailer_format,
-    video_trailer_size,
     published = false
   } = req.body
 
@@ -80,14 +76,10 @@ export default async function handler(req, res) {
         course_detail, 
         cover_img_url, 
         vdo_trailer_url,
-        video_trailer_cloudinary_id,
-        video_trailer_duration,
-        video_trailer_format,
-        video_trailer_size,
         slug,
         published,
         instructor_id
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
       [
         course_name.trim(), 
         parsedPrice, 
@@ -96,10 +88,6 @@ export default async function handler(req, res) {
         course_detail.trim(), 
         cover_img_url.trim(), 
         vdo_trailer_url.trim(),
-        video_trailer_cloudinary_id || null,
-        video_trailer_duration || null,
-        video_trailer_format || null,
-        video_trailer_size || null,
         slug,
         published,
         user.id
