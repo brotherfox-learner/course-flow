@@ -6,6 +6,7 @@ import CourseCardSkeleton from "./CourseCardSkeleton";
 import { useCourseList } from "../hooks";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/features/wishlist/hooks";
+import AdminCourseActions from "./AdminCourseActions";
 
 const PAGE_SIZE = 12;
 
@@ -26,6 +27,9 @@ export default function CourseCard() {
     isLoggedIn ? user?.id : null,
     token
   );
+
+  // Check if user is admin
+  const isAdmin = user?.role === "admin";
 
   const handleWishlistToggle = async (courseId) => {
     if (!isLoggedIn || !token) return;
@@ -76,18 +80,26 @@ export default function CourseCard() {
                   (c) => Number(c.courseId) === Number(course.id)
                 );
                 return (
-                  <Link key={course.id} href={`/courses/${course.id}`}>
-                    <Card
-                      courseName={course.course_name}
-                      description={course.course_summary}
-                      lessonCount={course.lesson_count}
-                      durationHours={course.total_learning_time}
-                      imageUrl={course.cover_img_url}
-                      wishlistHeart={isLoggedIn}
-                      isInWishlist={isInWishlist}
-                      onWishlistClick={() => handleWishlistToggle(course.id)}
-                    />
-                  </Link>
+                  <div key={course.id}>
+                    <Link href={isAdmin ? "#" : `/courses/${course.id}`}>
+                      <Card
+                        courseName={course.course_name}
+                        description={course.course_summary}
+                        lessonCount={course.lesson_count}
+                        durationHours={course.total_learning_time}
+                        imageUrl={course.cover_img_url}
+                        wishlistHeart={isLoggedIn && !isAdmin}
+                        isInWishlist={isInWishlist}
+                        onWishlistClick={() => handleWishlistToggle(course.id)}
+                      />
+                    </Link>
+                    {isAdmin && (
+                      <AdminCourseActions 
+                        courseId={course.id} 
+                        courseName={course.course_name}
+                      />
+                    )}
+                  </div>
                 );
               })
             ) : search ? (

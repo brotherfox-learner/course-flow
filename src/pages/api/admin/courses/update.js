@@ -30,6 +30,7 @@ export default async function handler(req, res) {
   }
 
   const {
+    course_id,
     course_name,
     price,
     total_learning_time,
@@ -41,10 +42,10 @@ export default async function handler(req, res) {
     video_trailer_duration,
     video_trailer_format,
     video_trailer_size,
-    published = false
   } = req.body
 
   if (
+    !course_id ||
     !course_name?.trim() ||
     price == null ||
     total_learning_time == null ||
@@ -56,8 +57,13 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: "Missing required fields" })
   }
 
+  const parsedCourseId = Number(course_id)
   const parsedPrice = Number(price)
   const parsedLearningTime = Number(total_learning_time)
+
+  if (!Number.isFinite(parsedCourseId) || parsedCourseId <= 0) {
+    return res.status(400).json({ message: "Invalid course_id" })
+  }
 
   if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
     return res.status(400).json({ message: "Invalid price" })
@@ -67,48 +73,56 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: "Invalid total_learning_time" })
   }
 
-  // Generate slug from course name
-  const slug = course_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
-
   try {
+    // Check if course exists and user has permission
+    const existingCourse = await pool.query(
+      `SELECT id FROM courses WHERE id = $1`,
+      [parsedCourseId]
+    )
+
+    if (existingCourse.rows.length === 0) {
+      return res.status(404).json({ message: "Course not found" })
+    }
+
+    // Update course
     const result = await pool.query(
-      `INSERT INTO courses (
-        course_name, 
-        price, 
-        total_learning_time, 
-        course_summary, 
-        course_detail, 
-        cover_img_url, 
-        vdo_trailer_url,
-        video_trailer_cloudinary_id,
-        video_trailer_duration,
-        video_trailer_format,
-        video_trailer_size,
-        slug,
-        published,
-        instructor_id
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id`,
+      `UPDATE courses SET 
+        course_name = $1,
+        price = $2,
+        total_learning_time = $3,
+        course_summary = $4,
+        course_detail = $5,
+        cover_img_url = $6,
+        vdo_trailer_url = $7,
+        video_trailer_cloudinary_id = $8,
+        video_trailer_duration = $9,
+        video_trailer_format = $10,
+        video_trailer_size = $11,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $12
+      RETURNING id, course_name, price, total_learning_time, course_summary, course_detail, cover_img_url, vdo_trailer_url, video_trailer_cloudinary_id, video_trailer_duration, video_trailer_format, video_trailer_size`,
       [
-        course_name.trim(), 
-        parsedPrice, 
-        parsedLearningTime, 
-        course_summary.trim(), 
-        course_detail.trim(), 
-        cover_img_url.trim(), 
+        course_name.trim(),
+        parsedPrice,
+        parsedLearningTime,
+        course_summary.trim(),
+        course_detail.trim(),
+        cover_img_url.trim(),
         vdo_trailer_url.trim(),
         video_trailer_cloudinary_id || null,
         video_trailer_duration || null,
         video_trailer_format || null,
         video_trailer_size || null,
-        slug,
-        published,
-        user.id
+        parsedCourseId
       ]
     )
 
-    return res.status(201).json({ message: "Course created successfully", courseId: result.rows[0].id })
+    return res.status(200).json({ 
+      message: "Course updated successfully", 
+      course: result.rows[0] 
+    })
   } catch (error) {
-    console.error("Create course error:", error)
+    console.error("Update course error:", error)
     return res.status(500).json({ message: "Internal server error" })
   }
 }

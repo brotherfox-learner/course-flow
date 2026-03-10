@@ -10,6 +10,7 @@ import { useRouter } from "next/router"
 import axios from "axios"
 import { useAuth } from "@/context/AuthContext"
 import AttachFileUpload from "@/features/admin-coureses/component/AttachFileUpload"
+import VideoUpload from "@/components/upload/VideoUpload"
 
 export default function AddCourse() {
   const router = useRouter()
@@ -33,6 +34,7 @@ export default function AddCourse() {
     courseDetail: "",
     coverImgUrl: "",
     vdoTrailerUrl: "",
+    videoTrailerData: null,
   })
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState("")
@@ -44,6 +46,17 @@ export default function AddCourse() {
       router.push("/admin/login")
     }
   }, [loading, token, router])
+
+  const handleVideoUpload = (videoData) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      videoTrailerData: videoData,
+      vdoTrailerUrl: videoData?.secure_url || "" 
+    }))
+    if (errors.vdoTrailerUrl) {
+      setErrors(prev => ({ ...prev, vdoTrailerUrl: "" }))
+    }
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -61,7 +74,7 @@ export default function AddCourse() {
     if (!formData.courseSummary) newErrors.courseSummary = "Course summary is required"
     if (!formData.courseDetail) newErrors.courseDetail = "Course detail is required"
     if (!formData.coverImgUrl) newErrors.coverImgUrl = "Cover image URL is required"
-    if (!formData.vdoTrailerUrl) newErrors.vdoTrailerUrl = "Video trailer URL is required"
+    if (!formData.videoTrailerData && !formData.vdoTrailerUrl) newErrors.vdoTrailerUrl = "Video trailer is required"
     return newErrors
   }
 
@@ -85,7 +98,11 @@ export default function AddCourse() {
           course_summary: formData.courseSummary,
           course_detail: formData.courseDetail,
           cover_img_url: formData.coverImgUrl,
-          vdo_trailer_url: formData.vdoTrailerUrl,
+          vdo_trailer_url: formData.videoTrailerData?.secure_url || formData.vdoTrailerUrl,
+          video_trailer_cloudinary_id: formData.videoTrailerData?.public_id || null,
+          video_trailer_duration: formData.videoTrailerData?.duration || null,
+          video_trailer_format: formData.videoTrailerData?.format || null,
+          video_trailer_size: formData.videoTrailerData?.size || null,
           published: false,
         },
         {
@@ -388,21 +405,31 @@ export default function AddCourse() {
           
           <div>
             <Label className="mb-1 block text-slate-700 font-medium text-[15px]">Video Trailer <span className="text-[#C82A2A]">*</span></Label>
-            <Input
-              name="vdoTrailerUrl"
-              placeholder="Video trailer URL"
-              value={formData.vdoTrailerUrl}
-              onChange={handleChange}
-              className="h-12 border-slate-300 text-[15px] mb-2"
+            
+            {/* Video Upload Component */}
+            <VideoUpload
+              value={formData.videoTrailerData}
+              onChange={handleVideoUpload}
+              className="mb-3"
             />
-            {errors.vdoTrailerUrl && (
-              <p className="text-orange-500 text-sm mt-1 mb-2">{errors.vdoTrailerUrl}</p>
-            )}
-            <p className="text-[13px] text-slate-400 mb-3">Supported file types: .mp4, .mov, .avi. Max file size: 20 MB</p>
-            <div className="w-[240px] h-[240px] border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-[#2F5FAC] bg-[#F8FAFC] cursor-pointer hover:bg-blue-50 hover:border-[#8BA4D4] transition-colors">
-              <span className="text-4xl font-light mb-2">+</span>
-              <span className="text-[15px] font-medium">Upload Video</span>
+            
+            {/* Fallback URL input for manual entry */}
+            <div className="mt-4">
+              <Input
+                name="vdoTrailerUrl"
+                placeholder="Or enter video trailer URL manually"
+                value={formData.vdoTrailerUrl}
+                onChange={handleChange}
+                className="h-12 border-slate-300 text-[15px]"
+              />
+              {errors.vdoTrailerUrl && (
+                <p className="text-orange-500 text-sm mt-1">{errors.vdoTrailerUrl}</p>
+              )}
             </div>
+            
+            <p className="text-[13px] text-slate-400 mt-2">
+              Upload a video file or enter a URL. Supported formats: .mp4, .mov, .avi, .webm. Max file size: 50 MB
+            </p>
           </div>
 
           <div>
