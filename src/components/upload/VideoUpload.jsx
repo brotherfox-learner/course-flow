@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useVideoUpload } from '@/hooks/useVideoUpload';
 import { useAuth } from '@/context/AuthContext';
@@ -24,11 +24,11 @@ export default function VideoUpload({
   const { uploadVideo, uploading, progress, error, uploadedVideo, resetUpload } = useVideoUpload();
 
   // Initialize preview if value is provided
-  useState(() => {
+  useEffect(() => {
     if (value && typeof value === 'object') {
       setPreview(value);
     }
-  });
+  }, [value]);
 
   // Save video metadata to database
   const saveVideoMetadata = useCallback(async (videoData) => {

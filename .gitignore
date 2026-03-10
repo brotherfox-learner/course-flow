@@ -46,3 +46,5 @@ next-env.d.ts
 PROJECT_STRUCTURE.md
 MyProjectReq/
 MyTask/
+docs/
+!docs/README.MD

@@ -108,12 +108,8 @@ export default function EditCourse() {
           detail: course?.course_detail ?? prev.detail,
           coverImgUrl: course?.cover_img_url ?? prev.coverImgUrl,
           vdoTrailerUrl: course?.vdo_trailer_url ?? prev.vdoTrailerUrl,
-          videoTrailerData: course?.video_trailer_cloudinary_id ? {
-            public_id: course.video_trailer_cloudinary_id,
+          videoTrailerData: course?.vdo_trailer_url ? {
             secure_url: course.vdo_trailer_url,
-            duration: course.video_trailer_duration,
-            format: course.video_trailer_format,
-            size: course.video_trailer_size,
           } : null,
         }))
 
@@ -356,10 +352,6 @@ export default function EditCourse() {
           course_detail: courseData.detail,
           cover_img_url: courseData.coverImgUrl,
           vdo_trailer_url: courseData.videoTrailerData?.secure_url || courseData.vdoTrailerUrl,
-          video_trailer_cloudinary_id: courseData.videoTrailerData?.public_id || null,
-          video_trailer_duration: courseData.videoTrailerData?.duration || null,
-          video_trailer_format: courseData.videoTrailerData?.format || null,
-          video_trailer_size: courseData.videoTrailerData?.size || null,
         },
         {
           headers: { Authorization: `Bearer ${token}` },

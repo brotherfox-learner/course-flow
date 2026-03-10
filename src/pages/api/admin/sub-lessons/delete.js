@@ -72,6 +72,45 @@ export default async function handler(req, res) {
       })
     }
 
+    // Delete assignment chain for this sub_lesson
+    await client.query(
+      `DELETE FROM submission_selected_options WHERE submission_answer_id IN (
+        SELECT sa.id FROM submission_answers sa
+        JOIN assignment_submissions asub ON sa.submission_id = asub.id
+        JOIN assignments a ON asub.assignment_id = a.id
+        WHERE a.sub_lesson_id = $1
+      )`, [sub_lesson_id]
+    )
+    await client.query(
+      `DELETE FROM submission_answers WHERE submission_id IN (
+        SELECT asub.id FROM assignment_submissions asub
+        JOIN assignments a ON asub.assignment_id = a.id
+        WHERE a.sub_lesson_id = $1
+      )`, [sub_lesson_id]
+    )
+    await client.query(
+      `DELETE FROM assignment_submissions WHERE assignment_id IN (
+        SELECT id FROM assignments WHERE sub_lesson_id = $1
+      )`, [sub_lesson_id]
+    )
+    await client.query(
+      `DELETE FROM question_options WHERE question_id IN (
+        SELECT aq.id FROM assignment_questions aq
+        JOIN assignments a ON aq.assignment_id = a.id
+        WHERE a.sub_lesson_id = $1
+      )`, [sub_lesson_id]
+    )
+    await client.query(
+      `DELETE FROM assignment_questions WHERE assignment_id IN (
+        SELECT id FROM assignments WHERE sub_lesson_id = $1
+      )`, [sub_lesson_id]
+    )
+    await client.query(`DELETE FROM assignments WHERE sub_lesson_id = $1`, [sub_lesson_id])
+
+    // Delete sub_lesson_progress
+    await client.query(`DELETE FROM sub_lesson_progress WHERE sub_lesson_id = $1`, [sub_lesson_id])
+
+    // Delete sub_lesson
     await client.query(`DELETE FROM sub_lessons WHERE id = $1`, [sub_lesson_id])
 
     await client.query("COMMIT")

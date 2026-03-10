@@ -10,6 +10,7 @@ import { useRouter } from "next/router"
 import axios from "axios"
 import { useAuth } from "@/context/AuthContext"
 import VideoUpload from "@/components/upload/VideoUpload"
+import ImageUpload from "@/components/upload/ImageUpload"
 
 export default function AddCourse() {
   const router = useRouter()
@@ -22,6 +23,7 @@ export default function AddCourse() {
     courseSummary: "",
     courseDetail: "",
     coverImgUrl: "",
+    coverImageData: null,
     vdoTrailerUrl: "",
     videoTrailerData: null,
   })
@@ -43,6 +45,17 @@ export default function AddCourse() {
     }))
     if (errors.vdoTrailerUrl) {
       setErrors(prev => ({ ...prev, vdoTrailerUrl: "" }))
+    }
+  }
+
+  const handleImageUpload = (imageData) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      coverImageData: imageData,
+      coverImgUrl: imageData?.secure_url || "" 
+    }))
+    if (errors.coverImgUrl) {
+      setErrors(prev => ({ ...prev, coverImgUrl: "" }))
     }
   }
 
@@ -85,12 +98,8 @@ export default function AddCourse() {
           total_learning_time: Number(formData.totalLearningTime),
           course_summary: formData.courseSummary,
           course_detail: formData.courseDetail,
-          cover_img_url: formData.coverImgUrl,
+          cover_img_url: formData.coverImageData?.secure_url || formData.coverImgUrl,
           vdo_trailer_url: formData.videoTrailerData?.secure_url || formData.vdoTrailerUrl,
-          video_trailer_cloudinary_id: formData.videoTrailerData?.public_id || null,
-          video_trailer_duration: formData.videoTrailerData?.duration || null,
-          video_trailer_format: formData.videoTrailerData?.format || null,
-          video_trailer_size: formData.videoTrailerData?.size || null,
           published: false,
         },
         {
@@ -277,10 +286,12 @@ export default function AddCourse() {
               <p className="text-orange-500 text-sm mt-1 mb-2">{errors.coverImgUrl}</p>
             )}
             <p className="text-[13px] text-slate-400 mb-3">Supported file types: .jpg, .png, .jpeg. Max file size: 5 MB</p>
-            <div className="w-[240px] h-[240px] border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-[#2F5FAC] bg-[#F8FAFC] cursor-pointer hover:bg-blue-50 hover:border-[#8BA4D4] transition-colors">
-              <span className="text-4xl font-light mb-2">+</span>
-              <span className="text-[15px] font-medium">Upload Image</span>
-            </div>
+            <ImageUpload
+              value={formData.coverImageData}
+              onChange={handleImageUpload}
+              maxSize={5 * 1024 * 1024}
+              className="w-[240px]"
+            />
           </div>
           
           <div>

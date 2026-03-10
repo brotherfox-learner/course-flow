@@ -15,20 +15,28 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Accept resource_type and folder from client request
+    const { resource_type = 'video', folder = 'course-flow/videos' } = req.body || {};
+
+    // Determine upload_preset based on resource_type
+    const upload_preset = resource_type === 'image' 
+      ? 'course_flow_image' 
+      : 'course_flow_video';
+
     // Get timestamp
     const timestamp = Math.round(new Date().getTime() / 1000);
     
-    // Upload parameters
-    const params = {
+    // Sign all params that will be sent to Cloudinary
+    // upload_preset MUST be included in signature for signed uploads
+    const paramsToSign = {
       timestamp: timestamp,
-      folder: 'course-videos',
-      resource_type: 'video',
-      upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET || 'video_preset',
+      folder: folder,
+      upload_preset: upload_preset,
     };
 
     // Generate signature
     const signature = cloudinary.utils.api_sign_request(
-      params,
+      paramsToSign,
       process.env.CLOUDINARY_API_SECRET
     );
 
@@ -38,9 +46,9 @@ export default async function handler(req, res) {
       signature: signature,
       api_key: process.env.CLOUDINARY_API_KEY,
       cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      folder: params.folder,
-      resource_type: params.resource_type,
-      upload_preset: params.upload_preset,
+      folder: folder,
+      resource_type: resource_type,
+      upload_preset: upload_preset,
     });
 
   } catch (error) {
