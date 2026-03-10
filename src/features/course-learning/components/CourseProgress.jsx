@@ -59,11 +59,18 @@ function SubLessonIcon({ status }) {
   );
 }
 
+function formatFileSize(bytes) {
+  if (!bytes) return "";
+  const mb = bytes / (1024 * 1024);
+  return mb >= 1 ? `${mb.toFixed(0)} mb` : `${Math.round(bytes / 1024)} KB`;
+}
+
 export default function CourseProgress({
   courseName,
   courseSummary,
   progressPercent = 0,
   lessons = [],
+  materials = [],
   completedSubLessonKeys,
   inProgressSubLessonKeys,
   currentSubLessonKey = null,
@@ -208,6 +215,49 @@ export default function CourseProgress({
             </AccordionItem>
           );
         })}
+        {materials.length > 0 && (
+          <AccordionItem
+            value="attachment"
+            className="w-full max-w-[311px] border-b border-gray-400 py-2 last:border-b last:mb-0"
+          >
+            <AccordionTrigger className="py-2 px-0 w-full hover:no-underline ">
+              <div className="flex flex-row items-start gap-6 min-w-0 flex-1">
+                <img src="/folder-open.png" alt="" className=" w-[18px] h-[18px] shrink-0 object-contain my-auto" aria-hidden />
+                <span className="body2 text-black flex-1 min-w-0 text-left">
+                  Attachment
+                </span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="flex flex-col items-start p-0">
+              <ul className="flex flex-col w-full list-none p-0 gap-2" role="list">
+                {materials.map((material) => (
+                  <li key={material.id}>
+                    <a
+                      href={material.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-4 w-full h-[82px] min-w-0 px-4 bg-blue-100 rounded-[8px] hover:opacity-90 transition-opacity"
+                    >
+                      <div className="w-10 h-10 rounded-[4px] bg-white flex items-center justify-center shrink-0">
+                        <img src="/file2.svg" alt="" className="w-5 h-5" aria-hidden />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[16px] text-black font-medium truncate">
+                          {material.title || material.file_name}
+                        </p>
+                        {material.file_size && (
+                          <p className="text-[12px] text-blue-500 mt-0.5">
+                            {formatFileSize(material.file_size)}
+                          </p>
+                        )}
+                      </div>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </AccordionContent>
+          </AccordionItem>
+        )}
       </Accordion>
     </aside>
   );

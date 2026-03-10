@@ -8,7 +8,8 @@ export default function useCourseEditor(id, token) {
         learningTime: "",
         summary: "",
         detail: "",
-        lessons: []
+        lessons: [],
+        materials: [],
     })
 
     const [isLoading, setIsLoading] = useState(true)
@@ -48,7 +49,8 @@ export default function useCourseEditor(id, token) {
                     learningTime: data.total_learning_time,
                     coverImg: data.cover_img_url,
                     trailer: data.vdo_trailer_url,
-                    lessons: data.lessons || []
+                    lessons: data.lessons || [],
+                    materials: data.materials || [],
                 })
 
             } catch (err) {
@@ -71,7 +73,6 @@ export default function useCourseEditor(id, token) {
     /* ---------------- UPDATE LESSON STATE ---------------- */
 
     const setLessons = (updater) => {
-
         setCourseData((prev) => ({
             ...prev,
             lessons:
@@ -79,7 +80,18 @@ export default function useCourseEditor(id, token) {
                     ? updater(prev.lessons)
                     : updater
         }))
+    }
 
+    /* ---------------- UPDATE MATERIALS STATE ---------------- */
+
+    const setMaterials = (updater) => {
+        setCourseData((prev) => ({
+            ...prev,
+            materials:
+                typeof updater === "function"
+                    ? updater(prev.materials)
+                    : updater
+        }))
     }
 
 
@@ -87,6 +99,7 @@ export default function useCourseEditor(id, token) {
         courseData,
         setCourseData,
         setLessons,
+        setMaterials,
         isLoading,
         error
     }

@@ -61,7 +61,8 @@ export default async function handler(req, res) {
           WHEN valid_from IS NOT NULL AND valid_from > NOW() THEN 'inactive'
           ELSE 'active'
         END AS status,
-        (SELECT COUNT(*)::int FROM enrollments e WHERE e.promo_code_id = p.id) AS used_count
+        (SELECT COUNT(*)::int FROM promo_code_usages u WHERE u.promo_code_id = p.id) AS used_count,
+        (SELECT COUNT(*)::int FROM promo_code_courses pc WHERE pc.promo_code_id = p.id) AS course_count
       FROM promo_codes p
       ORDER BY created_at DESC`
     )

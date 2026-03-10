@@ -74,6 +74,26 @@ export default async function handler(req, res) {
         c.updated_at,
 
         COALESCE(
+          (
+            SELECT json_agg(
+              json_build_object(
+                'id',        cm.id,
+                'title',     cm.title,
+                'file_name', cm.file_name,
+                'file_url',  cm.file_url,
+                'file_type', cm.file_type,
+                'file_size', cm.file_size,
+                'created_at',cm.created_at
+              )
+              ORDER BY cm.created_at
+            )
+            FROM course_materials cm
+            WHERE cm.course_id = c.id
+          ),
+          '[]'::json
+        ) AS materials,
+
+        COALESCE(
           json_agg(
             json_build_object(
 
@@ -98,6 +118,24 @@ export default async function handler(req, res) {
                 )
                 FROM sub_lessons sl
                 WHERE sl.lesson_id = l.id
+              ),
+
+              'materials',
+              (
+                SELECT COALESCE(
+                  json_agg(
+                    json_build_object(
+                      'id', lm.id,
+                      'file_name', lm.file_name,
+                      'file_url', lm.file_url,
+                      'file_type', lm.file_type
+                    )
+                    ORDER BY lm.created_at
+                  ),
+                  '[]'::json
+                )
+                FROM lesson_materials lm
+                WHERE lm.lesson_id = l.id
               )
 
             )

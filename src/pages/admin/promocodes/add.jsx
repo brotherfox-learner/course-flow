@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -7,51 +7,148 @@ import AdminLayout from "@/components/layout/AdminLayout"
 import { useRouter } from "next/router"
 import axios from "axios"
 import { useAuth } from "@/context/AuthContext"
+import { X, ChevronDown } from "lucide-react"
+
+function CourseMultiSelect({ courses, selectedIds, onChange }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  const allSelected = selectedIds.length === 0
+  const selectedCourses = courses.filter((c) => selectedIds.includes(c.id))
+
+  /* Close dropdown on outside click */
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [])
+
+  const toggleAll = () => onChange([])
+
+  const toggleCourse = (id) => {
+    if (selectedIds.includes(id)) {
+      onChange(selectedIds.filter((x) => x !== id))
+    } else {
+      onChange([...selectedIds, id])
+    }
+  }
+
+  const removeCourse = (id) => onChange(selectedIds.filter((x) => x !== id))
+
+  return (
+    <div ref={ref} className="relative w-full">
+      {/* Tag area / trigger */}
+      <button
+        type="button"
+        onClick={() => setOpen((p) => !p)}
+        className="w-full min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 py-2 flex flex-wrap gap-2 items-center text-left bg-white focus:outline-none focus:ring-1 focus:ring-orange-300"
+      >
+        {allSelected ? (
+          <span className="text-[15px] text-slate-700">All courses</span>
+        ) : (
+          selectedCourses.map((c) => (
+            <span
+              key={c.id}
+              className="flex items-center gap-1 bg-blue-100 border border-blue-300 rounded px-2 py-0.5 text-[13px] text-slate-700"
+            >
+              {c.course_name ?? c.name}
+              <button
+                type="button"
+                aria-label={`Remove ${c.course_name}`}
+                onClick={(e) => { e.stopPropagation(); removeCourse(c.id) }}
+                className="text-blue-500 hover:text-red-500"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))
+        )}
+        <ChevronDown className="w-4 h-4 text-slate-400 ml-auto shrink-0" aria-hidden />
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <ul className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-md shadow-lg max-h-72 overflow-y-auto">
+          {/* All courses option */}
+          <li>
+            <label className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={toggleAll}
+                className="w-4 h-4 rounded border-slate-300 text-[#2F5FAC] accent-[#2F5FAC]"
+              />
+              <span className="text-[15px] text-slate-700">All courses</span>
+            </label>
+          </li>
+          {courses.map((c) => (
+            <li key={c.id}>
+              <label className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.includes(c.id)}
+                  onChange={() => toggleCourse(c.id)}
+                  className="w-4 h-4 rounded border-slate-300 text-[#2F5FAC] accent-[#2F5FAC]"
+                />
+                <span className="text-[15px] text-slate-700">{c.course_name ?? c.name}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
 
 export default function AddPromoCode() {
   const router = useRouter()
   const { token, logout } = useAuth()
+
   const [formData, setFormData] = useState({
     code: "",
-    discountType: "thb",
+    discountType: "percent",
     discountAmount: "",
     discountPercent: "",
-    minPurchase: "",
+    minPurchase: "0",
     validFrom: "",
     validTo: "",
     usageLimit: "",
   })
+  /* [] = all courses; [id, id, ...] = specific courses */
+  const [selectedCourseIds, setSelectedCourseIds] = useState([])
+  const [courses, setCourses] = useState([])
 
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  /* Fetch courses list for multi-select */
+  useEffect(() => {
+    if (!token) return
+    axios
+      .get("/api/admin/courses", { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => setCourses(r.data?.courses || []))
+      .catch(() => setCourses([]))
+  }, [token])
+
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: "" }))
-  }
-
-  const handleRadioChange = (value) => {
-    setFormData(prev => ({ ...prev, discountType: value }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }))
   }
 
   const validate = () => {
     const newErrors = {}
     if (!formData.code) newErrors.code = "Promo code is required"
-    if (!formData.minPurchase) newErrors.minPurchase = "Minimum purchase is required"
-    
-    if (formData.discountType === "thb" && !formData.discountAmount) {
+    if (formData.discountType === "thb" && !formData.discountAmount)
       newErrors.discountAmount = "Discount amount is required"
-    }
-    if (formData.discountType === "percent" && !formData.discountPercent) {
+    if (formData.discountType === "percent" && !formData.discountPercent)
       newErrors.discountPercent = "Discount percentage is required"
-    }
-
     if (!formData.validFrom) newErrors.validFrom = "Start date is required"
     if (!formData.validTo) newErrors.validTo = "End date is required"
     if (!formData.usageLimit) newErrors.usageLimit = "Usage limit is required"
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -59,10 +156,7 @@ export default function AddPromoCode() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSubmitError("")
-
-    if (!validate()) {
-      return
-    }
+    if (!validate()) return
 
     setIsSubmitting(true)
     try {
@@ -76,18 +170,14 @@ export default function AddPromoCode() {
             formData.discountType === "thb"
               ? Number(formData.discountAmount)
               : Number(formData.discountPercent),
-          min_price: Number(formData.minPurchase),
+          min_price: Number(formData.minPurchase) || 0,
           max_uses: Number(formData.usageLimit),
           valid_from: formData.validFrom,
           valid_until: formData.validTo,
+          course_ids: selectedCourseIds,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       )
-
       router.push("/admin/promocodes")
     } catch (error) {
       console.error("Create promo code failed:", error)
@@ -104,13 +194,21 @@ export default function AddPromoCode() {
   return (
     <AdminLayout>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-semibold">Add Promo Code</h1>
+        <h1 className="text-2xl font-semibold">Add Promo code</h1>
         <div className="flex gap-4">
-          <Button variant="outline" className="border-orange-500 text-orange-500 hover:bg-orange-50" onClick={() => router.push('/admin/promocodes')}>
+          <Button
+            variant="outline"
+            className="border-orange-500 text-orange-500 hover:bg-orange-50"
+            onClick={() => router.push("/admin/promocodes")}
+          >
             Cancel
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleSubmit} disabled={isSubmitting || !token}>
-            Create
+          <Button
+            className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white"
+            onClick={handleSubmit}
+            disabled={isSubmitting || !token}
+          >
+            {isSubmitting ? "Creating..." : "Create"}
           </Button>
         </div>
       </div>
@@ -121,17 +219,16 @@ export default function AddPromoCode() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg border shadow-sm p-8 max-w-4xl">
-        <h2 className="text-xl font-semibold mb-6">Promo Code Information</h2>
-        
-        <form className="space-y-6">
-          {/* Row 1 */}
+      <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 max-w-4xl">
+        <form className="space-y-6" onSubmit={handleSubmit}>
+
+          {/* Row 1: Code + Min purchase */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <Label className="mb-2 block">Promo code *</Label>
-              <Input 
+              <Label className="mb-2 block">Set promo code *</Label>
+              <Input
                 name="code"
-                placeholder="NEWYEAR200" 
+                placeholder="NEWYEAR200"
                 value={formData.code}
                 onChange={handleChange}
                 className={errors.code ? "border-red-500" : ""}
@@ -140,65 +237,77 @@ export default function AddPromoCode() {
             </div>
             <div>
               <Label className="mb-2 block">Minimum purchase amount (THB) *</Label>
-              <Input 
+              <Input
                 name="minPurchase"
                 type="number"
-                placeholder="1000" 
+                placeholder="0"
                 value={formData.minPurchase}
                 onChange={handleChange}
-                className={errors.minPurchase ? "border-red-500" : ""}
               />
-              {errors.minPurchase && <p className="text-red-500 text-sm mt-1">{errors.minPurchase}</p>}
             </div>
           </div>
 
           {/* Row 2: Discount Type */}
           <div>
             <Label className="mb-4 block">Select discount type *</Label>
-            <RadioGroup value={formData.discountType} onValueChange={handleRadioChange} className="flex gap-8">
+            <RadioGroup
+              value={formData.discountType}
+              onValueChange={(v) => setFormData((p) => ({ ...p, discountType: v }))}
+              className="flex gap-8"
+            >
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="thb" id="thb" />
-                <Label htmlFor="thb">Discount (THB)</Label>
-                <div className="ml-2">
-                  <Input 
-                    name="discountAmount"
-                    type="number"
-                    className={`w-32 ${errors.discountAmount && formData.discountType === 'thb' ? "border-red-500" : ""}`}
-                    placeholder="200" 
-                    value={formData.discountAmount}
-                    onChange={handleChange}
-                    disabled={formData.discountType !== 'thb'}
-                  />
-                  {errors.discountAmount && formData.discountType === 'thb' && 
-                    <p className="text-red-500 text-sm mt-1">{errors.discountAmount}</p>}
-                </div>
+                <Label htmlFor="thb">Fixed amount (THB)</Label>
+                <Input
+                  name="discountAmount"
+                  type="number"
+                  className={`w-28 ml-2 ${errors.discountAmount && formData.discountType === "thb" ? "border-red-500" : ""}`}
+                  placeholder="THB"
+                  value={formData.discountAmount}
+                  onChange={handleChange}
+                  disabled={formData.discountType !== "thb"}
+                />
+                {errors.discountAmount && formData.discountType === "thb" && (
+                  <p className="text-red-500 text-sm mt-1">{errors.discountAmount}</p>
+                )}
               </div>
-              
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="percent" id="percent" />
-                <Label htmlFor="percent">Discount (%)</Label>
-                <div className="ml-2">
-                  <Input 
-                    name="discountPercent"
-                    type="number"
-                    className={`w-32 ${errors.discountPercent && formData.discountType === 'percent' ? "border-red-500" : ""}`}
-                    placeholder="20" 
-                    value={formData.discountPercent}
-                    onChange={handleChange}
-                    disabled={formData.discountType !== 'percent'}
-                  />
-                  {errors.discountPercent && formData.discountType === 'percent' && 
-                    <p className="text-red-500 text-sm mt-1">{errors.discountPercent}</p>}
-                </div>
+                <Label htmlFor="percent">Percent (%)</Label>
+                <Input
+                  name="discountPercent"
+                  type="number"
+                  className={`w-28 ml-2 ${errors.discountPercent && formData.discountType === "percent" ? "border-red-500" : ""}`}
+                  placeholder="30"
+                  value={formData.discountPercent}
+                  onChange={handleChange}
+                  disabled={formData.discountType !== "percent"}
+                />
+                {errors.discountPercent && formData.discountType === "percent" && (
+                  <p className="text-red-500 text-sm mt-1">{errors.discountPercent}</p>
+                )}
               </div>
             </RadioGroup>
           </div>
 
-          {/* Row 3: Validity Period */}
+          {/* Row 3: Courses Included */}
+          <div>
+            <Label className="mb-2 block">Courses Included</Label>
+            <CourseMultiSelect
+              courses={courses}
+              selectedIds={selectedCourseIds}
+              onChange={setSelectedCourseIds}
+            />
+            <p className="text-[12px] text-slate-400 mt-1">
+              Leave as "All courses" to allow this code on every course.
+            </p>
+          </div>
+
+          {/* Row 4: Validity Period */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label className="mb-2 block">Valid From *</Label>
-              <Input 
+              <Input
                 name="validFrom"
                 type="date"
                 value={formData.validFrom}
@@ -209,7 +318,7 @@ export default function AddPromoCode() {
             </div>
             <div>
               <Label className="mb-2 block">Valid To *</Label>
-              <Input 
+              <Input
                 name="validTo"
                 type="date"
                 value={formData.validTo}
@@ -220,22 +329,21 @@ export default function AddPromoCode() {
             </div>
           </div>
 
-          {/* Row 4: Usage Limit */}
+          {/* Row 5: Usage Limit */}
           <div>
             <Label className="mb-2 block">Usage Limit *</Label>
-            <Input 
+            <Input
               name="usageLimit"
               type="number"
-              placeholder="100" 
+              placeholder="100"
               className={`max-w-xs ${errors.usageLimit ? "border-red-500" : ""}`}
               value={formData.usageLimit}
               onChange={handleChange}
             />
             {errors.usageLimit && <p className="text-red-500 text-sm mt-1">{errors.usageLimit}</p>}
           </div>
-
         </form>
-      </div>
+      </section>
     </AdminLayout>
   )
 }

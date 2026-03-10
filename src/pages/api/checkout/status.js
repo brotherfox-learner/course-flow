@@ -42,16 +42,28 @@ export default async function handler(req, res) {
           [charge.transaction || null, payment.id]
         );
 
-        // สร้างหรืออัปเดต enrollment (wishlist → active เมื่อชำระสำเร็จ)
-        await pool.query(
+        // สร้างหรืออัปเดต enrollment (pending_payment/wishlist → active)
+        const enrollResult = await pool.query(
           `INSERT INTO enrollments (user_id, course_id, status, enrolled_at, updated_at)
            VALUES ($1, $2, 'active', NOW(), NOW())
            ON CONFLICT (user_id, course_id) DO UPDATE SET
              status = 'active',
              enrolled_at = NOW(),
-             updated_at = NOW()`,
+             updated_at = NOW()
+           RETURNING id, promo_code_id`,
           [payment.user_id, payment.course_id]
         );
+
+        // อัปเดต promo usage ที่จองไว้ (enrollment_id = NULL) ให้ชี้ไปที่ enrollment
+        const enrollment = enrollResult.rows[0];
+        if (enrollment?.promo_code_id) {
+          await pool.query(
+            `UPDATE promo_code_usages
+             SET enrollment_id = $1
+             WHERE promo_code_id = $2 AND user_id = $3 AND enrollment_id IS NULL`,
+            [enrollment.id, enrollment.promo_code_id, payment.user_id]
+          );
+        }
 
         console.log(`[Status Sync] Payment ${payment.id} updated to paid`);
       } else if (charge.status === "failed" || charge.status === "expired") {
@@ -69,6 +81,20 @@ export default async function handler(req, res) {
             payment.id,
           ]
         );
+
+        // ลบ reserved promo usage (enrollment_id IS NULL) เพื่อปล่อย slot กลับ
+        const enrollRow = await pool.query(
+          `SELECT promo_code_id FROM enrollments
+           WHERE user_id = $1 AND course_id = $2 AND status = 'pending_payment'`,
+          [payment.user_id, payment.course_id]
+        );
+        if (enrollRow.rows[0]?.promo_code_id) {
+          await pool.query(
+            `DELETE FROM promo_code_usages
+             WHERE promo_code_id = $1 AND user_id = $2 AND enrollment_id IS NULL`,
+            [enrollRow.rows[0].promo_code_id, payment.user_id]
+          );
+        }
 
         console.log(`[Status Sync] Payment ${payment.id} updated to failed`);
       }
