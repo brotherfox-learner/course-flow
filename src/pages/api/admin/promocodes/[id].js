@@ -6,132 +6,203 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-async function getAdminUser(req) {
+async function ensureAdmin(req) {
   const authHeader = req.headers.authorization
-  if (!authHeader?.startsWith("Bearer ")) return null
+  if (!authHeader?.startsWith("Bearer ")) {
+    return { ok: false, status: 401, message: "Unauthorized" }
+  }
+
   const token = authHeader.split(" ")[1]
-  const { data: { user }, error } = await supabase.auth.getUser(token)
-  if (error || !user) return null
-  const roleCheck = await pool.query(`SELECT role FROM users WHERE id = $1`, [user.id])
-  if (roleCheck.rows.length === 0 || roleCheck.rows[0].role !== "admin") return null
-  return user
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser(token)
+
+  if (authError || !user) {
+    return { ok: false, status: 401, message: "Invalid token" }
+  }
+
+  const roleCheck = await pool.query(`SELECT role FROM users WHERE id = $1`, [
+    user.id,
+  ])
+
+  if (roleCheck.rows.length === 0 || roleCheck.rows[0].role !== "admin") {
+    return { ok: false, status: 403, message: "Forbidden" }
+  }
+
+  return { ok: true, user }
 }
 
 export default async function handler(req, res) {
+  // Get promo code ID from URL
   const { id } = req.query
 
-  const user = await getAdminUser(req)
-  if (!user) return res.status(401).json({ message: "Unauthorized" })
-
-  if (req.method === "GET") {
-    try {
-      const result = await pool.query(
-        `SELECT
-          p.id, p.code, p.name, p.discount_type, p.discount_value,
-          p.min_price, p.max_uses, p.valid_from, p.valid_until, p.created_at,
-          CASE
-            WHEN p.valid_until IS NOT NULL AND p.valid_until < NOW() THEN 'expired'
-            WHEN p.valid_from IS NOT NULL AND p.valid_from > NOW() THEN 'inactive'
-            ELSE 'active'
-          END AS status,
-          (SELECT COUNT(*)::int FROM promo_code_usages u WHERE u.promo_code_id = p.id) AS used_count,
-          COALESCE(
-            (SELECT json_agg(pc.course_id) FROM promo_code_courses pc WHERE pc.promo_code_id = p.id),
-            '[]'::json
-          ) AS course_ids
-        FROM promo_codes p
-        WHERE p.id = $1`,
-        [id]
-      )
-      if (result.rows.length === 0) {
-        return res.status(404).json({ message: "Promo code not found" })
-      }
-      return res.status(200).json({ promoCode: result.rows[0] })
-    } catch (error) {
-      console.error("Fetch promo code error:", error)
-      return res.status(500).json({ message: "Internal server error" })
-    }
+  if (!id) {
+    return res.status(400).json({ message: "Promo code ID is required" })
   }
 
-  if (req.method === "PUT") {
-    const {
-      code, name, discount_type, discount_value,
-      min_price, max_uses, valid_from, valid_until,
-      course_ids,
-    } = req.body
+  const auth = await ensureAdmin(req)
+  if (!auth.ok) {
+    return res.status(auth.status).json({ message: auth.message })
+  }
 
-    if (!code || !discount_type || discount_value == null) {
-      return res.status(400).json({ message: "Missing required fields" })
-    }
+  try {
+    switch (req.method) {
+      case "GET":
+        // Get single promo code by ID
+        const result = await pool.query(
+          `SELECT
+            id,
+            code,
+            name,
+            discount_type,
+            discount_value,
+            min_price,
+            max_uses,
+            valid_from,
+            valid_until,
+            created_at,
+            updated_at,
+            CASE
+              WHEN valid_until IS NOT NULL AND valid_until < NOW() THEN 'expired'
+              WHEN valid_from IS NOT NULL AND valid_from > NOW() THEN 'inactive'
+              ELSE 'active'
+            END AS status,
+            (SELECT COUNT(*)::int FROM enrollments e WHERE e.promo_code_id = p.id) AS used_count
+          FROM promo_codes p
+          WHERE p.id = $1`,
+          [id]
+        )
 
-    const client = await pool.connect()
-    try {
-      await client.query("BEGIN")
-
-      const result = await client.query(
-        `UPDATE promo_codes SET
-          code = $1, name = $2, discount_type = $3, discount_value = $4,
-          min_price = $5, max_uses = $6, valid_from = $7, valid_until = $8
-        WHERE id = $9
-        RETURNING id`,
-        [
-          code.toUpperCase(),
-          name || null,
-          discount_type,
-          Number(discount_value),
-          min_price ? Number(min_price) : 0,
-          max_uses ? Number(max_uses) : null,
-          valid_from || null,
-          valid_until || null,
-          id,
-        ]
-      )
-
-      if (result.rows.length === 0) {
-        await client.query("ROLLBACK")
-        return res.status(404).json({ message: "Promo code not found" })
-      }
-
-      await client.query(`DELETE FROM promo_code_courses WHERE promo_code_id = $1`, [id])
-
-      if (Array.isArray(course_ids) && course_ids.length > 0) {
-        for (const courseId of course_ids) {
-          await client.query(
-            `INSERT INTO promo_code_courses (promo_code_id, course_id) VALUES ($1, $2)`,
-            [id, courseId]
-          )
+        if (result.rows.length === 0) {
+          return res.status(404).json({ message: "Promo code not found" })
         }
-      }
 
-      await client.query("COMMIT")
-      return res.status(200).json({ message: "Promo code updated" })
-    } catch (error) {
-      await client.query("ROLLBACK")
-      if (error.code === "23505") {
-        return res.status(409).json({ message: "Promo code already exists" })
-      }
-      console.error("Update promo code error:", error)
-      return res.status(500).json({ message: "Internal server error" })
-    } finally {
-      client.release()
+        return res.status(200).json({ promoCode: result.rows[0] })
+
+      case "PUT":
+        // Update promo code
+        const {
+          code,
+          name,
+          discount_type,
+          discount_value,
+          min_price,
+          max_uses,
+          valid_from,
+          valid_until,
+        } = req.body
+
+        // Validate required fields
+        if (!code || !name || !discount_type || discount_value == null) {
+          return res.status(400).json({ message: "Missing required fields" })
+        }
+
+        // Validate discount type
+        if (!["thb", "percent"].includes(discount_type)) {
+          return res.status(400).json({ message: "Invalid discount type" })
+        }
+
+        // Validate discount value
+        const parsedValue = parseFloat(discount_value)
+        if (isNaN(parsedValue) || parsedValue <= 0) {
+          return res.status(400).json({ message: "Invalid discount value" })
+        }
+
+        // Validate min_price and max_uses
+        const parsedMinPrice = min_price ? parseFloat(min_price) : null
+        const parsedMaxUses = max_uses ? parseInt(max_uses) : null
+
+        if (parsedMinPrice !== null && (isNaN(parsedMinPrice) || parsedMinPrice < 0)) {
+          return res.status(400).json({ message: "Invalid minimum price" })
+        }
+
+        if (parsedMaxUses !== null && (isNaN(parsedMaxUses) || parsedMaxUses <= 0)) {
+          return res.status(400).json({ message: "Invalid maximum uses" })
+        }
+
+        // Check if promo code exists
+        const existingCheck = await pool.query(
+          "SELECT id FROM promo_codes WHERE id = $1",
+          [id]
+        )
+
+        if (existingCheck.rows.length === 0) {
+          return res.status(404).json({ message: "Promo code not found" })
+        }
+
+        // Check if code is already used by another promo code
+        const codeCheck = await pool.query(
+          "SELECT id FROM promo_codes WHERE code = $1 AND id != $2",
+          [code, id]
+        )
+
+        if (codeCheck.rows.length > 0) {
+          return res.status(400).json({ message: "Promo code already exists" })
+        }
+
+        // Update promo code
+        const updateResult = await pool.query(
+          `UPDATE promo_codes 
+           SET code = $1, name = $2, discount_type = $3, discount_value = $4, 
+               min_price = $5, max_uses = $6, valid_from = $7, valid_until = $8,
+               updated_at = NOW()
+           WHERE id = $9
+           RETURNING *`,
+          [
+            code,
+            name,
+            discount_type,
+            parsedValue,
+            parsedMinPrice,
+            parsedMaxUses,
+            valid_from || null,
+            valid_until || null,
+            id,
+          ]
+        )
+
+        return res.status(200).json({
+          message: "Promo code updated successfully",
+          promoCode: updateResult.rows[0],
+        })
+
+      case "DELETE":
+        // Check if promo code exists
+        const deleteCheck = await pool.query(
+          "SELECT id FROM promo_codes WHERE id = $1",
+          [id]
+        )
+
+        if (deleteCheck.rows.length === 0) {
+          return res.status(404).json({ message: "Promo code not found" })
+        }
+
+        // Check if promo code is being used
+        const usageCheck = await pool.query(
+          "SELECT COUNT(*) as count FROM enrollments WHERE promo_code_id = $1",
+          [id]
+        )
+
+        if (parseInt(usageCheck.rows[0].count) > 0) {
+          return res.status(400).json({
+            message: "Cannot delete promo code that is being used",
+            usedCount: parseInt(usageCheck.rows[0].count),
+          })
+        }
+
+        // Delete promo code
+        await pool.query("DELETE FROM promo_codes WHERE id = $1", [id])
+
+        return res.status(200).json({
+          message: "Promo code deleted successfully",
+        })
+
+      default:
+        return res.status(405).json({ message: "Method not allowed" })
     }
+  } catch (error) {
+    console.error("Promo code operation error:", error)
+    return res.status(500).json({ message: "Internal server error" })
   }
-
-  if (req.method === "DELETE") {
-    try {
-      const result = await pool.query(
-        `DELETE FROM promo_codes WHERE id = $1 RETURNING id`,
-        [id]
-      )
-      if (result.rows.length === 0) {
-        return res.status(404).json({ message: "Promo code not found" })
-      }
-      return res.status(200).json({ message: "Promo code deleted" })
-    } catch (error) {
-      console.error("Delete promo code error:", error)
-      return res.status(500).json({ message: "Internal server error" })
-    }
-  }
-
-  return res.status(405).json({ message: "Method not allowed" })
 }
