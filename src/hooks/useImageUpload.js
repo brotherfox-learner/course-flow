@@ -1,10 +1,12 @@
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { useAuth } from '@/context/AuthContext';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const SUPPORTED_FORMATS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
 
 export function useImageUpload() {
+  const { token } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(null);
@@ -61,45 +63,90 @@ export function useImageUpload() {
     setProgress(0);
 
     try {
-      // Create FormData for Cloudinary upload
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'image_preset'); // You need to create this preset in Cloudinary
-      formData.append('resource_type', 'image');
-      formData.append('folder', 'course-flow/images');
+      // Step 1: Get signature from API (request image-specific params)
+      const signatureResponse = await fetch('/api/upload/signature', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resource_type: 'image',
+          folder: 'course-flow/images',
+        }),
+      });
 
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Upload failed');
+      if (!signatureResponse.ok) {
+        throw new Error('Failed to get upload signature');
       }
 
-      const data = await response.json();
+      const signatureData = await signatureResponse.json();
 
-      if (data.error) {
-        setError(data.error.message);
-        return null;
-      }
+      // Step 2: Upload to Cloudinary with signature (using XMLHttpRequest for progress)
+      return new Promise((resolve, reject) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('timestamp', signatureData.timestamp);
+        formData.append('signature', signatureData.signature);
+        formData.append('api_key', signatureData.api_key);
+        formData.append('folder', signatureData.folder);
+        formData.append('upload_preset', signatureData.upload_preset);
 
-      const imageData = {
-        public_id: data.public_id,
-        secure_url: data.secure_url,
-        format: data.format,
-        size: data.bytes,
-        width: data.width,
-        height: data.height,
-        created_at: data.created_at,
-      };
+        const xhr = new XMLHttpRequest();
+        
+        // Progress tracking
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = Math.round((event.loaded / event.total) * 100);
+            setProgress(percentComplete);
+          }
+        });
 
-      setUploadedImage(imageData);
-      setProgress(100);
-      return imageData;
+        // Handle completion
+        xhr.addEventListener('load', () => {
+          if (xhr.status === 200) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              
+              if (data.error) {
+                setError(data.error.message || 'Upload failed');
+                reject(new Error(data.error.message));
+                return;
+              }
+
+              const imageData = {
+                public_id: data.public_id,
+                secure_url: data.secure_url,
+                format: data.format,
+                size: data.bytes,
+                width: data.width,
+                height: data.height,
+                created_at: data.created_at,
+              };
+
+              setUploadedImage(imageData);
+              setProgress(100);
+              resolve(imageData);
+            } catch (parseError) {
+              setError('Failed to parse upload response');
+              reject(parseError);
+            }
+          } else {
+            setError(`Upload failed with status: ${xhr.status}`);
+            reject(new Error(`Upload failed with status: ${xhr.status}`));
+          }
+        });
+
+        // Handle errors
+        xhr.addEventListener('error', () => {
+          setError('Network error during upload');
+          reject(new Error('Network error during upload'));
+        });
+
+        // Setup and send request - use image resource_type in URL
+        xhr.open('POST', `https://api.cloudinary.com/v1_1/${signatureData.cloud_name}/image/upload`);
+        xhr.send(formData);
+      });
     } catch (err) {
       const errorMessage = err.message || 'Upload failed';
       setError(errorMessage);
@@ -107,7 +154,7 @@ export function useImageUpload() {
     } finally {
       setUploading(false);
     }
-  }, []);
+  }, [token]);
 
   const resetUpload = useCallback(() => {
     setUploading(false);

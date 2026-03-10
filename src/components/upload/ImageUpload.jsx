@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { Button } from '@/components/ui/button';
@@ -19,11 +19,11 @@ export default function ImageUpload({
   const { uploadImage, uploading, progress, error, uploadedImage, resetUpload } = useImageUpload();
 
   // Initialize preview if value is provided
-  useState(() => {
+  useEffect(() => {
     if (value && typeof value === 'object') {
       setPreview(value);
     }
-  });
+  }, [value]);
 
   const onDrop = useCallback(async (acceptedFiles) => {
     if (acceptedFiles.length === 0) return;

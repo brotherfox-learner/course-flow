@@ -62,7 +62,6 @@ export default async function handler(req, res) {
             valid_from,
             valid_until,
             created_at,
-            updated_at,
             CASE
               WHEN valid_until IS NOT NULL AND valid_until < NOW() THEN 'expired'
               WHEN valid_from IS NOT NULL AND valid_from > NOW() THEN 'inactive'
@@ -99,7 +98,7 @@ export default async function handler(req, res) {
         }
 
         // Validate discount type
-        if (!["thb", "percent"].includes(discount_type)) {
+        if (!["fixed", "percent"].includes(discount_type)) {
           return res.status(400).json({ message: "Invalid discount type" })
         }
 
@@ -145,8 +144,7 @@ export default async function handler(req, res) {
         const updateResult = await pool.query(
           `UPDATE promo_codes 
            SET code = $1, name = $2, discount_type = $3, discount_value = $4, 
-               min_price = $5, max_uses = $6, valid_from = $7, valid_until = $8,
-               updated_at = NOW()
+               min_price = $5, max_uses = $6, valid_from = $7, valid_until = $8
            WHERE id = $9
            RETURNING *`,
           [
