@@ -70,24 +70,30 @@ async function deleteFromCloudinary(publicId, resourceType = 'auto') {
 // Update database to remove file references
 async function updateDatabaseReferences(publicId, pool) {
   try {
-    // Clear cover_img_url on courses if it contains the publicId
+    // Update courses table
     await pool.query(
-      `UPDATE courses SET cover_img_url = NULL, updated_at = NOW()
-       WHERE cover_img_url LIKE '%' || $1 || '%'`,
+      `UPDATE courses SET 
+        cover_img_url = NULL, 
+        video_trailer_cloudinary_id = NULL 
+       WHERE video_trailer_cloudinary_id = $1`,
       [publicId]
     );
 
-    // Clear vdo_trailer_url on courses if it contains the publicId
+    // Update lessons table
     await pool.query(
-      `UPDATE courses SET vdo_trailer_url = NULL, updated_at = NOW()
-       WHERE vdo_trailer_url LIKE '%' || $1 || '%'`,
+      `UPDATE lessons SET 
+        video_url = NULL, 
+        video_cloudinary_id = NULL 
+       WHERE video_cloudinary_id = $1`,
       [publicId]
     );
 
-    // Clear vdo_url on sub_lessons if it contains the publicId
+    // Update sublessons table
     await pool.query(
-      `UPDATE sub_lessons SET vdo_url = NULL, updated_at = NOW()
-       WHERE vdo_url LIKE '%' || $1 || '%'`,
+      `UPDATE sublessons SET 
+        video_url = NULL, 
+        video_cloudinary_id = NULL 
+       WHERE video_cloudinary_id = $1`,
       [publicId]
     );
 
