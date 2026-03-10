@@ -7,10 +7,7 @@ const supabase = createClient(
 )
 
 export default async function handler(req, res) {
-
-  /* ---------------- METHOD CHECK ---------------- */
-
-  if (req.method !== "GET") {
+  if (req.method !== "GET" && req.method !== "DELETE") {
     return res.status(405).json({ message: "Method not allowed" })
   }
 
@@ -51,128 +48,66 @@ export default async function handler(req, res) {
 
   const { id } = req.query
 
-  try {
+  if (req.method === "GET") {
+    try {
+      const result = await pool.query(
+        `SELECT * FROM courses WHERE id = $1`,
+        [id]
+      )
 
-    /* ---------------- MAIN QUERY ---------------- */
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: "Course not found" })
+      }
 
-    const result = await pool.query(
-
-      `
-      SELECT
-        c.id,
-        c.course_name,
-        c.slug,
-        c.course_summary,
-        c.course_detail,
-        c.price,
-        c.total_learning_time,
-        c.cover_img_url,
-        c.vdo_trailer_url,
-        c.published,
-        c.published_at,
-        c.created_at,
-        c.updated_at,
-
-        COALESCE(
-          (
-            SELECT json_agg(
-              json_build_object(
-                'id',        cm.id,
-                'title',     cm.title,
-                'file_name', cm.file_name,
-                'file_url',  cm.file_url,
-                'file_type', cm.file_type,
-                'file_size', cm.file_size,
-                'created_at',cm.created_at
-              )
-              ORDER BY cm.created_at
-            )
-            FROM course_materials cm
-            WHERE cm.course_id = c.id
-          ),
-          '[]'::json
-        ) AS materials,
-
-        COALESCE(
-          json_agg(
-            json_build_object(
-
-              'id', l.id,
-              'name', l.name,
-              'order_index', l.order_index,
-
-              'sub_lessons',
-              (
-                SELECT COALESCE(
-                  json_agg(
-                    json_build_object(
-                      'id', sl.id,
-                      'name', sl.name,
-                      'vdo_url', sl.vdo_url,
-                      'vdo_time', sl.vdo_time,
-                      'order_index', sl.order_index
-                    )
-                    ORDER BY sl.order_index
-                  ),
-                  '[]'::json
-                )
-                FROM sub_lessons sl
-                WHERE sl.lesson_id = l.id
-              ),
-
-              'materials',
-              (
-                SELECT COALESCE(
-                  json_agg(
-                    json_build_object(
-                      'id', lm.id,
-                      'file_name', lm.file_name,
-                      'file_url', lm.file_url,
-                      'file_type', lm.file_type
-                    )
-                    ORDER BY lm.created_at
-                  ),
-                  '[]'::json
-                )
-                FROM lesson_materials lm
-                WHERE lm.lesson_id = l.id
-              )
-
-            )
-            ORDER BY l.order_index
-          ) FILTER (WHERE l.id IS NOT NULL),
-          '[]'::json
-        ) AS lessons
-
-      FROM courses c
-
-      LEFT JOIN lessons l
-        ON l.course_id = c.id
-
-      WHERE c.id = $1
-
-      GROUP BY c.id
-      `,
-      [id]
-    )
-
-    /* ---------------- NOT FOUND ---------------- */
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Course not found" })
+      return res.status(200).json({ course: result.rows[0] })
+    } catch (error) {
+      console.error("Fetch admin course error:", error)
+      return res.status(500).json({ message: "Internal server error" })
     }
+  }
 
-    /* ---------------- SUCCESS ---------------- */
+  if (req.method === "DELETE") {
+    try {
+      // Start transaction
+      await pool.query('BEGIN')
 
-    return res.status(200).json(result.rows[0])
+      // Delete sub-lessons first (cascade through lessons)
+      const deleteSubLessonsQuery = `
+        DELETE FROM sub_lessons 
+        WHERE lesson_id IN (
+          SELECT id FROM lessons WHERE course_id = $1
+        )
+      `
+      await pool.query(deleteSubLessonsQuery, [id])
 
-  } catch (error) {
+      // Delete lessons
+      const deleteLessonsQuery = `DELETE FROM lessons WHERE course_id = $1`
+      await pool.query(deleteLessonsQuery, [id])
 
-    console.error("Fetch admin course error:", error)
+      // Delete course
+      const deleteCourseQuery = `DELETE FROM courses WHERE id = $1`
+      const result = await pool.query(deleteCourseQuery, [id])
 
-    return res.status(500).json({
-      message: "Internal server error"
-    })
+      if (result.rowCount === 0) {
+        await pool.query('ROLLBACK')
+        return res.status(404).json({ message: "Course not found" })
+      }
+
+      // Commit transaction
+      await pool.query('COMMIT')
+
+      return res.status(200).json({ 
+        success: true, 
+        message: "Course deleted successfully" 
+      })
+    } catch (error) {
+      console.error("Delete course error:", error)
+      await pool.query('ROLLBACK')
+      return res.status(500).json({ 
+        message: "Failed to delete course",
+        error: error.message 
+      })
+    }
   }
 
 }

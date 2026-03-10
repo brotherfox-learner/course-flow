@@ -7,6 +7,7 @@ import CourseCardSkeleton from "./CourseCardSkeleton";
 import { useCourseList } from "../hooks";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/features/wishlist/hooks";
+import AdminCourseActions from "./AdminCourseActions";
 
 const PAGE_SIZE = 12;
 
