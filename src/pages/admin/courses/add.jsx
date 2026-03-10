@@ -110,8 +110,12 @@ export default function AddCourse() {
           total_learning_time: Number(formData.totalLearningTime),
           course_summary: formData.courseSummary,
           course_detail: formData.courseDetail,
-          cover_img_url: formData.coverImageData?.secure_url || formData.coverImgUrl,
+          cover_img_url: formData.coverImgUrl,
           vdo_trailer_url: formData.videoTrailerData?.secure_url || formData.vdoTrailerUrl,
+          video_trailer_cloudinary_id: formData.videoTrailerData?.public_id || null,
+          video_trailer_duration: formData.videoTrailerData?.duration || null,
+          video_trailer_format: formData.videoTrailerData?.format || null,
+          video_trailer_size: formData.videoTrailerData?.size || null,
           published: false,
         },
         {
