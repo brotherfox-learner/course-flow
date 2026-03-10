@@ -422,6 +422,7 @@ export default function CourseLearnPage() {
               <CourseContent
                 subLessonName={selectedSubLesson?.sub?.name ?? null}
                 courseCoverImageUrl={course.cover_img_url ?? null}
+                videoUrl={selectedSubLesson?.sub?.vdo_url ?? null}
                 videoSectionRef={videoSectionRef}
                 contentType={selectedSubLesson?.sub?.content_type ?? "video"}
                 content={selectedSubLesson?.sub?.content ?? null}
