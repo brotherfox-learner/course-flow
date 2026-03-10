@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import Image from "next/image";
 import Button from "@/common/navbar/Button";
 
 const STATUS_CONFIG = {
@@ -104,6 +105,7 @@ const AUTO_ADVANCE_MS = 1500;
 export default function CourseContent({
   subLessonName,
   courseCoverImageUrl,
+  videoUrl = null,
   videoSectionRef,
   contentType = "video",
   content = null,
@@ -115,6 +117,16 @@ export default function CourseContent({
   const scrollCompleteSentinelRef = useRef(null);
   const textContentContainerRef = useRef(null);
   const hasMarkedCompleteRef = useRef(false);
+  const videoMarkCompleteSentRef = useRef(false);
+  const videoRef = useRef(null);
+  const videoRestoredRef = useRef(false);
+  const videoSaveTimeLastRef = useRef(0);
+  const VIDEO_SAVE_THROTTLE_MS = 2000;
+  const SEEK_STEP_SECONDS = 5;
+
+  // "forward" | "backward" | null
+  const [skipIndicator, setSkipIndicator] = useState(null);
+  const skipIndicatorTimerRef = useRef(null);
 
   const title = subLessonName || "Select a lesson";
   const showPlaceholder = !subLessonName;
@@ -136,6 +148,8 @@ export default function CourseContent({
 
   useEffect(() => {
     hasMarkedCompleteRef.current = false;
+    videoMarkCompleteSentRef.current = false;
+    videoRestoredRef.current = false;
   }, [subLessonId]);
 
   useEffect(() => {
@@ -238,6 +252,66 @@ export default function CourseContent({
         clearTimeout(autoAdvanceTimerRef.current);
     };
   }, []);
+
+  const handleSkip = useCallback(
+    (deltaSeconds) => {
+      const el = videoRef.current;
+      if (!el) return;
+
+      const duration = el.duration || 0;
+      if (!duration || !Number.isFinite(duration)) return;
+
+      const next = Math.min(
+        duration,
+        Math.max(0, (el.currentTime || 0) + deltaSeconds)
+      );
+      el.currentTime = next;
+
+      setSkipIndicator(deltaSeconds > 0 ? "forward" : "backward");
+
+      if (skipIndicatorTimerRef.current) {
+        clearTimeout(skipIndicatorTimerRef.current);
+      }
+      skipIndicatorTimerRef.current = setTimeout(() => {
+        setSkipIndicator(null);
+      }, 2000);
+    },
+    [videoRef]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (skipIndicatorTimerRef.current) {
+        clearTimeout(skipIndicatorTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isVideoType || !videoUrl) return;
+
+    const onKeyDown = (event) => {
+      const active = document.activeElement;
+      const tag = active?.tagName;
+      const isTyping =
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        active?.isContentEditable;
+
+      if (isTyping) return;
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        handleSkip(SEEK_STEP_SECONDS);
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        handleSkip(-SEEK_STEP_SECONDS);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isVideoType, videoUrl, handleSkip, SEEK_STEP_SECONDS]);
 
   const saveDraft = useCallback(
     (questionId, answerData) => {
@@ -480,28 +554,178 @@ export default function CourseContent({
           className="w-full flex-none order-1 self-stretch"
           aria-label="Video"
         >
-          <div className="relative w-full aspect-video max-h-[213.5px] md:max-h-[320px] lg:max-h-[460px] rounded-[8px] overflow-hidden bg-gray-300">
-            {courseCoverImageUrl ? (
-              <img
-                src={courseCoverImageUrl}
-                alt="Course cover"
-                className="w-full h-full object-cover"
+          {videoUrl ? (
+            <div className="relative w-full aspect-video max-h-[213.5px] md:max-h-[320px] lg:max-h-[460px] rounded-[8px] overflow-hidden bg-gray-900">
+              <video
+                ref={videoRef}
+                src={videoUrl}
+                controls
+                controlsList="nodownload"
+                className="w-full h-full object-contain"
+                onLoadedMetadata={async (e) => {
+                  const el = e.currentTarget;
+                  if (!subLessonId || videoRestoredRef.current || !token) return;
+
+                  try {
+                    const res = await fetch(
+                      `/api/sub-lessons/${subLessonId}/time`,
+                      {
+                        headers: { Authorization: `Bearer ${token}` },
+                      }
+                    );
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    const t = data?.lastPositionSeconds;
+                    if (
+                      typeof t === "number" &&
+                      Number.isFinite(t) &&
+                      t > 0 &&
+                      t < (el.duration || Infinity)
+                    ) {
+                      el.currentTime = t;
+                      videoRestoredRef.current = true;
+                    }
+                  } catch {
+                    // ignore
+                  }
+                }}
+                onTimeUpdate={async (e) => {
+                  const el = e.currentTarget;
+                  const { currentTime, duration } = el;
+
+                  if (token && subLessonId && duration > 0) {
+                    const now = Date.now();
+                    if (now - videoSaveTimeLastRef.current >= VIDEO_SAVE_THROTTLE_MS) {
+                      videoSaveTimeLastRef.current = now;
+                      try {
+                        await fetch(`/api/sub-lessons/${subLessonId}/time`, {
+                          method: "PATCH",
+                          headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                          },
+                          body: JSON.stringify({
+                            positionSeconds: currentTime,
+                            durationSeconds: duration,
+                          }),
+                        });
+                      } catch {
+                        // ignore
+                      }
+                    }
+                  }
+
+                  if (!subLessonId || !onMarkComplete || videoMarkCompleteSentRef.current) return;
+                  if (!duration || duration <= 0) return;
+                  const percent = (currentTime / duration) * 100;
+                  if (percent >= 90) {
+                    videoMarkCompleteSentRef.current = true;
+                    onMarkComplete(subLessonId);
+                  }
+                }}
+                onEnded={async (e) => {
+                  const el = e.currentTarget;
+                  const { currentTime, duration } = el;
+
+                  if (token && subLessonId && duration > 0) {
+                    try {
+                      await fetch(`/api/sub-lessons/${subLessonId}/time`, {
+                        method: "PATCH",
+                        headers: {
+                          "Content-Type": "application/json",
+                          Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({
+                          positionSeconds: currentTime,
+                          durationSeconds: duration,
+                        }),
+                      });
+                    } catch {
+                      // ignore
+                    }
+                  }
+
+                  if (!subLessonId || !onMarkComplete || videoMarkCompleteSentRef.current) return;
+                  videoMarkCompleteSentRef.current = true;
+                  onMarkComplete(subLessonId);
+                }}
+                onPause={async (e) => {
+                  const el = e.currentTarget;
+                  const { currentTime, duration } = el;
+
+                  if (token && subLessonId && duration > 0) {
+                    try {
+                      await fetch(`/api/sub-lessons/${subLessonId}/time`, {
+                        method: "PATCH",
+                        headers: {
+                          "Content-Type": "application/json",
+                          Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({
+                          positionSeconds: currentTime,
+                          durationSeconds: duration,
+                        }),
+                      });
+                    } catch {
+                      // ignore
+                    }
+                  }
+                }}
+                aria-label={`Video: ${title}`}
               />
-            ) : (
-              <div className="w-full h-full bg-gray-200" aria-hidden />
-            )}
-            <div
-              className="absolute inset-0 flex items-center justify-center"
-              aria-hidden
-            >
-              <div className="w-[52px] h-[52px] rounded-full bg-black/50 flex items-center justify-center">
-                <span
-                  className="w-0 h-0 border-t-10 border-t-transparent border-l-16 border-l-white border-b-10 border-b-transparent ml-0.5"
-                  aria-hidden
+
+              {skipIndicator && (
+                <div className="pointer-events-none absolute inset-y-0 w-full">
+                  <div
+                    className={`flex h-full items-center ${
+                      skipIndicator === "forward"
+                        ? "justify-end pr-6"
+                        : "justify-start pl-6"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1 rounded-full bg-black/70 px-3 py-1.5 text-white text-sm font-semibold shadow-lg transition-opacity duration-200">
+                      {skipIndicator === "backward" && (
+                        <span className="text-lg" aria-hidden>
+                          ‹
+                        </span>
+                      )}
+                      <span>5s</span>
+                      {skipIndicator === "forward" && (
+                        <span className="text-lg" aria-hidden>
+                          ›
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="relative w-full aspect-video max-h-[213.5px] md:max-h-[320px] lg:max-h-[460px] rounded-[8px] overflow-hidden bg-gray-300">
+              {courseCoverImageUrl ? (
+                <Image
+                  src={courseCoverImageUrl}
+                  alt="Course cover"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 520px, 100vw"
+                  className="object-cover"
                 />
+              ) : (
+                <div className="w-full h-full bg-gray-200" aria-hidden />
+              )}
+              <div
+                className="absolute inset-0 flex items-center justify-center"
+                aria-hidden
+              >
+                <div className="w-[52px] h-[52px] rounded-full bg-black/50 flex items-center justify-center">
+                  <span
+                    className="w-0 h-0 border-t-10 border-t-transparent border-l-16 border-l-white border-b-10 border-b-transparent ml-0.5"
+                    aria-hidden
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
           {!showPlaceholder && subLessonId && onMarkComplete && (
             <div className="w-full flex justify-start mt-4">
               <Button

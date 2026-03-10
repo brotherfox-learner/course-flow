@@ -155,12 +155,32 @@ export default function CourseDetail() {
           <div className="flex flex-col items-start w-full gap-8 md:gap-12 lg:gap-[100px] lg:min-w-0 lg:max-w-[739px] lg:flex-1 2xl:max-w-[820px]">
 
             <div className="relative w-full rounded-[8px] overflow-hidden bg-slate-900 aspect-video lg:aspect-auto lg:h-[360px] xl:h-[460px] 2xl:h-[510px]">
-              <img src={course.cover_img_url} className="w-full h-full object-cover opacity-90" alt={title} />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-16 h-16 lg:w-[104px] lg:h-[104px] bg-black/50 rounded-full flex items-center justify-center cursor-pointer hover:scale-105 transition" aria-hidden="true">
-                  <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[18px] border-l-white border-b-[10px] border-b-transparent lg:border-t-[12px] lg:border-l-[20px] lg:border-b-[12px] ml-1" />
-                </div>
-              </div>
+              {course.vdo_trailer_url ? (
+                <video
+                  className="w-full h-full object-cover"
+                  src={course.vdo_trailer_url}
+                  poster={course.cover_img_url || undefined}
+                  controls
+                  controlsList="nodownload"
+                  playsInline
+                />
+              ) : (
+                <>
+                  <img
+                    src={course.cover_img_url}
+                    className="w-full h-full object-cover opacity-90"
+                    alt={title}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div
+                      className="w-16 h-16 lg:w-[104px] lg:h-[104px] bg-black/50 rounded-full flex items-center justify-center cursor-pointer hover:scale-105 transition"
+                      aria-hidden="true"
+                    >
+                      <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[18px] border-l-white border-b-[10px] border-b-transparent lg:border-t-[12px] lg:border-l-[20px] lg:border-b-[12px] ml-1" />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
 
