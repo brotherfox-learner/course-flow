@@ -22,10 +22,7 @@ async function ensureAdmin(req) {
     return { ok: false, status: 401, message: "Invalid token" }
   }
 
-  const roleCheck = await pool.query(`SELECT role FROM users WHERE id = $1`, [
-    user.id,
-  ])
-
+  const roleCheck = await pool.query(`SELECT role FROM users WHERE id = $1`, [user.id])
   if (roleCheck.rows.length === 0 || roleCheck.rows[0].role !== "admin") {
     return { ok: false, status: 403, message: "Forbidden" }
   }
@@ -52,6 +49,8 @@ export default async function handler(req, res) {
     max_uses,
     valid_from,
     valid_until,
+    /* course_ids: [] = all courses, [...ids] = specific courses only */
+    course_ids,
   } = req.body
 
   if (!code || !discount_type || discount_value == null || !valid_from || !valid_until) {
@@ -71,8 +70,16 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: "valid_until must be later than valid_from" })
   }
 
+  /* Normalise course_ids: null / undefined / [] all mean "all courses" */
+  const courseIds = Array.isArray(course_ids) && course_ids.length > 0
+    ? course_ids.map(Number).filter(Boolean)
+    : []
+
+  const client = await pool.connect()
   try {
-    const result = await pool.query(
+    await client.query("BEGIN")
+
+    const result = await client.query(
       `INSERT INTO promo_codes (
         code,
         name,
@@ -96,12 +103,35 @@ export default async function handler(req, res) {
       ]
     )
 
-    return res.status(201).json({ promoCode: result.rows[0] })
+    const promoCode = result.rows[0]
+
+    /* Insert course restrictions only when specific courses are selected */
+    if (courseIds.length > 0) {
+      const values = courseIds
+        .map((_, i) => `($1, $${i + 2})`)
+        .join(", ")
+      await client.query(
+        `INSERT INTO promo_code_courses (promo_code_id, course_id) VALUES ${values}`,
+        [promoCode.id, ...courseIds]
+      )
+    }
+
+    await client.query("COMMIT")
+
+    return res.status(201).json({
+      promoCode: {
+        ...promoCode,
+        course_ids: courseIds,
+      },
+    })
   } catch (error) {
+    await client.query("ROLLBACK")
     if (error.code === "23505") {
       return res.status(409).json({ message: "Promo code already exists" })
     }
     console.error("Create promo code error:", error)
     return res.status(500).json({ message: "Internal server error" })
+  } finally {
+    client.release()
   }
 }

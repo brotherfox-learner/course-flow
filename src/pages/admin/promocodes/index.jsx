@@ -122,6 +122,7 @@ export default function PromoCodeList() {
             <TableRow>
               <TableHead>Promo code</TableHead>
               <TableHead>Discount</TableHead>
+              <TableHead>Courses</TableHead>
               <TableHead>Valid period</TableHead>
               <TableHead>Usage</TableHead>
               <TableHead>Status</TableHead>
@@ -132,13 +133,13 @@ export default function PromoCodeList() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center h-24 text-slate-500">
+                <TableCell colSpan={8} className="text-center h-24 text-slate-500">
                   Loading promo codes...
                 </TableCell>
               </TableRow>
             ) : filteredPromoCodes.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center h-24 text-slate-500">
+                <TableCell colSpan={8} className="text-center h-24 text-slate-500">
                   No promo codes found
                 </TableCell>
               </TableRow>
@@ -147,6 +148,11 @@ export default function PromoCodeList() {
                 <TableRow key={promo.id}>
                   <TableCell className="font-medium">{promo.code}</TableCell>
                   <TableCell>{formatDiscount(promo)}</TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${promo.course_count > 0 ? "bg-blue-50 text-blue-600" : "bg-slate-100 text-slate-500"}`}>
+                      {promo.course_count > 0 ? "Some" : "All"}
+                    </span>
+                  </TableCell>
                   <TableCell>{formatValidPeriod(promo)}</TableCell>
                   <TableCell>{formatUsage(promo)}</TableCell>
                   <TableCell>

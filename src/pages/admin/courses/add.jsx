@@ -9,11 +9,22 @@ import AdminLayout from "@/components/layout/AdminLayout"
 import { useRouter } from "next/router"
 import axios from "axios"
 import { useAuth } from "@/context/AuthContext"
+import AttachFileUpload from "@/features/admin-coureses/component/AttachFileUpload"
 
 export default function AddCourse() {
   const router = useRouter()
   const { token, loading, logout } = useAuth()
-  const [hasPromoCode, setHasPromoCode] = useState(true)
+  const [hasPromoCode, setHasPromoCode] = useState(false)
+  const [promoData, setPromoData] = useState({
+    code: "",
+    discountType: "percent",
+    discountAmount: "",
+    discountPercent: "",
+    minPurchase: "0",
+    validFrom: "",
+    validTo: "",
+    usageLimit: "",
+  })
   const [formData, setFormData] = useState({
     courseName: "",
     price: "",
@@ -26,6 +37,7 @@ export default function AddCourse() {
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [attachedFiles, setAttachedFiles] = useState([])
 
   useEffect(() => {
     if (!loading && !token) {
@@ -84,6 +96,54 @@ export default function AddCourse() {
       )
 
       const courseId = res.data.courseId
+
+      /* Create promo code locked to this course only */
+      if (courseId && hasPromoCode && promoData.code) {
+        try {
+          await axios.post(
+            "/api/admin/promocodes/create",
+            {
+              code: promoData.code,
+              name: promoData.code,
+              discount_type: promoData.discountType === "thb" ? "fixed" : "percent",
+              discount_value:
+                promoData.discountType === "thb"
+                  ? Number(promoData.discountAmount)
+                  : Number(promoData.discountPercent),
+              min_price: Number(promoData.minPurchase) || 0,
+              max_uses: promoData.usageLimit ? Number(promoData.usageLimit) : null,
+              valid_from: promoData.validFrom || null,
+              valid_until: promoData.validTo || null,
+              course_ids: [courseId],
+            },
+            { headers: { Authorization: `Bearer ${token}` } }
+          )
+        } catch (promoErr) {
+          console.error("Create promo code failed:", promoErr)
+        }
+      }
+
+      if (courseId && attachedFiles.length > 0) {
+        await Promise.allSettled(
+          attachedFiles.map((f) =>
+            fetch("/api/admin/course-materials/create", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                course_id: courseId,
+                file_name: f.fileName,
+                file_url: f.url,
+                file_type: f.fileType,
+                file_size: f.fileSize,
+              }),
+            })
+          )
+        )
+      }
+
       if (courseId) {
         router.push(`/admin/courses/${courseId}`)
       } else {
@@ -189,30 +249,90 @@ export default function AddCourse() {
           </div>
           
           {hasPromoCode && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 mt-4">
               <div>
-                <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Set promo code <span className="text-[#C82A2A]">*</span></Label>
-                <Input placeholder="NEWYEAR200" className="h-12 border-slate-300 bg-white text-[15px]" />
+                <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Set promo code</Label>
+                <Input
+                  placeholder="NEWYEAR200"
+                  value={promoData.code}
+                  onChange={(e) => setPromoData((p) => ({ ...p, code: e.target.value }))}
+                  className="h-12 border-slate-300 bg-white text-[15px]"
+                />
               </div>
               <div>
-                <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Minimum purchase amount (THB) <span className="text-[#C82A2A]">*</span></Label>
-                <Input placeholder="0" type="number" className="h-12 border-slate-300 bg-white text-[15px]" />
+                <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Minimum purchase amount (THB)</Label>
+                <Input
+                  placeholder="0"
+                  type="number"
+                  value={promoData.minPurchase}
+                  onChange={(e) => setPromoData((p) => ({ ...p, minPurchase: e.target.value }))}
+                  className="h-12 border-slate-300 bg-white text-[15px]"
+                />
               </div>
               <div className="col-span-2">
-                <Label className="mb-4 block text-slate-700 font-medium text-[15px]">Select discount type <span className="text-[#C82A2A]">*</span></Label>
-                <RadioGroup defaultValue="thb" className="flex flex-col sm:flex-row gap-12">
+                <Label className="mb-4 block text-slate-700 font-medium text-[15px]">Select discount type</Label>
+                <RadioGroup
+                  value={promoData.discountType}
+                  onValueChange={(v) => setPromoData((p) => ({ ...p, discountType: v }))}
+                  className="flex flex-col sm:flex-row gap-12"
+                >
                   <div className="flex items-center gap-3">
-                    <RadioGroupItem value="thb" id="thb" className="w-5 h-5 border-slate-300 text-[#2F5FAC] data-[state=checked]:border-[#2F5FAC]" />
-                    <Label htmlFor="thb" className="text-slate-700 font-medium text-[15px]">Discount (THB)</Label>
-                    <Input className="w-32 ml-2 h-12 border-slate-300 bg-white text-[15px]" placeholder="200" />
+                    <RadioGroupItem value="thb" id="course-promo-thb" className="w-5 h-5 border-slate-300 text-[#2F5FAC] data-[state=checked]:border-[#2F5FAC]" />
+                    <Label htmlFor="course-promo-thb" className="text-slate-700 font-medium text-[15px]">Discount (THB)</Label>
+                    <Input
+                      className="w-32 ml-2 h-12 border-slate-300 bg-white text-[15px]"
+                      placeholder="200"
+                      type="number"
+                      value={promoData.discountAmount}
+                      onChange={(e) => setPromoData((p) => ({ ...p, discountAmount: e.target.value }))}
+                      disabled={promoData.discountType !== "thb"}
+                    />
                   </div>
                   <div className="flex items-center gap-3">
-                    <RadioGroupItem value="percent" id="percent" className="w-5 h-5 border-slate-300 text-[#2F5FAC] data-[state=checked]:border-[#2F5FAC]" />
-                    <Label htmlFor="percent" className="text-slate-700 font-medium text-[15px]">Discount (%)</Label>
-                    <Input className="w-32 ml-2 h-12 border-slate-300 bg-white text-[15px]" placeholder="Place Holder" />
+                    <RadioGroupItem value="percent" id="course-promo-percent" className="w-5 h-5 border-slate-300 text-[#2F5FAC] data-[state=checked]:border-[#2F5FAC]" />
+                    <Label htmlFor="course-promo-percent" className="text-slate-700 font-medium text-[15px]">Discount (%)</Label>
+                    <Input
+                      className="w-32 ml-2 h-12 border-slate-300 bg-white text-[15px]"
+                      placeholder="30"
+                      type="number"
+                      value={promoData.discountPercent}
+                      onChange={(e) => setPromoData((p) => ({ ...p, discountPercent: e.target.value }))}
+                      disabled={promoData.discountType !== "percent"}
+                    />
                   </div>
                 </RadioGroup>
               </div>
+              <div>
+                <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Valid From</Label>
+                <Input
+                  type="date"
+                  value={promoData.validFrom}
+                  onChange={(e) => setPromoData((p) => ({ ...p, validFrom: e.target.value }))}
+                  className="h-12 border-slate-300 bg-white text-[15px]"
+                />
+              </div>
+              <div>
+                <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Valid To</Label>
+                <Input
+                  type="date"
+                  value={promoData.validTo}
+                  onChange={(e) => setPromoData((p) => ({ ...p, validTo: e.target.value }))}
+                  className="h-12 border-slate-300 bg-white text-[15px]"
+                />
+              </div>
+              <div>
+                <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Usage Limit</Label>
+                <Input
+                  type="number"
+                  placeholder="100"
+                  value={promoData.usageLimit}
+                  onChange={(e) => setPromoData((p) => ({ ...p, usageLimit: e.target.value }))}
+                  className="h-12 border-slate-300 bg-white text-[15px]"
+                />
+              </div>
+              <p className="col-span-2 text-[12px] text-slate-400 -mt-4">
+                โค้ดส่วนลดนี้จะถูกล็อคไว้สำหรับ course นี้เท่านั้น
+              </p>
             </div>
           )}
         </div>
@@ -287,10 +407,17 @@ export default function AddCourse() {
 
           <div>
             <Label className="mb-1 block text-slate-700 font-medium text-[15px]">Attach File (Optional)</Label>
-            <div className="w-[140px] h-[140px] border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-[#2F5FAC] bg-[#F8FAFC] cursor-pointer hover:bg-blue-50 hover:border-[#8BA4D4] transition-colors">
-              <span className="text-3xl font-light mb-2">+</span>
-              <span className="text-[14px] font-medium">Upload File</span>
-            </div>
+            <AttachFileUpload
+              token={token}
+              files={attachedFiles}
+              onUpload={(file) => setAttachedFiles((prev) => [...prev, file])}
+              onRemove={(file) =>
+                setAttachedFiles((prev) =>
+                  prev.filter((f) => (f.url ?? f.file_url) !== (file.url ?? file.file_url))
+                )
+              }
+              disabled={!token || isSubmitting}
+            />
           </div>
         </div>
       </div>

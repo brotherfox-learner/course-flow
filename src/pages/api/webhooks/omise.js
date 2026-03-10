@@ -64,16 +64,28 @@ export default async function handler(req, res) {
         if (paymentResult.rows.length > 0) {
           const { user_id, course_id } = paymentResult.rows[0];
 
-          // สร้างหรืออัปเดต enrollment (wishlist → active เมื่อชำระสำเร็จ)
-          await client.query(
+          // สร้างหรืออัปเดต enrollment (pending_payment/wishlist → active เมื่อชำระสำเร็จ)
+          const enrollResult = await client.query(
             `INSERT INTO enrollments (user_id, course_id, status, enrolled_at, updated_at)
              VALUES ($1, $2, 'active', NOW(), NOW())
              ON CONFLICT (user_id, course_id) DO UPDATE SET
                status = 'active',
                enrolled_at = NOW(),
-               updated_at = NOW()`,
+               updated_at = NOW()
+             RETURNING id, promo_code_id`,
             [user_id, course_id]
           );
+
+          // อัปเดต promo usage ที่จองไว้ (enrollment_id = NULL) ให้ชี้ไปที่ enrollment
+          const enrollment = enrollResult.rows[0];
+          if (enrollment?.promo_code_id) {
+            await client.query(
+              `UPDATE promo_code_usages
+               SET enrollment_id = $1
+               WHERE promo_code_id = $2 AND user_id = $3 AND enrollment_id IS NULL`,
+              [enrollment.id, enrollment.promo_code_id, user_id]
+            );
+          }
         }
       }
       // ถ้าการชำระเงินล้มเหลว หรือหมดอายุ
@@ -92,6 +104,28 @@ export default async function handler(req, res) {
             chargeId,
           ]
         );
+
+        // ลบ reserved promo usage เพื่อปล่อย slot กลับ
+        const paymentRow = await client.query(
+          `SELECT user_id, course_id FROM payments 
+           WHERE provider = 'omise' AND provider_charge_id = $1`,
+          [chargeId]
+        );
+        if (paymentRow.rows.length > 0) {
+          const { user_id, course_id } = paymentRow.rows[0];
+          const enrollRow = await client.query(
+            `SELECT promo_code_id FROM enrollments
+             WHERE user_id = $1 AND course_id = $2 AND status = 'pending_payment'`,
+            [user_id, course_id]
+          );
+          if (enrollRow.rows[0]?.promo_code_id) {
+            await client.query(
+              `DELETE FROM promo_code_usages
+               WHERE promo_code_id = $1 AND user_id = $2 AND enrollment_id IS NULL`,
+              [enrollRow.rows[0].promo_code_id, user_id]
+            );
+          }
+        }
       }
 
       await client.query("COMMIT");

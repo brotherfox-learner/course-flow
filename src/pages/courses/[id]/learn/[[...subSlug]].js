@@ -42,6 +42,7 @@ export default function CourseLearnPage() {
   const { course, lessons, loading: courseLoading } = useCourseDetail(id);
 
   const [enrollmentStatus, setEnrollmentStatus] = useState(null);
+  const [materials, setMaterials] = useState([]);
   const [selectedSubLesson, setSelectedSubLesson] = useState(null);
   const [progressPercent, setProgressPercent] = useState(0);
   const [completedSubLessonIds, setCompletedSubLessonIds] = useState([]);
@@ -80,6 +81,30 @@ export default function CourseLearnPage() {
       cancelled = true;
     };
   }, [token, id]);
+
+  // ดึง course materials เมื่อ enrolled แล้ว
+  useEffect(() => {
+    if (!token || !id) return;
+    const status = enrollmentStatus;
+    if (status !== "active" && status !== "completed") return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/courses/materials?courseId=${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (cancelled || !res.ok) return;
+        const data = await res.json();
+        if (!cancelled) setMaterials(data.materials || []);
+      } catch {
+        if (!cancelled) setMaterials([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [token, id, enrollmentStatus]);
 
   /** ดึงความคืบหน้าเรียน (หัวข้อจบแล้ว, กำลังเรียน, เปอร์เซ็นต์) จาก API */
   const fetchProgress = useCallback(async () => {
@@ -386,6 +411,7 @@ export default function CourseLearnPage() {
               courseSummary={course.course_summary}
               progressPercent={progressPercent}
               lessons={lessons}
+              materials={materials}
               completedSubLessonKeys={new Set(completedSubLessonIds.map(String))}
               inProgressSubLessonKeys={new Set(inProgressSubLessonIds.map(String))}
               currentSubLessonKey={currentSubLessonKey}

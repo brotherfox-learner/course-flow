@@ -1,29 +1,28 @@
 import Head from "next/head"
-import { useState, useEffect, useMemo } from "react"
+import { useState } from "react"
 import Button from "@/common/navbar/Button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import AdminLayout from "@/components/layout/AdminLayout"
 import Modal from "@/common/modal"
 import { useRouter } from "next/router"
 import { useAuth } from "@/context/AuthContext"
-// Drag and Drop Section
 import SortableList from "@/features/admin-coureses/component/SortableList"
-
+import AttachFileUpload from "@/features/admin-coureses/component/AttachFileUpload"
 import useCourseEditor from "@/features/admin-coureses/hook/useCourseEditor"
 import useDeleteCourse from "@/features/admin-coureses/hook/useDeleteCourse"
 
 export default function EditCourse() {
   const router = useRouter()
   const { id } = router.query
-  const { token, loading: authLoading, logout } = useAuth()
+  const { token } = useAuth()
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const { deleteCourse, loading: deleteLoading } = useDeleteCourse(token)
   const {
     courseData,
     setLessons,
+    setMaterials,
     isLoading
   } = useCourseEditor(id, token)
 
@@ -163,10 +162,50 @@ export default function EditCourse() {
 
           <div>
             <Label className="mb-1 block text-slate-700 font-medium text-[15px]">Attach File (Optional)</Label>
-            <div className="w-[140px] h-[140px] border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-[#2F5FAC] bg-[#F8FAFC] cursor-pointer hover:bg-blue-50 hover:border-[#8BA4D4] transition-colors">
-              <span className="text-3xl font-light mb-2">+</span>
-              <span className="text-[14px] font-medium">Upload File</span>
-            </div>
+            <AttachFileUpload
+              token={token}
+              files={courseData.materials}
+              onUpload={async (file) => {
+                try {
+                  const res = await fetch("/api/admin/course-materials/create", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                      course_id: Number(id),
+                      file_name: file.fileName,
+                      file_url: file.url,
+                      file_type: file.fileType,
+                      file_size: file.fileSize,
+                    }),
+                  })
+                  if (!res.ok) throw new Error("Failed to save material")
+                  const data = await res.json()
+                  setMaterials((prev) => [...prev, data.material])
+                } catch (err) {
+                  console.error("Save material error:", err)
+                }
+              }}
+              onRemove={async (material) => {
+                try {
+                  const res = await fetch("/api/admin/course-materials/delete", {
+                    method: "DELETE",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ id: material.id }),
+                  })
+                  if (!res.ok) throw new Error("Delete failed")
+                  setMaterials((prev) => prev.filter((m) => m.id !== material.id))
+                } catch (err) {
+                  console.error("Delete material error:", err)
+                }
+              }}
+              disabled={!token || isLoading}
+            />
           </div>
         </div>
       </div>
@@ -175,9 +214,8 @@ export default function EditCourse() {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-[22px] font-medium text-slate-800">Lesson</h2>
           <Button
-            onClick={() => setIsAddLessonOpen(true)}
-            // disabled={isPageLoading || loading || !token}
             className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-12 px-6 rounded-md font-medium shadow-sm text-[15px] disabled:opacity-50"
+            disabled={isLoading || !token || !id}
           >
             + Add Lesson
           </Button>

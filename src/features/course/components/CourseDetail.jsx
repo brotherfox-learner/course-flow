@@ -31,6 +31,7 @@ export default function CourseDetail() {
   const [wishlistRemoving, setWishlistRemoving] = useState(false);
   const [enrollmentStatus, setEnrollmentStatus] = useState(null);
   const [enrollmentLoading, setEnrollmentLoading] = useState(false);
+  const [materials, setMaterials] = useState([]);
   const {
     showConfirmModal,
     handleSubscribe,
@@ -109,6 +110,36 @@ export default function CourseDetail() {
   const hasCompletedEnrollment = enrollmentStatus === "completed";
   const hasEnrollment = hasActiveEnrollment || hasCompletedEnrollment;
 
+  useEffect(() => {
+    if (enrollmentStatus !== "active" && enrollmentStatus !== "completed") return;
+    if (!course?.id || !token) return;
+
+    let cancelled = false;
+
+    const fetchMaterials = async () => {
+      try {
+        const res = await fetch(`/api/courses/materials?courseId=${course.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          console.error("Fetch materials failed:", res.status, err);
+          return;
+        }
+        const data = await res.json();
+        if (!cancelled) setMaterials(data.materials || []);
+      } catch (err) {
+        console.error("Fetch materials error:", err);
+      }
+    };
+
+    fetchMaterials();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [enrollmentStatus, course?.id, token]);
+
   const wishlistButtonLabel = wishlistAdding
     ? "Adding..."
     : wishlistRemoving
@@ -131,6 +162,12 @@ export default function CourseDetail() {
     }
     if (!course?.id) return;
     router.push(`/courses/${course.id}/learn`);
+  };
+
+  const formatFileSize = (bytes) => {
+    if (!bytes) return "";
+    const mb = bytes / (1024 * 1024);
+    return mb >= 1 ? `${mb.toFixed(0)} mb` : `${Math.round(bytes / 1024)} KB`;
   };
 
   if (loading) {
@@ -170,6 +207,39 @@ export default function CourseDetail() {
                 {course.course_detail || course.course_summary}
               </div>
             </section>
+
+            {/* Attach File - visible only for enrolled users */}
+            {hasEnrollment && materials.length > 0 && (
+              <section className="w-full flex flex-col gap-6" aria-labelledby="attach-file-heading">
+                <h2 id="attach-file-heading" className="headline3 text-[#1E293B]">Attach File</h2>
+                <ul className="flex flex-col gap-3">
+                  {materials.map((material) => (
+                    <li key={material.id}>
+                      <a
+                        href={material.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-4 w-full max-w-[343px] md:max-w-[356px] h-[82px] px-4 bg-blue-100 rounded-[8px] hover:opacity-90 transition-opacity"
+                      >
+                        <div className="w-10 h-10 rounded-[4px] bg-white flex items-center justify-center shrink-0">
+                          <img src="/file2.svg" alt="" className="w-5 h-5" aria-hidden />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[16px] text-black font-medium truncate">
+                            {material.title || material.file_name}
+                          </p>
+                          {material.file_size && (
+                            <p className="text-[12px] text-blue-500 mt-0.5">
+                              {formatFileSize(material.file_size)}
+                            </p>
+                          )}
+                        </div>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {/* Module Samples  */}
             <section className="w-full flex flex-col items-start gap-6">
