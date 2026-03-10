@@ -71,6 +71,50 @@ export default async function handler(req, res) {
       // Start transaction
       await pool.query('BEGIN')
 
+      // Delete sub-lessons first (cascade through lessons)
+      const deleteSubLessonsQuery = `
+        DELETE FROM sub_lessons 
+        WHERE lesson_id IN (
+          SELECT id FROM lessons WHERE course_id = $1
+        )
+      `
+      await pool.query(deleteSubLessonsQuery, [id])
+
+      // Delete lessons
+      const deleteLessonsQuery = `DELETE FROM lessons WHERE course_id = $1`
+      await pool.query(deleteLessonsQuery, [id])
+
+      // Delete course
+      const deleteCourseQuery = `DELETE FROM courses WHERE id = $1`
+      const result = await pool.query(deleteCourseQuery, [id])
+
+      if (result.rowCount === 0) {
+        await pool.query('ROLLBACK')
+        return res.status(404).json({ message: "Course not found" })
+      }
+
+      // Commit transaction
+      await pool.query('COMMIT')
+
+      return res.status(200).json({ 
+        success: true, 
+        message: "Course deleted successfully" 
+      })
+    } catch (error) {
+      console.error("Delete course error:", error)
+      await pool.query('ROLLBACK')
+      return res.status(500).json({ 
+        message: "Failed to delete course",
+        error: error.message 
+      })
+    }
+  }
+
+  if (req.method === "DELETE") {
+    try {
+      // Start transaction
+      await pool.query('BEGIN')
+
       // Delete submission_selected_options → submission_answers → assignment_submissions → assignment_questions → assignments
       // (all linked through sub_lessons → assignments)
       await pool.query(
