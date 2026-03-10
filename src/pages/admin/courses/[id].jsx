@@ -102,8 +102,12 @@ export default function EditCourse() {
           detail: course?.course_detail ?? prev.detail,
           coverImgUrl: course?.cover_img_url ?? prev.coverImgUrl,
           vdoTrailerUrl: course?.vdo_trailer_url ?? prev.vdoTrailerUrl,
-          videoTrailerData: course?.vdo_trailer_url ? {
+          videoTrailerData: course?.video_trailer_cloudinary_id ? {
+            public_id: course.video_trailer_cloudinary_id,
             secure_url: course.vdo_trailer_url,
+            duration: course.video_trailer_duration,
+            format: course.video_trailer_format,
+            size: course.video_trailer_size,
           } : null,
         }))
 
@@ -346,6 +350,10 @@ export default function EditCourse() {
           course_detail: courseData.detail,
           cover_img_url: courseData.coverImgUrl,
           vdo_trailer_url: courseData.videoTrailerData?.secure_url || courseData.vdoTrailerUrl,
+          video_trailer_cloudinary_id: courseData.videoTrailerData?.public_id || null,
+          video_trailer_duration: courseData.videoTrailerData?.duration || null,
+          video_trailer_format: courseData.videoTrailerData?.format || null,
+          video_trailer_size: courseData.videoTrailerData?.size || null,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -542,22 +550,22 @@ export default function EditCourse() {
 
           <div>
             <Label className="mb-1 block text-slate-700 font-medium text-[15px]">Video Trailer <span className="text-[#C82A2A]">*</span></Label>
-            <p className="text-[13px] text-slate-400 mb-3">Supported file types: .mp4, .mov, .avi. Max file size: 20 MB</p>
-            <div className="w-[240px] h-[240px] relative rounded-xl overflow-hidden bg-[#1E293B] flex items-center justify-center group">
-              {/* Mock loaded video */}
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700 to-slate-900 flex flex-col justify-between p-2 opacity-50">
-                <div className="w-full h-1/2 bg-blue-500/20 rounded-[2px]"></div>
-                <div className="flex justify-between h-1/3 mt-2">
-                  <div className="w-[45%] h-full bg-green-500/20 rounded-[2px]"></div>
-                  <div className="w-[45%] h-full bg-orange-500/20 rounded-[2px]"></div>
-                </div>
-              </div>
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm z-10 cursor-pointer hover:bg-white/30 transition-colors">
-                <div className="w-0 h-0 border-t-8 border-b-8 border-l-12 border-transparent border-l-white ml-2"></div>
-              </div>
-              <div className="absolute top-2 right-2 w-6 h-6 bg-[#A855F7] rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-[#9333EA] shadow-sm z-10">
-                <span className="text-xs font-bold pb-[1px]">x</span>
-              </div>
+            
+            {/* Video Upload Component */}
+            <VideoUpload
+              value={courseData.videoTrailerData}
+              onChange={handleVideoUpload}
+              className="mb-3"
+            />
+            
+            {/* Fallback URL input for manual entry */}
+            <div className="mt-4">
+              <Input
+                placeholder="Or enter video trailer URL manually"
+                value={courseData.vdoTrailerUrl}
+                onChange={(e) => setCourseData(prev => ({ ...prev, vdoTrailerUrl: e.target.value }))}
+                className="h-12 border-slate-300 text-[15px]"
+              />
             </div>
             
             <p className="text-[13px] text-slate-400 mt-2">

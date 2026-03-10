@@ -89,6 +89,7 @@ export function useVideoUpload() {
         formData.append('signature', signatureData.signature);
         formData.append('api_key', signatureData.api_key);
         formData.append('folder', signatureData.folder);
+        formData.append('resource_type', signatureData.resource_type);
         formData.append('upload_preset', signatureData.upload_preset);
 
         const xhr = new XMLHttpRequest();

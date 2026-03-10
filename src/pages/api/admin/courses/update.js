@@ -38,6 +38,10 @@ export default async function handler(req, res) {
     course_detail,
     cover_img_url,
     vdo_trailer_url,
+    video_trailer_cloudinary_id,
+    video_trailer_duration,
+    video_trailer_format,
+    video_trailer_size,
   } = req.body
 
   if (
@@ -90,9 +94,13 @@ export default async function handler(req, res) {
         course_detail = $5,
         cover_img_url = $6,
         vdo_trailer_url = $7,
+        video_trailer_cloudinary_id = $8,
+        video_trailer_duration = $9,
+        video_trailer_format = $10,
+        video_trailer_size = $11,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $8
-      RETURNING id, course_name, price, total_learning_time, course_summary, course_detail, cover_img_url, vdo_trailer_url`,
+      WHERE id = $12
+      RETURNING id, course_name, price, total_learning_time, course_summary, course_detail, cover_img_url, vdo_trailer_url, video_trailer_cloudinary_id, video_trailer_duration, video_trailer_format, video_trailer_size`,
       [
         course_name.trim(),
         parsedPrice,
@@ -101,6 +109,10 @@ export default async function handler(req, res) {
         course_detail.trim(),
         cover_img_url.trim(),
         vdo_trailer_url.trim(),
+        video_trailer_cloudinary_id || null,
+        video_trailer_duration || null,
+        video_trailer_format || null,
+        video_trailer_size || null,
         parsedCourseId
       ]
     )
