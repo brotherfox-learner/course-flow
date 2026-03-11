@@ -1,5 +1,6 @@
 import pool from "@/utils/db"
 import { createClient } from "@supabase/supabase-js"
+import { deleteMultipleByUrl } from "@/utils/cloudinaryDelete"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -45,7 +46,7 @@ async function ensureAdmin(req) {
 
 export default async function handler(req, res) {
 
-  if (req.method !== "DELETE") {
+  if (req.method !== "DELETE" && req.method !== "POST") {
     return res.status(405).json({
       message: "Method not allowed"
     })
@@ -117,6 +118,13 @@ export default async function handler(req, res) {
 
     }
 
+    // Collect sub-lesson video URLs before deleting
+    const subVidRes = await client.query(
+      `SELECT vdo_url FROM sub_lessons WHERE lesson_id = $1 AND vdo_url IS NOT NULL AND vdo_url != ''`,
+      [lesson_id]
+    )
+    const cloudinaryUrls = subVidRes.rows.map(r => r.vdo_url).filter(Boolean)
+
     // Delete assignment chain for sub_lessons under this lesson
     await client.query(
       `DELETE FROM submission_selected_options WHERE submission_answer_id IN (
@@ -180,6 +188,13 @@ export default async function handler(req, res) {
     await client.query(`DELETE FROM lessons WHERE id = $1`, [lesson_id])
 
     await client.query("COMMIT")
+
+    // Delete files from Cloudinary (after DB commit)
+    if (cloudinaryUrls.length > 0) {
+      deleteMultipleByUrl(cloudinaryUrls).catch(err =>
+        console.error("Cloudinary cleanup error (lesson delete):", err)
+      )
+    }
 
     return res.status(200).json({
       message: "Lesson deleted"

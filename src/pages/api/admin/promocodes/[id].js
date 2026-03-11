@@ -79,7 +79,7 @@ export default async function handler(req, res) {
 
         return res.status(200).json({ promoCode: result.rows[0] })
 
-      case "PUT":
+      case "PUT": {
         // Update promo code
         const {
           code,
@@ -90,6 +90,7 @@ export default async function handler(req, res) {
           max_uses,
           valid_from,
           valid_until,
+          course_ids,
         } = req.body
 
         // Validate required fields
@@ -140,30 +141,65 @@ export default async function handler(req, res) {
           return res.status(400).json({ message: "Promo code already exists" })
         }
 
-        // Update promo code
-        const updateResult = await pool.query(
-          `UPDATE promo_codes 
-           SET code = $1, name = $2, discount_type = $3, discount_value = $4, 
-               min_price = $5, max_uses = $6, valid_from = $7, valid_until = $8
-           WHERE id = $9
-           RETURNING *`,
-          [
-            code,
-            name,
-            discount_type,
-            parsedValue,
-            parsedMinPrice,
-            parsedMaxUses,
-            valid_from || null,
-            valid_until || null,
-            id,
-          ]
-        )
+        const client = await pool.connect()
+        try {
+          await client.query("BEGIN")
 
-        return res.status(200).json({
-          message: "Promo code updated successfully",
-          promoCode: updateResult.rows[0],
-        })
+          // Update promo code
+          const updateResult = await client.query(
+            `UPDATE promo_codes 
+             SET code = $1, name = $2, discount_type = $3, discount_value = $4, 
+                 min_price = $5, max_uses = $6, valid_from = $7, valid_until = $8
+             WHERE id = $9
+             RETURNING *`,
+            [
+              code,
+              name,
+              discount_type,
+              parsedValue,
+              parsedMinPrice,
+              parsedMaxUses,
+              valid_from || null,
+              valid_until || null,
+              id,
+            ]
+          )
+
+          // Update course restrictions if course_ids is provided
+          if (course_ids !== undefined) {
+            await client.query(
+              "DELETE FROM promo_code_courses WHERE promo_code_id = $1",
+              [id]
+            )
+
+            const parsedCourseIds = Array.isArray(course_ids) && course_ids.length > 0
+              ? course_ids.map(Number).filter(Boolean)
+              : []
+
+            if (parsedCourseIds.length > 0) {
+              const values = parsedCourseIds
+                .map((_, i) => `($1, $${i + 2})`)
+                .join(", ")
+              await client.query(
+                `INSERT INTO promo_code_courses (promo_code_id, course_id) VALUES ${values}`,
+                [id, ...parsedCourseIds]
+              )
+            }
+          }
+
+          await client.query("COMMIT")
+
+          return res.status(200).json({
+            message: "Promo code updated successfully",
+            promoCode: updateResult.rows[0],
+          })
+        } catch (txError) {
+          await client.query("ROLLBACK")
+          throw txError
+        } finally {
+          client.release()
+        }
+      }
 
       case "DELETE":
         // Check if promo code exists
@@ -188,6 +224,9 @@ export default async function handler(req, res) {
             usedCount: parseInt(usageCheck.rows[0].count),
           })
         }
+
+        // Delete linked course restrictions first
+        await pool.query("DELETE FROM promo_code_courses WHERE promo_code_id = $1", [id])
 
         // Delete promo code
         await pool.query("DELETE FROM promo_codes WHERE id = $1", [id])

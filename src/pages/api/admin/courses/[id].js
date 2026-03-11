@@ -67,13 +67,12 @@ export default async function handler(req, res) {
   }
 
   if (req.method === "DELETE") {
+    const client = await pool.connect()
     try {
-      // Start transaction
-      await pool.query('BEGIN')
+      await client.query("BEGIN")
 
-      // Delete submission_selected_options → submission_answers → assignment_submissions → assignment_questions → assignments
-      // (all linked through sub_lessons → assignments)
-      await pool.query(
+      // Delete assignment chain (submission_selected_options → submission_answers → assignment_submissions → question_options → assignment_questions → assignments)
+      await client.query(
         `DELETE FROM submission_selected_options WHERE submission_answer_id IN (
           SELECT sa.id FROM submission_answers sa
           JOIN assignment_submissions asub ON sa.submission_id = asub.id
@@ -83,7 +82,7 @@ export default async function handler(req, res) {
           WHERE l.course_id = $1
         )`, [id]
       )
-      await pool.query(
+      await client.query(
         `DELETE FROM submission_answers WHERE submission_id IN (
           SELECT asub.id FROM assignment_submissions asub
           JOIN assignments a ON asub.assignment_id = a.id
@@ -92,7 +91,7 @@ export default async function handler(req, res) {
           WHERE l.course_id = $1
         )`, [id]
       )
-      await pool.query(
+      await client.query(
         `DELETE FROM assignment_submissions WHERE assignment_id IN (
           SELECT a.id FROM assignments a
           JOIN sub_lessons sl ON a.sub_lesson_id = sl.id
@@ -100,7 +99,7 @@ export default async function handler(req, res) {
           WHERE l.course_id = $1
         )`, [id]
       )
-      await pool.query(
+      await client.query(
         `DELETE FROM question_options WHERE question_id IN (
           SELECT aq.id FROM assignment_questions aq
           JOIN assignments a ON aq.assignment_id = a.id
@@ -109,7 +108,7 @@ export default async function handler(req, res) {
           WHERE l.course_id = $1
         )`, [id]
       )
-      await pool.query(
+      await client.query(
         `DELETE FROM assignment_questions WHERE assignment_id IN (
           SELECT a.id FROM assignments a
           JOIN sub_lessons sl ON a.sub_lesson_id = sl.id
@@ -117,7 +116,7 @@ export default async function handler(req, res) {
           WHERE l.course_id = $1
         )`, [id]
       )
-      await pool.query(
+      await client.query(
         `DELETE FROM assignments WHERE sub_lesson_id IN (
           SELECT sl.id FROM sub_lessons sl
           JOIN lessons l ON sl.lesson_id = l.id
@@ -126,7 +125,7 @@ export default async function handler(req, res) {
       )
 
       // Delete sub_lesson_progress
-      await pool.query(
+      await client.query(
         `DELETE FROM sub_lesson_progress WHERE sub_lesson_id IN (
           SELECT sl.id FROM sub_lessons sl
           JOIN lessons l ON sl.lesson_id = l.id
@@ -135,63 +134,61 @@ export default async function handler(req, res) {
       )
 
       // Delete sub-lessons
-      await pool.query(
+      await client.query(
         `DELETE FROM sub_lessons WHERE lesson_id IN (
           SELECT id FROM lessons WHERE course_id = $1
         )`, [id]
       )
 
       // Delete lesson_materials
-      await pool.query(
+      await client.query(
         `DELETE FROM lesson_materials WHERE lesson_id IN (
           SELECT id FROM lessons WHERE course_id = $1
         )`, [id]
       )
 
       // Delete lessons
-      await pool.query(`DELETE FROM lessons WHERE course_id = $1`, [id])
+      await client.query(`DELETE FROM lessons WHERE course_id = $1`, [id])
 
       // Delete course_materials
-      await pool.query(`DELETE FROM course_materials WHERE course_id = $1`, [id])
+      await client.query(`DELETE FROM course_materials WHERE course_id = $1`, [id])
 
       // Delete promo_code_courses
-      await pool.query(`DELETE FROM promo_code_courses WHERE course_id = $1`, [id])
+      await client.query(`DELETE FROM promo_code_courses WHERE course_id = $1`, [id])
 
       // Delete payments (must come before enrollments due to FK)
-      await pool.query(`DELETE FROM payments WHERE course_id = $1`, [id])
+      await client.query(`DELETE FROM payments WHERE course_id = $1`, [id])
 
       // Delete promo_code_usages linked to enrollments of this course
-      await pool.query(
+      await client.query(
         `DELETE FROM promo_code_usages WHERE enrollment_id IN (
           SELECT id FROM enrollments WHERE course_id = $1
         )`, [id]
       )
 
       // Delete enrollments
-      await pool.query(`DELETE FROM enrollments WHERE course_id = $1`, [id])
+      await client.query(`DELETE FROM enrollments WHERE course_id = $1`, [id])
 
       // Delete course
-      const result = await pool.query(`DELETE FROM courses WHERE id = $1`, [id])
+      const result = await client.query(`DELETE FROM courses WHERE id = $1`, [id])
 
       if (result.rowCount === 0) {
-        await pool.query('ROLLBACK')
+        await client.query("ROLLBACK")
         return res.status(404).json({ message: "Course not found" })
       }
 
-      // Commit transaction
-      await pool.query('COMMIT')
+      await client.query("COMMIT")
 
       return res.status(200).json({ 
         success: true, 
         message: "Course deleted successfully" 
       })
     } catch (error) {
+      await client.query("ROLLBACK")
       console.error("Delete course error:", error)
-      await pool.query('ROLLBACK')
-      return res.status(500).json({ 
-        message: "Failed to delete course",
-        error: error.message 
-      })
+      return res.status(500).json({ message: "Internal server error" })
+    } finally {
+      client.release()
     }
   }
 

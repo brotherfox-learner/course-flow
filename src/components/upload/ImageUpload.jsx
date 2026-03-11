@@ -1,8 +1,6 @@
 import { useCallback, useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { useImageUpload } from '@/hooks/useImageUpload';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
 import { Upload, X, Image as ImageIcon, AlertCircle } from 'lucide-react';
 
@@ -15,61 +13,39 @@ export default function ImageUpload({
   aspectRatio = 'free' // 'free', 'square', '16:9', '4:3'
 }) {
   const [preview, setPreview] = useState(null);
-  
-  const { uploadImage, uploading, progress, error, uploadedImage, resetUpload } = useImageUpload();
+  const [error, setError] = useState(null);
 
-  // Initialize preview if value is provided
+  // Initialize preview if value is provided (existing image from DB or new file)
   useEffect(() => {
     if (value && typeof value === 'object') {
       setPreview(value);
     }
   }, [value]);
 
-  const onDrop = useCallback(async (acceptedFiles) => {
+  const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles.length === 0) return;
     
     const file = acceptedFiles[0];
-    
-    // Create preview
+    setError(null);
+
+    // Clean up old blob preview
+    if (preview?.preview && preview.preview.startsWith('blob:')) {
+      URL.revokeObjectURL(preview.preview);
+    }
+
+    // Store File locally with blob preview — NO Cloudinary upload yet
     const previewUrl = URL.createObjectURL(file);
-    setPreview({
+    const fileData = {
+      file,
       name: file.name,
       size: file.size,
       type: file.type,
       preview: previewUrl,
-    });
-
-    // Upload image
-    const result = await uploadImage(file);
+    };
     
-    if (result) {
-      // Clean up preview URL
-      if (preview?.preview) {
-        URL.revokeObjectURL(preview.preview);
-      }
-      
-      // Set new preview with uploaded image info
-      setPreview({
-        name: file.name,
-        size: result.size,
-        type: result.format,
-        preview: result.secure_url,
-        width: result.width,
-        height: result.height,
-        secure_url: result.secure_url,
-        public_id: result.public_id,
-      });
-      
-      // Call onChange with image data
-      onChange(result);
-    } else {
-      // Reset preview on error
-      if (preview?.preview) {
-        URL.revokeObjectURL(preview.preview);
-      }
-      setPreview(null);
-    }
-  }, [uploadImage, onChange, preview]);
+    setPreview(fileData);
+    onChange(fileData);
+  }, [onChange, preview]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -78,7 +54,7 @@ export default function ImageUpload({
     },
     maxSize,
     multiple: false,
-    disabled: disabled || uploading,
+    disabled,
   });
 
   const handleRemove = useCallback(() => {
@@ -86,9 +62,9 @@ export default function ImageUpload({
       URL.revokeObjectURL(preview.preview);
     }
     setPreview(null);
+    setError(null);
     onChange(null);
-    resetUpload();
-  }, [onChange, resetUpload, preview]);
+  }, [onChange, preview]);
 
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
@@ -140,19 +116,6 @@ export default function ImageUpload({
                 Maximum file size: {formatFileSize(maxSize)}
               </p>
             </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Upload Progress */}
-      {uploading && (
-        <Card className="p-4">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Uploading image...</span>
-              <span className="text-sm text-gray-500">{progress}%</span>
-            </div>
-            <Progress value={progress} className="w-full" />
           </div>
         </Card>
       )}

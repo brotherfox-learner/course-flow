@@ -1,7 +1,8 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Trash2, Edit } from "lucide-react";
 
-export default function SortableSubLesson({ sub, lessonId }) {
+export default function SortableSubLesson({ sub, lessonId, onDelete, onEdit }) {
 
   const {
     attributes,
@@ -43,11 +44,28 @@ export default function SortableSubLesson({ sub, lessonId }) {
           />
         ))}
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-1">
         <span className="text-slate-600 font-medium">
           {sub.order_index}
         </span>
         <span>{sub.name}</span>
+      </div>
+
+      <div className="flex items-center gap-2 pr-4">
+        <button
+          type="button"
+          onClick={() => onDelete && onDelete(sub.id)}
+          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onEdit && onEdit(sub)}
+          className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-full"
+        >
+          <Edit className="h-4 w-4" />
+        </button>
       </div>
 
     </li>

@@ -40,7 +40,7 @@ async function ensureAdmin(req){
 
 export default async function handler(req,res){
 
-  if(req.method !== "PATCH"){
+  if(req.method !== "PATCH" && req.method !== "POST"){
     return res.status(405).json({message:"Method not allowed"})
   }
 
@@ -52,29 +52,27 @@ export default async function handler(req,res){
 
   const { lesson_id, sub_lesson_orders } = req.body
 
+  if(!lesson_id || !Array.isArray(sub_lesson_orders)){
+    return res.status(400).json({message:"lesson_id and sub_lesson_orders required"})
+  }
+
   const client = await pool.connect()
 
   try{
 
     await client.query("BEGIN")
 
-    const cases = sub_lesson_orders
-      .map(s => `WHEN ${s.id} THEN ${s.order_index}`)
-      .join(" ")
-
-    const ids = sub_lesson_orders.map(s=>s.id)
-
-    const query = `
-      UPDATE sub_lessons
-      SET order_index = CASE id
-        ${cases}
-      END,
-      updated_at = NOW()
-      WHERE id = ANY($1)
-      AND lesson_id = $2
-    `
-
-    await client.query(query,[ids,lesson_id])
+    for (const s of sub_lesson_orders) {
+      const idNum = Number(s.id)
+      const orderNum = Number(s.order_index)
+      if (!Number.isFinite(idNum) || !Number.isFinite(orderNum)) {
+        throw new Error("Invalid sub_lesson_orders data")
+      }
+      await client.query(
+        `UPDATE sub_lessons SET order_index = $1, updated_at = NOW() WHERE id = $2 AND lesson_id = $3`,
+        [orderNum, idNum, Number(lesson_id)]
+      )
+    }
 
     await client.query("COMMIT")
 
@@ -86,7 +84,7 @@ export default async function handler(req,res){
 
     await client.query("ROLLBACK")
 
-    console.error(err)
+    console.error("Sub-lesson reorder error:", err)
 
     return res.status(500).json({
       message:"Internal server error"
