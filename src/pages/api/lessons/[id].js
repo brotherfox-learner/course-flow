@@ -6,8 +6,22 @@ export default async function handler(req, res) {
   }
 
   const { id } = req.query;
+  const isNumeric = /^\d+$/.test(id);
 
   try {
+    // Resolve slug to numeric course ID if needed
+    let courseId = id;
+    if (!isNumeric) {
+      const courseRes = await pool.query(
+        "SELECT id FROM courses WHERE slug = $1",
+        [id]
+      );
+      if (courseRes.rows.length === 0) {
+        return res.status(404).json({ error: "Course not found" });
+      }
+      courseId = courseRes.rows[0].id;
+    }
+
     // Query lessons with their sub_lessons
     const result = await pool.query(
       `
@@ -33,7 +47,7 @@ export default async function handler(req, res) {
       GROUP BY l.id, l.name
       ORDER BY l.id ASC
     `,
-      [id]
+      [courseId]
     );
 
     // Transform the result to match the expected format
