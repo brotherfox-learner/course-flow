@@ -6,12 +6,12 @@ export default async function handler(req, res) {
   }
 
   const { id } = req.query;
+  const isNumeric = /^\d+$/.test(id);
 
   try {
-    const result = await pool.query(
-      "SELECT * FROM courses WHERE id = $1",
-      [id]
-    );
+    const result = isNumeric
+      ? await pool.query("SELECT * FROM courses WHERE id = $1", [id])
+      : await pool.query("SELECT * FROM courses WHERE slug = $1", [id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Course not found" });
