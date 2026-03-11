@@ -33,9 +33,9 @@ export default async function handler(req, res) {
   try {
     // Get pagination parameters
     const { page = 1, limit = 10, search = "" } = req.query
-    const offset = (page - 1) * limit
-    const parsedLimit = Math.min(parseInt(limit), 100) // Max 100 items per page
-    const parsedPage = Math.max(parseInt(page), 1)
+    const parsedLimit = Math.min(parseInt(limit) || 10, 100) // Max 100 items per page
+    const parsedPage = Math.max(parseInt(page) || 1, 1)
+    const offset = (parsedPage - 1) * parsedLimit
 
     // Build WHERE clause for search
     let whereClause = ""
@@ -63,6 +63,7 @@ export default async function handler(req, res) {
       SELECT 
         c.id, 
         c.course_name as name, 
+        c.slug,
         c.price, 
         c.cover_img_url as image,
         c.created_at, 

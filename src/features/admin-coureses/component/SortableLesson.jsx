@@ -1,15 +1,34 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+    SortableContext,
+    verticalListSortingStrategy,
+    arrayMove,
+} from "@dnd-kit/sortable";
+import {
+    DndContext,
+    PointerSensor,
+    KeyboardSensor,
+    closestCenter,
+    useSensor,
+    useSensors,
+} from "@dnd-kit/core";
 import { Trash2, Edit, ChevronDown, ChevronUp } from "lucide-react";
 
 import Button from "@/common/navbar/Button";
 import { useToggle } from "@/hooks/useToggle";
 import SortableSubLesson from "./SortableSubLesson";
 
-export default function SortableLesson({ item, onDelete }) {
+export default function SortableLesson({ item, onDelete, onEdit, onAddSubLesson, onDeleteSubLesson, onEditSubLesson, onSubLessonReorder }) {
 
     const { isShow, switchToggle } = useToggle();
+
+    const subSensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: { distance: 5 },
+        }),
+        useSensor(KeyboardSensor)
+    );
 
     const {
         attributes,
@@ -31,6 +50,28 @@ export default function SortableLesson({ item, onDelete }) {
         transition,
         opacity: isDragging ? 0.5 : 1,
     };
+
+    function handleSubDragEnd(event) {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+
+        const activeSubId = Number(String(active.id).split("-")[1]);
+        const overSubId = Number(String(over.id).split("-")[1]);
+
+        const oldIndex = item.sub_lessons.findIndex((s) => Number(s.id) === activeSubId);
+        const newIndex = item.sub_lessons.findIndex((s) => Number(s.id) === overSubId);
+        if (oldIndex === -1 || newIndex === -1) return;
+
+        const reordered = arrayMove(item.sub_lessons, oldIndex, newIndex);
+        const updatedSubLessons = reordered.map((sub, index) => ({
+            ...sub,
+            order_index: index + 1,
+        }));
+
+        if (onSubLessonReorder) {
+            onSubLessonReorder(item.id, updatedSubLessons);
+        }
+    }
 
     return (
         <div className="py-8 border-b border-gray-200">
@@ -67,7 +108,7 @@ export default function SortableLesson({ item, onDelete }) {
 
                 {/* sub lesson count */}
                 <div className="col-span-3 text-slate-600">
-                    {item.sub_lessons.length}
+                    {(item.sub_lessons || []).length}
                 </div>
 
                 {/* action */}
@@ -75,13 +116,17 @@ export default function SortableLesson({ item, onDelete }) {
 
                     <Button
                         iconOnly
-                        onClick={() => onDelete(item.id)}
+                        onClick={() => onDelete && onDelete(item.id)}
                         className="h-9 w-9 text-blue-300 cursor-pointer hover:text-red-500 hover:bg-red-50 active:bg-red-100 rounded-full"
                     >
                         <Trash2 className="h-[18px] w-[18px]" />
                     </Button>
 
-                    <Button iconOnly className="h-9 w-9 text-blue-300 cursor-pointer hover:text-blue-500 hover:bg-blue-50 active:bg-blue-100 rounded-full">
+                    <Button
+                        iconOnly
+                        onClick={() => onEdit && onEdit(item)}
+                        className="h-9 w-9 text-blue-300 cursor-pointer hover:text-blue-500 hover:bg-blue-50 active:bg-blue-100 rounded-full"
+                    >
                         <Edit className="h-[18px] w-[18px]" />
                     </Button>
 
@@ -96,24 +141,42 @@ export default function SortableLesson({ item, onDelete }) {
             </li>
 
             {isShow && (
-                <SortableContext
-                    items={item.sub_lessons.map((s) => `sub-${s.id}`)}
-                    strategy={verticalListSortingStrategy}
+                <DndContext
+                    sensors={subSensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleSubDragEnd}
                 >
+                    <SortableContext
+                        items={item.sub_lessons.map((s) => `sub-${s.id}`)}
+                        strategy={verticalListSortingStrategy}
+                    >
 
-                    <ul className="space-y-2 px-15 pt-8">
+                        <ul className="space-y-2 px-15 pt-8">
 
-                        {item.sub_lessons.map((sub) => (
-                            <SortableSubLesson
-                                key={sub.id}
-                                sub={sub}
-                                lessonId={item.id}
-                            />
-                        ))}
+                            {item.sub_lessons.map((sub) => (
+                                <SortableSubLesson
+                                    key={sub.id}
+                                    sub={sub}
+                                    lessonId={item.id}
+                                    onDelete={onDeleteSubLesson}
+                                    onEdit={onEditSubLesson}
+                                />
+                            ))}
 
-                    </ul>
+                            <li className="flex justify-center py-2">
+                                <button
+                                    type="button"
+                                    onClick={() => onAddSubLesson && onAddSubLesson(item.id)}
+                                    className="text-[#2F5FAC] text-sm font-medium hover:underline"
+                                >
+                                    + Add Sub-Lesson
+                                </button>
+                            </li>
 
-                </SortableContext>
+                        </ul>
+
+                    </SortableContext>
+                </DndContext>
             )}
 
         </div>

@@ -37,11 +37,49 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: "assignment_id is required" })
   }
 
+  const client = await pool.connect()
   try {
-    await pool.query(`DELETE FROM assignments WHERE id = $1`, [assignment_id])
+    await client.query("BEGIN")
+
+    // Delete submission chain
+    await client.query(
+      `DELETE FROM submission_selected_options WHERE submission_answer_id IN (
+        SELECT sa.id FROM submission_answers sa
+        JOIN assignment_submissions asub ON sa.submission_id = asub.id
+        WHERE asub.assignment_id = $1
+      )`, [assignment_id]
+    )
+    await client.query(
+      `DELETE FROM submission_answers WHERE submission_id IN (
+        SELECT id FROM assignment_submissions WHERE assignment_id = $1
+      )`, [assignment_id]
+    )
+    await client.query(
+      `DELETE FROM assignment_submissions WHERE assignment_id = $1`,
+      [assignment_id]
+    )
+
+    // Delete question chain
+    await client.query(
+      `DELETE FROM question_options WHERE question_id IN (
+        SELECT id FROM assignment_questions WHERE assignment_id = $1
+      )`, [assignment_id]
+    )
+    await client.query(
+      `DELETE FROM assignment_questions WHERE assignment_id = $1`,
+      [assignment_id]
+    )
+
+    // Delete assignment
+    await client.query(`DELETE FROM assignments WHERE id = $1`, [assignment_id])
+
+    await client.query("COMMIT")
     return res.status(200).json({ message: "Assignment deleted" })
   } catch (error) {
+    await client.query("ROLLBACK")
     console.error("Delete assignment error:", error)
     return res.status(500).json({ message: "Internal server error" })
+  } finally {
+    client.release()
   }
 }

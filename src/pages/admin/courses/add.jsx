@@ -1,5 +1,5 @@
 import Head from "next/head"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -12,6 +12,30 @@ import { useAuth } from "@/context/AuthContext"
 import AttachFileUpload from "@/features/admin-coureses/component/AttachFileUpload"
 import VideoUpload from "@/components/upload/VideoUpload"
 import ImageUpload from "@/components/upload/ImageUpload"
+import LessonBlock from "@/features/admin-lesson/component/LessonBlock"
+import SubmitBanner from "@/common/SubmitBanner"
+import {
+  DndContext,
+  PointerSensor,
+  KeyboardSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core"
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable"
+
+let lessonIdCounter = 1
+function makeLessonId() {
+  return `lesson-${lessonIdCounter++}`
+}
+let subIdCounter = 1
+function makeSubId() {
+  return `sub-${subIdCounter++}`
+}
 
 export default function AddCourse() {
   const router = useRouter()
@@ -41,7 +65,49 @@ export default function AddCourse() {
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [bannerStatus, setBannerStatus] = useState("idle")
   const [attachedFiles, setAttachedFiles] = useState([])
+
+  // Lesson management state
+  const [lessons, setLessons] = useState([])
+  const [lessonErrors, setLessonErrors] = useState({})
+
+  const lessonSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor)
+  )
+
+  const handleLessonDragEnd = useCallback((event) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    setLessons((prev) => {
+      const oldIndex = prev.findIndex((l) => l.id === active.id)
+      const newIndex = prev.findIndex((l) => l.id === over.id)
+      if (oldIndex === -1 || newIndex === -1) return prev
+      return arrayMove(prev, oldIndex, newIndex)
+    })
+  }, [])
+
+  const handleAddLesson = () => {
+    setLessons((prev) => [
+      ...prev,
+      {
+        id: makeLessonId(),
+        name: "",
+        subLessons: [{ id: makeSubId(), name: "", videoData: null }],
+      },
+    ])
+  }
+
+  const handleLessonChange = (updated) => {
+    setLessons((prev) =>
+      prev.map((l) => (l.id === updated.id ? updated : l))
+    )
+  }
+
+  const handleRemoveLesson = (lessonId) => {
+    setLessons((prev) => prev.filter((l) => l.id !== lessonId))
+  }
 
   useEffect(() => {
     if (!loading && !token) {
@@ -50,10 +116,11 @@ export default function AddCourse() {
   }, [loading, token, router])
 
   const handleVideoUpload = (videoData) => {
+    // Just store File locally — NO Cloudinary upload yet
     setFormData(prev => ({ 
       ...prev, 
       videoTrailerData: videoData,
-      vdoTrailerUrl: videoData?.secure_url || "" 
+      vdoTrailerUrl: "" 
     }))
     if (errors.vdoTrailerUrl) {
       setErrors(prev => ({ ...prev, vdoTrailerUrl: "" }))
@@ -61,10 +128,11 @@ export default function AddCourse() {
   }
 
   const handleImageUpload = (imageData) => {
+    // Just store File locally — NO Cloudinary upload yet
     setFormData(prev => ({ 
       ...prev, 
       coverImageData: imageData,
-      coverImgUrl: imageData?.secure_url || "" 
+      coverImgUrl: "" 
     }))
     if (errors.coverImgUrl) {
       setErrors(prev => ({ ...prev, coverImgUrl: "" }))
@@ -86,9 +154,39 @@ export default function AddCourse() {
     if (!formData.totalLearningTime) newErrors.totalLearningTime = "Total learning time is required"
     if (!formData.courseSummary) newErrors.courseSummary = "Course summary is required"
     if (!formData.courseDetail) newErrors.courseDetail = "Course detail is required"
-    if (!formData.coverImgUrl) newErrors.coverImgUrl = "Cover image URL is required"
+    if (!formData.coverImageData && !formData.coverImgUrl) newErrors.coverImgUrl = "Cover image is required"
     if (!formData.videoTrailerData && !formData.vdoTrailerUrl) newErrors.vdoTrailerUrl = "Video trailer is required"
     return newErrors
+  }
+
+  // Helper: upload a File to Cloudinary via signature API
+  const uploadFileToCloudinary = async (file, resourceType, folder) => {
+    // 1) Get signature
+    const sigRes = await fetch("/api/upload/signature", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ resource_type: resourceType, folder }),
+    })
+    if (!sigRes.ok) throw new Error("Failed to get upload signature")
+    const sig = await sigRes.json()
+
+    // 2) Upload to Cloudinary
+    const fd = new FormData()
+    fd.append("file", file)
+    fd.append("timestamp", sig.timestamp)
+    fd.append("signature", sig.signature)
+    fd.append("api_key", sig.api_key)
+    fd.append("folder", sig.folder)
+    fd.append("upload_preset", sig.upload_preset)
+
+    const uploadRes = await fetch(
+      `https://api.cloudinary.com/v1_1/${sig.cloud_name}/${resourceType}/upload`,
+      { method: "POST", body: fd }
+    )
+    if (!uploadRes.ok) throw new Error("Cloudinary upload failed")
+    const data = await uploadRes.json()
+    if (data.error) throw new Error(data.error.message)
+    return data.secure_url
   }
 
   const handleCreate = async () => {
@@ -101,7 +199,23 @@ export default function AddCourse() {
     }
 
     setIsSubmitting(true)
+    setBannerStatus("loading")
     try {
+      // Upload files to Cloudinary NOW (only on submit)
+      let coverUrl = formData.coverImgUrl
+      let videoUrl = formData.vdoTrailerUrl
+
+      if (formData.coverImageData?.file) {
+        coverUrl = await uploadFileToCloudinary(
+          formData.coverImageData.file, "image", "course-flow/images"
+        )
+      }
+      if (formData.videoTrailerData?.file) {
+        videoUrl = await uploadFileToCloudinary(
+          formData.videoTrailerData.file, "video", "course-flow/videos"
+        )
+      }
+
       const res = await axios.post(
         "/api/admin/courses/create",
         {
@@ -110,8 +224,8 @@ export default function AddCourse() {
           total_learning_time: Number(formData.totalLearningTime),
           course_summary: formData.courseSummary,
           course_detail: formData.courseDetail,
-          cover_img_url: formData.coverImageData?.secure_url || formData.coverImgUrl,
-          vdo_trailer_url: formData.videoTrailerData?.secure_url || formData.vdoTrailerUrl,
+          cover_img_url: coverUrl,
+          vdo_trailer_url: videoUrl,
           published: false,
         },
         {
@@ -170,11 +284,47 @@ export default function AddCourse() {
         )
       }
 
-      if (courseId) {
-        router.push(`/admin/courses/${courseId}`)
-      } else {
-        router.push("/admin/courses")
+      // Create lessons + sub-lessons after course is created
+      if (courseId && lessons.length > 0) {
+        for (let i = 0; i < lessons.length; i++) {
+          try {
+            const lesson = lessons[i]
+            // Upload sub-lesson videos to Cloudinary first
+            const subPayload = []
+            for (let j = 0; j < lesson.subLessons.length; j++) {
+              const sub = lesson.subLessons[j]
+              let vdoUrl = null
+              if (sub.videoData?.file) {
+                vdoUrl = await uploadFileToCloudinary(
+                  sub.videoData.file, "video", "course-flow/videos"
+                )
+              }
+              subPayload.push({
+                name: sub.name.trim(),
+                order_index: j + 1,
+                type: "vdo",
+                content: vdoUrl,
+              })
+            }
+            // Create lesson + sub-lessons in one transaction
+            await axios.post(
+              "/api/admin/lessons/create-with-sublessons",
+              {
+                course_id: courseId,
+                lesson_name: lesson.name.trim(),
+                sub_lessons: subPayload,
+              },
+              { headers: { Authorization: `Bearer ${token}` } }
+            )
+          } catch (lessonErr) {
+            console.error(`Create lesson ${i} failed:`, lessonErr)
+          }
+        }
       }
+
+      // Always redirect to all courses page
+      setBannerStatus("success")
+      setTimeout(() => router.push("/admin/courses"), 600)
     } catch (error) {
       console.error("Create course failed:", error)
       if (error.response?.status === 401 || error.response?.status === 403) {
@@ -182,6 +332,8 @@ export default function AddCourse() {
         return
       }
       setSubmitError(error.response?.data?.message || "Failed to create course")
+      setBannerStatus("error")
+      setTimeout(() => setBannerStatus("idle"), 3000)
     } finally {
       setIsSubmitting(false)
     }
@@ -192,6 +344,7 @@ export default function AddCourse() {
       <Head>
         <title>Add Course - Admin Panel</title>
       </Head>
+      <SubmitBanner status={bannerStatus} message={bannerStatus === "loading" ? "กำลังสร้างคอร์ส… กรุณาอย่าปิดหน้านี้" : undefined} />
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-medium text-slate-800">Add Course</h1>
         <div className="flex gap-4">
@@ -463,17 +616,48 @@ export default function AddCourse() {
       <div className="mb-12">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-[22px] font-medium text-slate-800">Lesson</h2>
-          <Button className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-12 px-6 rounded-md font-medium shadow-sm text-[15px]">
+          <Button
+            type="button"
+            onClick={handleAddLesson}
+            className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-12 px-6 rounded-md font-medium shadow-sm text-[15px]"
+          >
             + Add Lesson
           </Button>
         </div>
-        
-        <div className="bg-[#E2E8F0] bg-opacity-30 border border-slate-100 rounded-xl p-20 flex flex-col items-center justify-center text-center text-[#64748B]">
-          <p className="text-[16px] leading-relaxed">
-            เมื่อสร้าง course แล้ว<br />เลื่อนลงมาด้านล่างจะมี lesson ให้สร้างบทเรียนเพิ่มได้<br />
-            (ใน 1 คอร์สต้องมีอย่างน้อย 1 บทเรียน)
-          </p>
-        </div>
+
+        {lessons.length === 0 ? (
+          <div className="bg-[#E2E8F0] bg-opacity-30 border border-slate-100 rounded-xl p-20 flex flex-col items-center justify-center text-center text-[#64748B]">
+            <p className="text-[16px] leading-relaxed">
+              กดปุ่ม + Add Lesson เพื่อเพิ่มบทเรียน<br />
+              (ใน 1 คอร์สต้องมีอย่างน้อย 1 บทเรียน)
+            </p>
+          </div>
+        ) : (
+          <DndContext
+            sensors={lessonSensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleLessonDragEnd}
+          >
+            <SortableContext
+              items={lessons.map((l) => l.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-6">
+                {lessons.map((lesson, idx) => (
+                  <LessonBlock
+                    key={lesson.id}
+                    lesson={lesson}
+                    index={idx}
+                    onChange={handleLessonChange}
+                    onDelete={handleRemoveLesson}
+                    errors={lessonErrors[lesson.id]}
+                    disabled={isSubmitting}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
       </div>
     </AdminLayout>
   )

@@ -187,7 +187,16 @@ export default function CourseList() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium text-slate-800 text-[15px]">{course.name}</TableCell>
+                  <TableCell className="font-medium text-slate-800 text-[15px]">
+                    <a
+                      href={`/courses/${course.slug || course.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-[#2F5FAC] hover:underline cursor-pointer"
+                    >
+                      {course.name}
+                    </a>
+                  </TableCell>
                   <TableCell className="text-slate-600 text-[15px]">{course.lessons || 0} Lessons</TableCell>
                   <TableCell className="text-slate-600 text-[15px]">
                     {Number(course.price).toLocaleString("en-US", { minimumFractionDigits: 2 })}

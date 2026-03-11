@@ -40,15 +40,16 @@ export default function useCourseEditor(id, token) {
 
                 console.log("Course API:", data)
 
+                const course = data.course || data
                 setCourseData({
-                    id: data.id,
-                    name: data.course_name,
-                    price: data.price,
-                    summary: data.course_summary,
-                    detail: data.course_detail,
-                    learningTime: data.total_learning_time,
-                    coverImg: data.cover_img_url,
-                    trailer: data.vdo_trailer_url,
+                    id: course.id,
+                    name: course.course_name,
+                    price: course.price,
+                    summary: course.course_summary,
+                    detail: course.course_detail,
+                    learningTime: course.total_learning_time,
+                    coverImg: course.cover_img_url,
+                    trailer: course.vdo_trailer_url,
                     lessons: data.lessons || [],
                     materials: data.materials || [],
                 })

@@ -57,7 +57,12 @@ export default async function handler(req, res) {
       )
     }
 
-    // Delete all old questions (cascade deletes options too)
+    // Delete all old options, then questions
+    await client.query(
+      `DELETE FROM question_options WHERE question_id IN (
+        SELECT id FROM assignment_questions WHERE assignment_id = $1
+      )`, [assignment_id]
+    )
     await client.query(
       `DELETE FROM assignment_questions WHERE assignment_id = $1`,
       [assignment_id]
