@@ -65,9 +65,11 @@ export default function useRegister() {
     try {
       setIsLoading(true)
       setErrors({})
+      const email = form.email
       await axios.post("/api/auth/register", apiPayload)
+      sessionStorage.setItem("verifyEmail", email)
       setForm(initialForm)
-      router.push("/register-success")
+      router.push("/verify-email")
     } catch (err) {
       setErrors({
         form: err.response?.data?.message || "Register failed",

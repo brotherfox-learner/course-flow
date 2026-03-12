@@ -136,6 +136,9 @@ function RegisterSection() {
           >
             {isLoading ? "Register..." : "Register"}
           </Button>
+          {errors.form && (
+            <p className="body3 text-purple">{errors.form}</p>
+          )}
         </form>
         <div className="flex items-center gap-1">
           <span className="body2 text-black">Already have an account?</span>

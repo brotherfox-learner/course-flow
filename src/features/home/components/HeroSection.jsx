@@ -1,7 +1,8 @@
 import Button from "@/common/navbar/Button"
-import router from "next/router"
+import { useRouter } from "next/router"
 
 function HeroSection () {
+    const router = useRouter()
     return(
         <div className="relative z-10 bg-blue-100 pt-14 px-4 min-h-[calc(100vh-var(--navbar-height))] lg:px-[160px] lg:flex lg:flex-row lg:justify-between lg:pt-0">
             <div className="space-y-4 lg:space-y-6 relative z-10 lg:self-center lg:w-[643px]">

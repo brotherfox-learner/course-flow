@@ -2,10 +2,9 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
 import { useAuth } from "@/context/AuthContext"
-import { supabase } from "@/context/AuthContext"
 import { validateProfile } from "./validateProfile"
 import { getCroppedImage } from "../utils/cropImage"
-
+import { supabase } from "@/lib/supabaseClient"
 /**
  * Convert JS Date -> YYYY-MM-DD (API format)
  */

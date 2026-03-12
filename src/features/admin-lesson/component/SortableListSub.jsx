@@ -84,7 +84,6 @@ export default function SortableListSub({
                             setSubLessons={setSubLessons}
                         />
                     ))}
-
                 </SortableContext>
             </DndContext>
         </div >

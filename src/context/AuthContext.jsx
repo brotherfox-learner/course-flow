@@ -1,14 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import axios from "axios";
-import { createClient } from "@supabase/supabase-js"
+import { supabase } from "@/lib/supabaseClient"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey
-)
 
 const AuthContext = createContext(null);
 
@@ -24,24 +17,22 @@ export function AuthProvider({ children }) {
   //  Bootstrap session + listener
 
   useEffect(() => {
-    let mounted = true;
 
     supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
       setSession(data.session ?? null);
       setLoading(false);
     });
-
+  
     const { data: sub } = supabase.auth.onAuthStateChange(
       (_event, newSession) => {
         setSession(newSession);
       }
     );
-
+  
     return () => {
-      mounted = false;
       sub.subscription.unsubscribe();
     };
+  
   }, []);
 
   //  Derived state
@@ -80,9 +71,12 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    fetchProfile(token);
-  }, [token, fetchProfile]);
-
+    if (token) {
+      fetchProfile(token)
+    } else {
+      setProfile(null)
+    }
+  }, [token, fetchProfile])
 
   //   (ใช้ Supabase ตรง)
 
