@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import {
   Accordion,
   AccordionContent,
@@ -31,30 +32,33 @@ function isInProgressKey(inProgressSubLessonKeys, key, subId) {
 function SubLessonIcon({ status }) {
   if (status === SUB_LESSON_STATUS.completed) {
     return (
-      <img
+      <Image
         src="/complete.svg"
         alt="Completed lesson"
+        width={20}
+        height={20}
         className="w-5 h-5 shrink-0 object-contain"
-        aria-hidden
       />
     );
   }
   if (status === SUB_LESSON_STATUS.inProgress) {
     return (
-      <img
+      <Image
         src="/haft-complete.svg"
         alt="Lesson in progress"
+        width={20}
+        height={20}
         className="w-5 h-5 shrink-0 object-contain"
-        aria-hidden
       />
     );
   }
   return (
-    <img
+    <Image
       src="/not-start.svg"
       alt="Not started"
+      width={20}
+      height={20}
       className="w-5 h-5 shrink-0 object-contain"
-      aria-hidden
     />
   );
 }
@@ -81,7 +85,7 @@ export default function CourseProgress({
   const inProgressSet = inProgressSubLessonKeys ?? new Set();
   const percent = Math.min(100, Math.max(0, Number(progressPercent) || 0));
 
-  const [userOpenLessonValue, setUserOpenLessonValue] = useState(null);
+  const [openLessonValue, setOpenLessonValue] = useState("lesson-0");
   const currentItemRef = useRef(null);
 
   // หาว่า current sub-lesson อยู่ใน lesson ไหน เพื่อเปิด panel นั้นโดยอัตโนมัติ
@@ -104,7 +108,12 @@ export default function CourseProgress({
     return null;
   }, [lessons, currentSubLessonKey]);
 
-  const accordionValue = userOpenLessonValue ?? currentLessonValue ?? "lesson-0";
+  // sync accordion panel กับ sub-lesson ปัจจุบัน แต่ยังให้ user เปลี่ยนได้
+  useEffect(() => {
+    if (currentLessonValue) {
+      setOpenLessonValue(currentLessonValue);
+    }
+  }, [currentLessonValue]);
 
   // เลื่อน sidebar ให้ sub-lesson ปัจจุบันอยู่ในมุมมอง
   useEffect(() => {
@@ -153,8 +162,8 @@ export default function CourseProgress({
       <Accordion
         type="single"
         collapsible
-        value={accordionValue}
-        onValueChange={(val) => setUserOpenLessonValue(val || null)}
+        value={openLessonValue}
+        onValueChange={(val) => setOpenLessonValue(val || "lesson-0")}
         className="w-full flex flex-col gap-0 flex-none order-3 self-stretch border-0"
       >
         {lessons.map((lesson, lessonIndex) => {
