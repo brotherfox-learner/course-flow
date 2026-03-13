@@ -88,7 +88,8 @@ export default function CourseList() {
 
     setIsDeleting(true)
     try {
-      await axios.delete(`/api/admin/courses/${courseToDelete.id}`, {
+      await axios.delete("/api/admin/courses/delete", {
+        data: { course_id: courseToDelete.id },
         headers: {
           Authorization: `Bearer ${token}`,
         },

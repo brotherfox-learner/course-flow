@@ -128,7 +128,7 @@ export default function AddPromoCode() {
   useEffect(() => {
     if (!token) return
     axios
-      .get("/api/admin/courses", { headers: { Authorization: `Bearer ${token}` } })
+      .get("/api/admin/courses", { headers: { Authorization: `Bearer ${token}` }, params: { limit: 999 } })
       .then((r) => setCourses(r.data?.courses || []))
       .catch(() => setCourses([]))
   }, [token])

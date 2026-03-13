@@ -39,9 +39,9 @@ export default async function handler(req, res) {
       course_id = null 
     } = req.query
     
-    const offset = (page - 1) * limit
-    const parsedLimit = Math.min(parseInt(limit), 100) // Max 100 items per page
-    const parsedPage = Math.max(parseInt(page), 1)
+    const parsedLimit = Math.min(parseInt(limit) || 10, 100) // Max 100 items per page
+    const parsedPage = Math.max(parseInt(page) || 1, 1)
+    const offset = (parsedPage - 1) * parsedLimit
 
     // Build WHERE clause
     let whereClause = ""

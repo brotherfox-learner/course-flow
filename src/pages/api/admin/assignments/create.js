@@ -55,7 +55,12 @@ export default async function handler(req, res) {
     )
     const assignmentId = assignmentRes.rows[0].id
 
-    // Delete existing questions (re-insert fresh)
+    // Delete existing options, then questions (re-insert fresh)
+    await client.query(
+      `DELETE FROM question_options WHERE question_id IN (
+        SELECT id FROM assignment_questions WHERE assignment_id = $1
+      )`, [assignmentId]
+    )
     await client.query(
       `DELETE FROM assignment_questions WHERE assignment_id = $1`,
       [assignmentId]
