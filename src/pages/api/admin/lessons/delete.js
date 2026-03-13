@@ -1,5 +1,6 @@
 import pool from "@/utils/db"
 import { createClient } from "@supabase/supabase-js"
+import { deleteMultipleByUrl } from "@/utils/cloudinaryDelete"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -45,7 +46,7 @@ async function ensureAdmin(req) {
 
 export default async function handler(req, res) {
 
-  if (req.method !== "DELETE") {
+  if (req.method !== "DELETE" && req.method !== "POST") {
     return res.status(405).json({
       message: "Method not allowed"
     })
@@ -117,39 +118,83 @@ export default async function handler(req, res) {
 
     }
 
-    /*
-    ลบ sub lessons
-    */
-
-    await client.query(
-      `DELETE FROM sub_lessons
-       WHERE lesson_id = $1`,
+    // Collect sub-lesson video URLs before deleting
+    const subVidRes = await client.query(
+      `SELECT vdo_url FROM sub_lessons WHERE lesson_id = $1 AND vdo_url IS NOT NULL AND vdo_url != ''`,
       [lesson_id]
     )
+    const cloudinaryUrls = subVidRes.rows.map(r => r.vdo_url).filter(Boolean)
 
-    /*
-    ลบ lesson
-    */
-
+    // Delete assignment chain for sub_lessons under this lesson
     await client.query(
-      `DELETE FROM lessons
-       WHERE id = $1`,
-      [lesson_id]
+      `DELETE FROM submission_selected_options WHERE submission_answer_id IN (
+        SELECT sa.id FROM submission_answers sa
+        JOIN assignment_submissions asub ON sa.submission_id = asub.id
+        JOIN assignments a ON asub.assignment_id = a.id
+        JOIN sub_lessons sl ON a.sub_lesson_id = sl.id
+        WHERE sl.lesson_id = $1
+      )`, [lesson_id]
+    )
+    await client.query(
+      `DELETE FROM submission_answers WHERE submission_id IN (
+        SELECT asub.id FROM assignment_submissions asub
+        JOIN assignments a ON asub.assignment_id = a.id
+        JOIN sub_lessons sl ON a.sub_lesson_id = sl.id
+        WHERE sl.lesson_id = $1
+      )`, [lesson_id]
+    )
+    await client.query(
+      `DELETE FROM assignment_submissions WHERE assignment_id IN (
+        SELECT a.id FROM assignments a
+        JOIN sub_lessons sl ON a.sub_lesson_id = sl.id
+        WHERE sl.lesson_id = $1
+      )`, [lesson_id]
+    )
+    await client.query(
+      `DELETE FROM question_options WHERE question_id IN (
+        SELECT aq.id FROM assignment_questions aq
+        JOIN assignments a ON aq.assignment_id = a.id
+        JOIN sub_lessons sl ON a.sub_lesson_id = sl.id
+        WHERE sl.lesson_id = $1
+      )`, [lesson_id]
+    )
+    await client.query(
+      `DELETE FROM assignment_questions WHERE assignment_id IN (
+        SELECT a.id FROM assignments a
+        JOIN sub_lessons sl ON a.sub_lesson_id = sl.id
+        WHERE sl.lesson_id = $1
+      )`, [lesson_id]
+    )
+    await client.query(
+      `DELETE FROM assignments WHERE sub_lesson_id IN (
+        SELECT id FROM sub_lessons WHERE lesson_id = $1
+      )`, [lesson_id]
     )
 
-    /*
-    reorder lessons
-    */
-
+    // Delete sub_lesson_progress
     await client.query(
-      `UPDATE lessons
-       SET order_index = order_index - 1
-       WHERE course_id = $1
-       AND order_index > $2`,
-      [course_id, order_index]
+      `DELETE FROM sub_lesson_progress WHERE sub_lesson_id IN (
+        SELECT id FROM sub_lessons WHERE lesson_id = $1
+      )`, [lesson_id]
     )
+
+    // Delete sub_lessons
+    await client.query(`DELETE FROM sub_lessons WHERE lesson_id = $1`, [lesson_id])
+
+    // Delete lesson_materials
+    await client.query(`DELETE FROM lesson_materials WHERE lesson_id = $1`, [lesson_id])
+
+    // Delete lesson
+    await client.query(`DELETE FROM lessons WHERE id = $1`, [lesson_id])
 
     await client.query("COMMIT")
+
+    // Delete files from Cloudinary (after DB commit)
+    if (cloudinaryUrls.length > 0) {
+      deleteMultipleByUrl(cloudinaryUrls).catch(err =>
+        console.error("Cloudinary cleanup error (lesson delete):", err)
+      )
+    }
 
     return res.status(200).json({
       message: "Lesson deleted"

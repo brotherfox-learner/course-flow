@@ -140,14 +140,23 @@ export default function CourseDetail() {
     };
   }, [enrollmentStatus, course?.id, token]);
 
-  const wishlistButtonLabel = wishlistAdding
+  const wishlistButtonLabelDesktop = wishlistAdding
     ? "Adding..."
     : wishlistRemoving
       ? "Removing from wishlist..."
       : isInWishlist
-        ? "Already added to wishlist"
+        ? "Already Added to wishlist"
         : "Add to Wishlist";
-  const wishlistButtonDisabled = wishlistAdding || wishlistRemoving || enrollmentLoading || hasEnrollment;
+  const wishlistButtonDisabledDesktop = wishlistAdding || wishlistRemoving || enrollmentLoading || hasEnrollment;
+
+  const wishlistButtonLabelMobile = wishlistAdding
+  ? "Adding..."
+  : wishlistRemoving
+    ? "Removing from wishlist..."
+    : isInWishlist
+      ? "Added to wishlist"
+      : "Add to Wishlist";
+const wishlistButtonDisabledMobile = wishlistAdding || wishlistRemoving || enrollmentLoading || hasEnrollment;
 
   const primaryButtonLabel = hasCompletedEnrollment
     ? "Review This Course"
@@ -167,7 +176,7 @@ export default function CourseDetail() {
   const formatFileSize = (bytes) => {
     if (!bytes) return "";
     const mb = bytes / (1024 * 1024);
-    return mb >= 1 ? `${mb.toFixed(0)} mb` : `${Math.round(bytes / 1024)} KB`;
+    return mb >= 1 ? `${mb.toFixed(0)} MB` : `${Math.round(bytes / 1024)} KB`;
   };
 
   if (loading) {
@@ -311,10 +320,14 @@ export default function CourseDetail() {
                   <button
                     type="button"
                     onClick={handleWishlistClick}
-                    disabled={wishlistButtonDisabled}
-                    className="w-full py-[18px] px-8 rounded-[12px] border border-[#F47E20] text-[#F47E20] body2 font-bold text-center hover:opacity-90 transition shadow-[4px_4px_24px_rgba(0,0,0,0.08)] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                    disabled={wishlistButtonDisabledDesktop}
+                    className={`w-full py-[18px] px-8 rounded-[12px] border body2 font-bold text-center transition shadow-[4px_4px_24px_rgba(0,0,0,0.08)] disabled:cursor-not-allowed flex items-center justify-center gap-1.5 ${
+                      wishlistAdding || wishlistRemoving
+                        ? "border-gray-400 text-gray-400"
+                        : "border-[#F47E20] text-[#F47E20] hover:opacity-90"
+                    }`}
                   >
-                    {wishlistButtonLabel}
+                    {wishlistButtonLabelDesktop}
                     {isInWishlist && (
                       <img
                         src="/check.svg"
@@ -386,7 +399,7 @@ export default function CourseDetail() {
                 onClick={() => setBarExpanded((prev) => !prev)}
                 className="shrink-0 w-6 h-6 flex items-center justify-center text-[#646D89]"
                 aria-expanded={barExpanded}
-                aria-label={barExpanded ? "ย่อ" : "ขยาย"}
+                aria-label={barExpanded ? "Collapse" : "Expand"}
               >
                 {barExpanded ? "▲" : "▼"}
               </button>
@@ -397,10 +410,10 @@ export default function CourseDetail() {
                   variant="secondary"
                   size="md"
                   onClick={handleWishlistClick}
-                  disabled={wishlistButtonDisabled}
+                  disabled={wishlistButtonDisabledMobile}
                   className="flex-1 h-[34px] body4 !font-bold !leading-[150%] flex items-center justify-center gap-1"
                 >
-                  {wishlistButtonLabel}
+                  {wishlistButtonLabelMobile}
                   {isInWishlist && (
                     <img
                       src="/check.svg"

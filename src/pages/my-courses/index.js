@@ -104,8 +104,8 @@ export default function MyCourses() {
                 <div
                   key={tab.key}
                   className={`pb-3 body2 font-medium ${tab.key === "all"
-                      ? "text-black border-b-2 border-black"
-                      : "text-gray-400"
+                    ? "text-black border-b-2 border-black"
+                    : "text-gray-400"
                     }`}
                 >
                   {tab.label}
@@ -186,7 +186,7 @@ export default function MyCourses() {
     <>
       <NavBar />
       {/* desktop */}
-      <main className="min-h-screen bg-white relative">
+      <main className="min-h-screen bg-white relative overflow-x-hidden">
         <div className="hidden lg:block">
           <img src="/ellipse.svg" className=" absolute w-9 h-9  right-[-12px] top-[161px] lg:w-[74px] lg:h-[74px] lg:top-[205px] lg:right-[-21px]" alt="" />
           <img src="/green_cross.svg" className=" absolute w-[15.56px] h-[15.56px] left-[71px] top-[177px] lg:w-[18px] lg:h-[18px] lg:top-[205px] lg:left-[250px]" alt="" />
@@ -222,8 +222,8 @@ export default function MyCourses() {
                   setCurrentPage(1);
                 }}
                 className={`pb-3 body2 font-medium transition-colors cursor-pointer relative ${activeTab === tab.key
-                    ? "text-black border-b-2 border-black"
-                    : "text-gray-500 hover:text-gray-700"
+                  ? "text-black border-b-2 border-black"
+                  : "text-gray-500 hover:text-gray-700"
                   }`}
               >
                 {tab.label}
@@ -352,8 +352,8 @@ export default function MyCourses() {
 
         <div className="lg:hidden h-[72px]"></div>
       </main>
+      <div className="lg:hidden pb-28"> <Footer /></div>
 
-      <Footer />
     </>
   );
 }

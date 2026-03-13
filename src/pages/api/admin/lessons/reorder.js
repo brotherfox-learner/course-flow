@@ -46,7 +46,7 @@ async function ensureAdmin(req) {
 
 export default async function handler(req,res){
 
-  if(req.method !== "PATCH"){
+  if(req.method !== "PATCH" && req.method !== "POST"){
     return res.status(405).json({message:"Method not allowed"})
   }
 
@@ -70,26 +70,17 @@ export default async function handler(req,res){
 
     await client.query("BEGIN")
 
-    /*
-    สร้าง CASE statement
-    */
-    const cases = lesson_orders
-      .map(l => `WHEN ${l.id} THEN ${l.order_index}`)
-      .join(" ")
-
-    const ids = lesson_orders.map(l => l.id)
-
-    const query = `
-      UPDATE lessons
-      SET order_index = CASE id
-        ${cases}
-      END,
-      updated_at = NOW()
-      WHERE id = ANY($1)
-      AND course_id = $2
-    `
-
-    await client.query(query,[ids,course_id])
+    for (const l of lesson_orders) {
+      const idNum = Number(l.id)
+      const orderNum = Number(l.order_index)
+      if (!Number.isFinite(idNum) || !Number.isFinite(orderNum)) {
+        throw new Error("Invalid lesson_orders data")
+      }
+      await client.query(
+        `UPDATE lessons SET order_index = $1, updated_at = NOW() WHERE id = $2 AND course_id = $3`,
+        [orderNum, idNum, Number(course_id)]
+      )
+    }
 
     await client.query("COMMIT")
 
@@ -101,7 +92,7 @@ export default async function handler(req,res){
 
     await client.query("ROLLBACK")
 
-    console.error(err)
+    console.error("Lesson reorder error:", err)
 
     return res.status(500).json({
       message:"Internal server error"

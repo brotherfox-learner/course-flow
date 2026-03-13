@@ -9,6 +9,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Search, Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
 import AdminLayout from "@/components/layout/AdminLayout"
@@ -16,22 +24,35 @@ import { useEffect, useState } from "react"
 import axios from "axios"
 import { useAuth } from "@/context/AuthContext"
 import { format } from "date-fns"
+import Pagination from "@/common/pagination"
 
 export default function CourseList() {
   const [courses, setCourses] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [courseToDelete, setCourseToDelete] = useState(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize] = useState(10)
+  const [totalItems, setTotalItems] = useState(0)
   const { token, logout } = useAuth()
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         const res = await axios.get("/api/admin/courses", {
+          params: {
+            page: currentPage,
+            limit: pageSize,
+            search: searchTerm
+          },
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
         setCourses(res.data.courses)
+        setTotalItems(res.data.total || 0)
       } catch (error) {
         console.error("Error fetching courses:", error)
         if (error.response?.status === 401 || error.response?.status === 403) {
@@ -45,15 +66,53 @@ export default function CourseList() {
     if (token) {
       fetchCourses()
     }
-  }, [token, logout])
+  }, [token, currentPage, pageSize, searchTerm, logout])
 
-  const filteredCourses = courses.filter((course) =>
-    course.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm])
 
   const formatDate = (dateString) => {
     if (!dateString) return "-"
     return format(new Date(dateString), "dd/MM/yyyy hh:mm a")
+  }
+
+  const handleDeleteClick = (course) => {
+    setCourseToDelete(course)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!courseToDelete) return
+
+    setIsDeleting(true)
+    try {
+      await axios.delete("/api/admin/courses/delete", {
+        data: { course_id: courseToDelete.id },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      // Remove course from local state
+      setCourses(prev => prev.filter(course => course.id !== courseToDelete.id))
+      setDeleteDialogOpen(false)
+      setCourseToDelete(null)
+    } catch (error) {
+      console.error("Delete course error:", error)
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        logout()
+      }
+      // You could add toast notification here
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false)
+    setCourseToDelete(null)
   }
 
   return (
@@ -102,16 +161,16 @@ export default function CourseList() {
                   Loading courses...
                 </TableCell>
               </TableRow>
-            ) : filteredCourses.length === 0 ? (
+            ) : courses.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-center h-32 text-slate-500">
                   No courses found
                 </TableCell>
               </TableRow>
             ) : (
-              filteredCourses.map((course, index) => (
+              courses.map((course, index) => (
                 <TableRow key={course.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors h-20">
-                  <TableCell className="text-center font-normal text-slate-600">{index + 1}</TableCell>
+                  <TableCell className="text-center font-normal text-slate-600">{(currentPage - 1) * pageSize + index + 1}</TableCell>
                   <TableCell>
                     <div className="w-[100px] h-[70px] bg-slate-200 rounded object-cover overflow-hidden">
                       {course.image ? (
@@ -129,7 +188,16 @@ export default function CourseList() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium text-slate-800 text-[15px]">{course.name}</TableCell>
+                  <TableCell className="font-medium text-slate-800 text-[15px]">
+                    <a
+                      href={`/courses/${course.slug || course.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-[#2F5FAC] hover:underline cursor-pointer"
+                    >
+                      {course.name}
+                    </a>
+                  </TableCell>
                   <TableCell className="text-slate-600 text-[15px]">{course.lessons || 0} Lessons</TableCell>
                   <TableCell className="text-slate-600 text-[15px]">
                     {Number(course.price).toLocaleString("en-US", { minimumFractionDigits: 2 })}
@@ -138,7 +206,13 @@ export default function CourseList() {
                   <TableCell className="text-slate-500 text-[14px]">{formatDate(course.updated_at)}</TableCell>
                   <TableCell>
                     <div className="flex justify-center gap-4">
-                      <Button variant="ghost" size="icon" className="h-9 w-9 text-[#8BA4D4] hover:text-red-500 hover:bg-red-50 rounded-full">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-9 w-9 text-[#8BA4D4] hover:text-red-500 hover:bg-red-50 rounded-full"
+                        onClick={() => handleDeleteClick(course)}
+                        disabled={isDeleting}
+                      >
                         <Trash2 className="h-[20px] w-[20px]" />
                       </Button>
                       <Link href={`/admin/courses/${course.id}`}>
@@ -154,6 +228,47 @@ export default function CourseList() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {!isLoading && courses.length > 0 && (
+        <div className="mt-6 flex justify-center">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={totalItems}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      )}
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Delete Course</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{courseToDelete?.name}"? This action cannot be undone and will permanently remove the course and all its lessons.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:justify-end">
+            <Button
+              variant="outline"
+              className="border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600"
+              onClick={handleDeleteCancel}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete Course"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   )
 }

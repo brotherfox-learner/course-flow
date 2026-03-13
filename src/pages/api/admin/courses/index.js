@@ -31,10 +31,39 @@ export default async function handler(req, res) {
   }
 
   try {
-    const result = await pool.query(
-      `SELECT 
+    // Get pagination parameters
+    const { page = 1, limit = 10, search = "" } = req.query
+    const parsedLimit = Math.min(parseInt(limit) || 10, 100) // Max 100 items per page
+    const parsedPage = Math.max(parseInt(page) || 1, 1)
+    const offset = (parsedPage - 1) * parsedLimit
+
+    // Build WHERE clause for search
+    let whereClause = ""
+    let queryParams = []
+    let paramIndex = 1
+
+    if (search && search.trim()) {
+      whereClause = `WHERE c.course_name ILIKE $${paramIndex} `
+      queryParams.push(`%${search.trim()}%`)
+      paramIndex++
+    }
+
+    // Get total count for pagination
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM courses c
+      ${whereClause}
+    `
+    
+    const countResult = await pool.query(countQuery, queryParams)
+    const total = parseInt(countResult.rows[0].total)
+
+    // Get paginated courses
+    const coursesQuery = `
+      SELECT 
         c.id, 
         c.course_name as name, 
+        c.slug,
         c.price, 
         c.cover_img_url as image,
         c.created_at, 
@@ -42,11 +71,22 @@ export default async function handler(req, res) {
         COUNT(l.id)::int AS lessons
        FROM courses c
        LEFT JOIN lessons l ON l.course_id = c.id
+       ${whereClause}
        GROUP BY c.id
-       ORDER BY c.updated_at DESC`
-    )
+       ORDER BY c.created_at DESC
+       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
 
-    return res.status(200).json({ courses: result.rows })
+    `
+    queryParams.push(parsedLimit, offset)
+    const result = await pool.query(coursesQuery, queryParams)
+
+    return res.status(200).json({ 
+      courses: result.rows,
+      total: total,
+      page: parsedPage,
+      limit: parsedLimit,
+      totalPages: Math.ceil(total / parsedLimit)
+    })
   } catch (error) {
     console.error("Fetch courses error:", error)
     return res.status(500).json({ message: "Internal server error" })

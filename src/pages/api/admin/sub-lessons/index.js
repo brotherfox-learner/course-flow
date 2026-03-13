@@ -1,0 +1,115 @@
+import pool from "@/utils/db"
+import { createClient } from "@supabase/supabase-js"
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
+
+export default async function handler(req, res) {
+  if (req.method !== "GET") {
+    return res.status(405).json({ message: "Method not allowed" })
+  }
+
+  // Verify admin token
+  const authHeader = req.headers.authorization
+  if (!authHeader?.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Unauthorized" })
+  }
+
+  const token = authHeader.split(" ")[1]
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+  
+  if (authError || !user) {
+    return res.status(401).json({ message: "Invalid token" })
+  }
+
+  // Check admin role
+  const roleCheck = await pool.query(`SELECT role FROM users WHERE id = $1`, [user.id])
+  if (roleCheck.rows.length === 0 || roleCheck.rows[0].role !== "admin") {
+    return res.status(403).json({ message: "Forbidden" })
+  }
+
+  try {
+    // Get pagination and filter parameters
+    const { 
+      page = 1, 
+      limit = 10, 
+      search = "", 
+      lesson_id = null 
+    } = req.query
+    
+    const parsedLimit = Math.min(parseInt(limit) || 10, 100) // Max 100 items per page
+    const parsedPage = Math.max(parseInt(page) || 1, 1)
+    const offset = (parsedPage - 1) * parsedLimit
+
+    // Build WHERE clause
+    let whereClause = ""
+    let queryParams = []
+    let paramIndex = 1
+
+    if (lesson_id) {
+      whereClause = `WHERE sl.lesson_id = $${paramIndex} `
+      queryParams.push(lesson_id)
+      paramIndex++
+    }
+
+    if (search && search.trim()) {
+      if (whereClause) {
+        whereClause += `AND sl.name ILIKE $${paramIndex} `
+      } else {
+        whereClause = `WHERE sl.name ILIKE $${paramIndex} `
+      }
+      queryParams.push(`%${search.trim()}%`)
+      paramIndex++
+    }
+
+    // Get total count for pagination
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM sub_lessons sl
+      ${whereClause}
+    `
+    
+    const countResult = await pool.query(countQuery, queryParams)
+    const total = parseInt(countResult.rows[0].total)
+
+    // Get paginated sub-lessons with lesson and course info
+    const sublessonsQuery = `
+      SELECT 
+        sl.id,
+        sl.name,
+        sl.vdo_url,
+        sl.vdo_time,
+        sl.order_index,
+        sl.content_type,
+        sl.content,
+        sl.created_at,
+        sl.updated_at,
+        sl.lesson_id,
+        l.name as lesson_name,
+        l.course_id,
+        c.course_name as course_name
+      FROM sub_lessons sl
+      LEFT JOIN lessons l ON sl.lesson_id = l.id
+      LEFT JOIN courses c ON l.course_id = c.id
+      ${whereClause}
+      ORDER BY sl.lesson_id, sl.order_index ASC
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `
+    
+    queryParams.push(parsedLimit, offset)
+    const result = await pool.query(sublessonsQuery, queryParams)
+
+    return res.status(200).json({ 
+      subLessons: result.rows,
+      total: total,
+      page: parsedPage,
+      limit: parsedLimit,
+      totalPages: Math.ceil(total / parsedLimit)
+    })
+  } catch (error) {
+    console.error("Fetch sublessons error:", error)
+    return res.status(500).json({ message: "Internal server error" })
+  }
+}

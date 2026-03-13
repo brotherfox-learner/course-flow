@@ -35,13 +35,35 @@ export default async function handler(req, res) {
   }
 
   try {
-    const result = await pool.query(
-      `DELETE FROM lesson_materials WHERE id = $1 RETURNING id`,
+    // Fetch the file_url before deleting
+    const materialRes = await pool.query(
+      `SELECT id, file_url FROM lesson_materials WHERE id = $1`,
       [id]
     )
 
-    if (result.rows.length === 0) {
+    if (materialRes.rows.length === 0) {
       return res.status(404).json({ message: "Material not found" })
+    }
+
+    const fileUrl = materialRes.rows[0].file_url
+
+    // Delete from DB
+    await pool.query(`DELETE FROM lesson_materials WHERE id = $1`, [id])
+
+    // Delete from Supabase Storage (after DB delete)
+    if (fileUrl) {
+      try {
+        const u = new URL(fileUrl)
+        const match = u.pathname.match(/\/storage\/v1\/object\/public\/course-materials\/(.+)/)
+        if (match) {
+          const { error: storageErr } = await supabase.storage
+            .from("course-materials")
+            .remove([match[1]])
+          if (storageErr) console.error("Supabase storage delete error:", storageErr)
+        }
+      } catch (e) {
+        console.error("Storage cleanup error:", e)
+      }
     }
 
     return res.status(200).json({ message: "Material deleted" })

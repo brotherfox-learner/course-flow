@@ -66,7 +66,7 @@ function SubLessonIcon({ status }) {
 function formatFileSize(bytes) {
   if (!bytes) return "";
   const mb = bytes / (1024 * 1024);
-  return mb >= 1 ? `${mb.toFixed(0)} mb` : `${Math.round(bytes / 1024)} KB`;
+  return mb >= 1 ? `${mb.toFixed(0)} MB` : `${Math.round(bytes / 1024)} KB`;
 }
 
 export default function CourseProgress({

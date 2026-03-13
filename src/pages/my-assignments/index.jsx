@@ -246,7 +246,7 @@ function AssignmentCard({ assignment, token, onRefresh }) {
   }
 
   return (
-    <div className="bg-blue-100 flex flex-col mx-auto w-[1120px] rounded-2xl shadow-1 p-6 mb-6">
+    <div className="bg-blue-100 flex flex-col mx-auto md:w-[1120px] w-[343px] rounded-2xl shadow-1 p-6 mb-6">
       {/* Card header */}
       <div className="flex items-start justify-between mb-1">
         <h2 className="body2 font-medium text-gray-900">
@@ -272,7 +272,6 @@ function AssignmentCard({ assignment, token, onRefresh }) {
               const gr = gradingResults?.[q.id]
               const isGraded = !!gr
               const isSubmitted = (statusKey === "submitted" || statusKey === "graded") && !gradingResults
-
               return (
                 <div key={q.id}>
                   {/* Question text */}
@@ -296,12 +295,16 @@ function AssignmentCard({ assignment, token, onRefresh }) {
                             ? "bg-green-50 border-green-200"
                             : "bg-gray-50 border-gray-200"
                           }`}>
-                          <p className={`body4 font-medium mb-0.5 ${gr.correct_text_answer ? "text-green-700" : "text-gray-500"
+                          <p className={`body4 font-medium mb-0.5 ${gr.correct_text_answer ? "text-green-800" : "text-gray-500"
                             }`}>
                             {gr.correct_text_answer ? "Model answer:" : "No model answer set"}
                           </p>
                           {gr.correct_text_answer && (
-                            <p className="body3 text-green-800">{gr.correct_text_answer}</p>
+                            <div className="body3 text-green-800 [&>span]:block">
+                              {gr.correct_text_answer.split(/\r?\n/).map((line, i) => (
+                                <span key={i}>{line || "\u00A0"}</span>
+                              ))}
+                            </div>
                           )}
                         </div>
                       )}
@@ -487,17 +490,17 @@ export default function AssignmentsPage() {
       <main className="min-h-screen bg-[#F6F7FC] relative">
         {/* Decorative elements */}
         <div>
-          <img src="/ellipse.svg" className=" absolute w-9 h-9  right-[-12px] top-[161px] lg:w-[74px] lg:h-[74px] lg:top-[205px] lg:right-[-21px]" alt="" />
-          <img src="/green_cross.svg" className=" absolute w-[15.56px] h-[15.56px] left-[71px] top-[177px] lg:w-[18px] lg:h-[18px] lg:top-[205px] lg:left-[250px]" alt="" />
-          <div className="absolute  w-[8.56px] h-[8.56px] left-[36px] top-[40px] rounded-full  border-[3px] lg:w-[10px] lg:h-[10px] lg:left-[75px] lg:top-[50px] border-[#2F5FAC] box-sizing-border" aria-hidden="true" />
-          <img src="/orange_polygon.svg" className=" absolute w-[27.75px]  h-[27.75px] right-[45px] top-[60px] lg:w-[35px] lg:h-[35px] lg:right-[106px] lg:top-[125px]" alt="" />
-          <img src="/ellipse.svg" className=" absolute w-[20.25px]  h-[20.25px] left-[-10px] top-[85.92px] lg:w-[25px] lg:h-[25px] lg:left-[32px] lg:top-[107px]" alt="" />
+          <img src="/ellipse.svg" className="absolute w-9 h-9 right-[-12px] top-[161px] lg:w-[74px] lg:h-[74px] lg:top-[205px] lg:right-[-21px]" alt="" />
+          <img src="/green_cross.svg" className="absolute w-[15.56px] h-[15.56px] left-[71px] top-[177px] lg:w-[18px] lg:h-[18px] lg:top-[205px] lg:left-[250px] hidden lg:block" alt="" />
+          <div className="absolute w-[8.56px] h-[8.56px] left-[36px] top-[40px] rounded-full border-[3px] lg:w-[10px] lg:h-[10px] lg:left-[75px] lg:top-[50px] border-[#2F5FAC] box-sizing-border" aria-hidden="true" />
+          <img src="/orange_polygon.svg" className="absolute w-[27.75px] h-[27.75px] right-[45px] top-[60px] lg:w-[35px] lg:h-[35px] lg:right-[106px] lg:top-[125px]" alt="" />
+          <img src="/ellipse.svg" className="absolute w-[20.25px] h-[20.25px] left-[-10px] top-[85.92px] lg:w-[25px] lg:h-[25px] lg:left-[32px] lg:top-[107px]" alt="" />
         </div>
         <div className="lg:hidden pointer-events-none absolute top-[30px] left-[20px] w-[8px] h-[8px] bg-blue-300 rounded-full opacity-60" />
 
         <div className="max-w-[1440px] mx-auto px-4 lg:px-[160px] pt-12 lg:pt-16 pb-24">
           {/* Title */}
-          <h1 className="headline2 text-black text-center mb-8">My Assignments</h1>
+          <h1 className=" text-[24px] lg:headline2 text-black text-center mb-8">My Assignments</h1>
 
           {/* Tabs */}
           <div className="flex gap-8 border-b border-gray-300 mb-8 justify-center lg:justify-center">

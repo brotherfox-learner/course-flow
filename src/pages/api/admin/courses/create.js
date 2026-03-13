@@ -40,8 +40,27 @@ export default async function handler(req, res) {
     published = false
   } = req.body
 
-  if (!course_name || !price || !total_learning_time || !course_summary || !course_detail || !cover_img_url || !vdo_trailer_url) {
+  if (
+    !course_name?.trim() ||
+    price == null ||
+    total_learning_time == null ||
+    !course_summary?.trim() ||
+    !course_detail?.trim() ||
+    !cover_img_url?.trim() ||
+    !vdo_trailer_url?.trim()
+  ) {
     return res.status(400).json({ message: "Missing required fields" })
+  }
+
+  const parsedPrice = Number(price)
+  const parsedLearningTime = Number(total_learning_time)
+
+  if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
+    return res.status(400).json({ message: "Invalid price" })
+  }
+
+  if (!Number.isFinite(parsedLearningTime) || parsedLearningTime < 0) {
+    return res.status(400).json({ message: "Invalid total_learning_time" })
   }
 
   // Generate slug from course name
@@ -62,13 +81,13 @@ export default async function handler(req, res) {
         instructor_id
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
       [
-        course_name, 
-        price, 
-        total_learning_time, 
-        course_summary, 
-        course_detail, 
-        cover_img_url, 
-        vdo_trailer_url,
+        course_name.trim(), 
+        parsedPrice, 
+        parsedLearningTime, 
+        course_summary.trim(), 
+        course_detail.trim(), 
+        cover_img_url.trim(), 
+        vdo_trailer_url.trim(),
         slug,
         published,
         user.id

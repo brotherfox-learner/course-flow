@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import AdminLayout from "@/components/layout/AdminLayout"
+import Modal from "@/common/modal"
 import { useRouter } from "next/router"
 import axios from "axios"
 import { useAuth } from "@/context/AuthContext"
@@ -120,6 +121,7 @@ export default function EditPromoCode() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState("")
   const [pageError, setPageError] = useState("")
@@ -135,7 +137,7 @@ export default function EditPromoCode() {
         const headers = { Authorization: `Bearer ${token}` }
         const [promoRes, coursesRes] = await Promise.all([
           axios.get(`/api/admin/promocodes/${id}`, { headers }),
-          axios.get("/api/admin/courses", { headers }),
+          axios.get("/api/admin/courses", { headers, params: { limit: 999 } }),
         ])
 
         const p = promoRes.data.promoCode
@@ -177,13 +179,37 @@ export default function EditPromoCode() {
 
   const validate = () => {
     const newErrors = {}
-    if (!formData.code) newErrors.code = "Promo code is required"
-    if (formData.discountType === "thb" && !formData.discountAmount)
-      newErrors.discountAmount = "Discount amount is required"
-    if (formData.discountType === "percent" && !formData.discountPercent)
-      newErrors.discountPercent = "Discount percentage is required"
+    if (!formData.code?.trim()) newErrors.code = "Promo code is required"
+    if (formData.discountType === "thb") {
+      const v = Number(formData.discountAmount)
+      if (!formData.discountAmount) newErrors.discountAmount = "Discount amount is required"
+      else if (!Number.isFinite(v) || v <= 0) newErrors.discountAmount = "Must be greater than 0"
+      else if (v < 0) newErrors.discountAmount = "Cannot be negative"
+    }
+    if (formData.discountType === "percent") {
+      const v = Number(formData.discountPercent)
+      if (!formData.discountPercent) newErrors.discountPercent = "Discount percentage is required"
+      else if (!Number.isFinite(v) || v <= 0) newErrors.discountPercent = "Must be greater than 0"
+      else if (v >= 100) newErrors.discountPercent = "Cannot be 100% or more"
+    }
+    const minPurchase = Number(formData.minPurchase)
+    if (!Number.isFinite(minPurchase) || minPurchase < 0) {
+      newErrors.minPurchase = "Cannot be negative"
+    } else if (formData.discountType === "thb" && minPurchase - Number(formData.discountAmount || 0) < 20) {
+      newErrors.minPurchase = "Min purchase minus discount must be at least 20 THB (Omise)"
+    } else if (formData.discountType === "percent" && formData.discountPercent) {
+      const afterDiscount = Math.round(minPurchase * (1 - Number(formData.discountPercent) / 100) * 100) / 100
+      if (afterDiscount < 20) newErrors.minPurchase = "Amount after discount must be at least 20 THB (Omise)"
+    }
     if (!formData.validFrom) newErrors.validFrom = "Start date is required"
     if (!formData.validTo) newErrors.validTo = "End date is required"
+    if (formData.validFrom && formData.validTo && formData.validTo < formData.validFrom) {
+      newErrors.validTo = "End date must be after start date"
+    }
+    if (formData.usageLimit) {
+      const v = Number(formData.usageLimit)
+      if (!Number.isInteger(v) || v < 1) newErrors.usageLimit = "Must be a positive integer"
+    }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -223,13 +249,15 @@ export default function EditPromoCode() {
     }
   }
 
-  const handleDelete = async () => {
-    if (!window.confirm(`Delete promo code "${formData.code}"? This cannot be undone.`)) return
+  const handleDeleteClick = () => setDeleteModalOpen(true)
+
+  const handleDeleteConfirm = async () => {
     setIsDeleting(true)
     try {
       await axios.delete(`/api/admin/promocodes/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
+      setDeleteModalOpen(false)
       router.push("/admin/promocodes")
     } catch (error) {
       if (error.response?.status === 401 || error.response?.status === 403) {
@@ -323,10 +351,13 @@ export default function EditPromoCode() {
               <Input
                 name="minPurchase"
                 type="number"
+                min="0"
                 placeholder="0"
                 value={formData.minPurchase}
                 onChange={handleChange}
+                className={errors.minPurchase ? "border-red-500" : ""}
               />
+              {errors.minPurchase && <p className="text-red-500 text-sm mt-1">{errors.minPurchase}</p>}
             </div>
           </div>
 
@@ -408,10 +439,11 @@ export default function EditPromoCode() {
 
           {/* Row 5: Usage Limit */}
           <div>
-            <Label className="mb-2 block">Usage Limit</Label>
+            <Label className="mb-2 block">Usage Limit (leave empty for unlimited)</Label>
             <Input
               name="usageLimit"
               type="number"
+              min="1"
               placeholder="Unlimited"
               className={`max-w-xs ${errors.usageLimit ? "border-red-500" : ""}`}
               value={formData.usageLimit}
@@ -427,12 +459,23 @@ export default function EditPromoCode() {
         <Button
           variant="ghost"
           className="text-red-500 hover:bg-red-50 hover:text-red-600 font-medium"
-          onClick={handleDelete}
+          onClick={handleDeleteClick}
           disabled={isDeleting}
         >
           {isDeleting ? "Deleting..." : "Delete Promo Code"}
         </Button>
       </div>
+
+      <Modal
+        open={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="Delete Promo Code"
+        message={`Are you sure you want to delete "${formData.code}"? This cannot be undone.`}
+        primaryLabel="Delete"
+        secondaryLabel="Cancel"
+        onPrimaryClick={handleDeleteConfirm}
+        onSecondaryClick={() => setDeleteModalOpen(false)}
+      />
     </AdminLayout>
   )
 }

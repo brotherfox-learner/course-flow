@@ -4,7 +4,7 @@ import Card from "@/common/card";
 import Modal from "@/common/modal";
 import CourseCardSkeleton from "@/features/course/components/CourseCardSkeleton";
 
-const SKELETON_COUNT = 6;
+const SKELETON_COUNT = 9;
 
 export default function MyWishlist({ courses, loading, error, onRemoveCourse }) {
   const [showRemoveModal, setShowRemoveModal] = useState(false);

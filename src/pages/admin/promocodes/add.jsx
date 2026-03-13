@@ -128,7 +128,7 @@ export default function AddPromoCode() {
   useEffect(() => {
     if (!token) return
     axios
-      .get("/api/admin/courses", { headers: { Authorization: `Bearer ${token}` } })
+      .get("/api/admin/courses", { headers: { Authorization: `Bearer ${token}` }, params: { limit: 999 } })
       .then((r) => setCourses(r.data?.courses || []))
       .catch(() => setCourses([]))
   }, [token])
@@ -141,14 +141,37 @@ export default function AddPromoCode() {
 
   const validate = () => {
     const newErrors = {}
-    if (!formData.code) newErrors.code = "Promo code is required"
-    if (formData.discountType === "thb" && !formData.discountAmount)
-      newErrors.discountAmount = "Discount amount is required"
-    if (formData.discountType === "percent" && !formData.discountPercent)
-      newErrors.discountPercent = "Discount percentage is required"
+    if (!formData.code?.trim()) newErrors.code = "Promo code is required"
+    if (formData.discountType === "thb") {
+      const v = Number(formData.discountAmount)
+      if (!formData.discountAmount) newErrors.discountAmount = "Discount amount is required"
+      else if (!Number.isFinite(v) || v <= 0) newErrors.discountAmount = "Must be greater than 0"
+      else if (v < 0) newErrors.discountAmount = "Cannot be negative"
+    }
+    if (formData.discountType === "percent") {
+      const v = Number(formData.discountPercent)
+      if (!formData.discountPercent) newErrors.discountPercent = "Discount percentage is required"
+      else if (!Number.isFinite(v) || v <= 0) newErrors.discountPercent = "Must be greater than 0"
+      else if (v >= 100) newErrors.discountPercent = "Cannot be 100% or more"
+    }
+    const minPurchase = Number(formData.minPurchase)
+    if (!Number.isFinite(minPurchase) || minPurchase < 0) {
+      newErrors.minPurchase = "Cannot be negative"
+    } else if (formData.discountType === "thb" && minPurchase - Number(formData.discountAmount || 0) < 20) {
+      newErrors.minPurchase = "Min purchase minus discount must be at least 20 THB (Omise)"
+    } else if (formData.discountType === "percent" && formData.discountPercent) {
+      const afterDiscount = Math.round(minPurchase * (1 - Number(formData.discountPercent) / 100) * 100) / 100
+      if (afterDiscount < 20) newErrors.minPurchase = "Amount after discount must be at least 20 THB"
+    }
     if (!formData.validFrom) newErrors.validFrom = "Start date is required"
     if (!formData.validTo) newErrors.validTo = "End date is required"
-    if (!formData.usageLimit) newErrors.usageLimit = "Usage limit is required"
+    if (formData.validFrom && formData.validTo && formData.validTo < formData.validFrom) {
+      newErrors.validTo = "End date must be after start date"
+    }
+    if (formData.usageLimit) {
+      const v = Number(formData.usageLimit)
+      if (!Number.isInteger(v) || v < 1) newErrors.usageLimit = "Must be a positive integer"
+    }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -171,7 +194,7 @@ export default function AddPromoCode() {
               ? Number(formData.discountAmount)
               : Number(formData.discountPercent),
           min_price: Number(formData.minPurchase) || 0,
-          max_uses: Number(formData.usageLimit),
+          max_uses: formData.usageLimit ? Number(formData.usageLimit) : null,
           valid_from: formData.validFrom,
           valid_until: formData.validTo,
           course_ids: selectedCourseIds,
@@ -236,14 +259,17 @@ export default function AddPromoCode() {
               {errors.code && <p className="text-red-500 text-sm mt-1">{errors.code}</p>}
             </div>
             <div>
-              <Label className="mb-2 block">Minimum purchase amount (THB) *</Label>
+              <Label className="mb-2 block">Minimum purchase amount (THB)</Label>
               <Input
                 name="minPurchase"
                 type="number"
+                min="0"
                 placeholder="0"
                 value={formData.minPurchase}
                 onChange={handleChange}
+                className={errors.minPurchase ? "border-red-500" : ""}
               />
+              {errors.minPurchase && <p className="text-red-500 text-sm mt-1">{errors.minPurchase}</p>}
             </div>
           </div>
 
@@ -331,11 +357,12 @@ export default function AddPromoCode() {
 
           {/* Row 5: Usage Limit */}
           <div>
-            <Label className="mb-2 block">Usage Limit *</Label>
+            <Label className="mb-2 block">Usage Limit (leave empty for unlimited)</Label>
             <Input
               name="usageLimit"
               type="number"
-              placeholder="100"
+              min="1"
+              placeholder="Unlimited"
               className={`max-w-xs ${errors.usageLimit ? "border-red-500" : ""}`}
               value={formData.usageLimit}
               onChange={handleChange}
