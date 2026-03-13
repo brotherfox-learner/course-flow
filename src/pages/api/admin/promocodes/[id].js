@@ -1,5 +1,6 @@
 import pool from "@/utils/db"
 import { createClient } from "@supabase/supabase-js"
+import { toBangkokStartOfDay, toBangkokEndOfDay } from "@/utils/promoCodeDates"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -48,7 +49,7 @@ export default async function handler(req, res) {
 
   try {
     switch (req.method) {
-      case "GET":
+      case "GET": {
         // Get single promo code by ID
         const result = await pool.query(
           `SELECT
@@ -77,7 +78,17 @@ export default async function handler(req, res) {
           return res.status(404).json({ message: "Promo code not found" })
         }
 
-        return res.status(200).json({ promoCode: result.rows[0] })
+        const promoCode = result.rows[0]
+
+        // Fetch course_ids from promo_code_courses for "some" courses restriction
+        const courseIdsResult = await pool.query(
+          `SELECT course_id FROM promo_code_courses WHERE promo_code_id = $1 ORDER BY course_id`,
+          [id]
+        )
+        promoCode.course_ids = courseIdsResult.rows.map((r) => r.course_id)
+
+        return res.status(200).json({ promoCode })
+      }
 
       case "PUT": {
         // Update promo code
@@ -106,19 +117,52 @@ export default async function handler(req, res) {
         // Validate discount value
         const parsedValue = parseFloat(discount_value)
         if (isNaN(parsedValue) || parsedValue <= 0) {
-          return res.status(400).json({ message: "Invalid discount value" })
+          return res.status(400).json({ message: "Discount value must be greater than 0" })
         }
 
         // Validate min_price and max_uses
-        const parsedMinPrice = min_price ? parseFloat(min_price) : null
-        const parsedMaxUses = max_uses ? parseInt(max_uses) : null
+        const parsedMinPrice = min_price != null && min_price !== "" ? parseFloat(min_price) : 0
+        const parsedMaxUses = max_uses != null && max_uses !== "" ? parseInt(max_uses) : null
 
-        if (parsedMinPrice !== null && (isNaN(parsedMinPrice) || parsedMinPrice < 0)) {
-          return res.status(400).json({ message: "Invalid minimum price" })
+        if (parsedMinPrice < 0) {
+          return res.status(400).json({ message: "Minimum purchase cannot be negative" })
         }
 
-        if (parsedMaxUses !== null && (isNaN(parsedMaxUses) || parsedMaxUses <= 0)) {
-          return res.status(400).json({ message: "Invalid maximum uses" })
+        if (parsedMaxUses !== null && (isNaN(parsedMaxUses) || parsedMaxUses < 1)) {
+          return res.status(400).json({ message: "Usage limit must be a positive integer" })
+        }
+
+        // Omise: minimum charge 20 THB. Min amount after discount must be >= 20.
+        // Use round to avoid floating point issues (e.g. 100 * 0.2 = 19.999999999999996)
+        const OMISE_MIN = 20
+        if (discount_type === "fixed") {
+          const minAfterDiscount = parsedMinPrice - parsedValue
+          if (minAfterDiscount < OMISE_MIN) {
+            return res.status(400).json({
+              message: "Minimum purchase minus discount must be at least 20 THB (Omise requirement)",
+            })
+          }
+        } else {
+          const minAfterDiscount = Math.round(parsedMinPrice * (1 - parsedValue / 100) * 100) / 100
+          if (parsedValue < 100 && minAfterDiscount < OMISE_MIN) {
+            return res.status(400).json({
+              message: "Minimum purchase after discount must be at least 20 THB (Omise requirement)",
+            })
+          }
+          if (parsedValue >= 100) {
+            return res.status(400).json({ message: "Discount percentage cannot be 100% or more" })
+          }
+        }
+
+        // Convert dates to Bangkok timezone (valid_from 00:00, valid_until 23:59)
+        const validFromStr = valid_from ? toBangkokStartOfDay(valid_from) : null
+        const validUntilStr = valid_until ? toBangkokEndOfDay(valid_until) : null
+        if (valid_from && valid_until) {
+          const fromDate = new Date(validFromStr)
+          const untilDate = new Date(validUntilStr)
+          if (fromDate > untilDate) {
+            return res.status(400).json({ message: "Valid until must be later than valid from" })
+          }
         }
 
         // Check if promo code exists
@@ -159,8 +203,8 @@ export default async function handler(req, res) {
               parsedValue,
               parsedMinPrice,
               parsedMaxUses,
-              valid_from || null,
-              valid_until || null,
+              validFromStr || null,
+              validUntilStr || null,
               id,
             ]
           )

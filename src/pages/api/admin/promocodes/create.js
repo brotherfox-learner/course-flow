@@ -1,5 +1,6 @@
 import pool from "@/utils/db"
 import { createClient } from "@supabase/supabase-js"
+import { toBangkokStartOfDay, toBangkokEndOfDay } from "@/utils/promoCodeDates"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -67,25 +68,50 @@ export default async function handler(req, res) {
   const parsedMaxUses =
     max_uses != null && max_uses !== "" ? Number(max_uses) : null
 
-  if (!Number.isFinite(parsedDiscountValue) || parsedDiscountValue < 0) {
-    return res.status(400).json({ message: "Invalid discount_value" })
+  if (!Number.isFinite(parsedDiscountValue) || parsedDiscountValue <= 0) {
+    return res.status(400).json({ message: "Discount value must be greater than 0" })
   }
 
   if (!Number.isFinite(parsedMinPrice) || parsedMinPrice < 0) {
-    return res.status(400).json({ message: "Invalid min_price" })
+    return res.status(400).json({ message: "Minimum purchase cannot be negative" })
   }
 
   if (parsedMaxUses != null && (!Number.isInteger(parsedMaxUses) || parsedMaxUses < 1)) {
-    return res.status(400).json({ message: "Invalid max_uses" })
+    return res.status(400).json({ message: "Usage limit must be a positive integer" })
   }
 
-  const validFromDate = new Date(valid_from)
-  const validUntilDate = new Date(valid_until)
-  if (Number.isNaN(validFromDate.getTime()) || Number.isNaN(validUntilDate.getTime())) {
+  // Omise: minimum charge 20 THB. Min amount after discount must be >= 20.
+  // Use round to avoid floating point issues (e.g. 100 * 0.2 = 19.999999999999996)
+  const OMISE_MIN = 20
+  if (discount_type === "fixed") {
+    const minAfterDiscount = parsedMinPrice - parsedDiscountValue
+    if (minAfterDiscount < OMISE_MIN) {
+      return res.status(400).json({
+        message: "Minimum purchase minus discount must be at least 20 THB (Omise requirement)",
+      })
+    }
+  } else {
+    // percent: min_price * (1 - discount/100) >= 20
+    const minAfterDiscount = Math.round(parsedMinPrice * (1 - parsedDiscountValue / 100) * 100) / 100
+    if (parsedDiscountValue < 100 && minAfterDiscount < OMISE_MIN) {
+      return res.status(400).json({
+        message: "Minimum purchase after discount must be at least 20 THB (Omise requirement)",
+      })
+    }
+    if (parsedDiscountValue >= 100) {
+      return res.status(400).json({ message: "Discount percentage cannot be 100% or more" })
+    }
+  }
+
+  const validFromStr = toBangkokStartOfDay(valid_from)
+  const validUntilStr = toBangkokEndOfDay(valid_until)
+  const validFromDate = validFromStr ? new Date(validFromStr) : null
+  const validUntilDate = validUntilStr ? new Date(validUntilStr) : null
+  if (!validFromDate || !validUntilDate || Number.isNaN(validFromDate.getTime()) || Number.isNaN(validUntilDate.getTime())) {
     return res.status(400).json({ message: "Invalid valid_from/valid_until date" })
   }
   if (validUntilDate < validFromDate) {
-    return res.status(400).json({ message: "valid_until must be later than valid_from" })
+    return res.status(400).json({ message: "Valid until must be later than valid from" })
   }
 
   /* Normalise course_ids: null / undefined / [] all mean "all courses" */
@@ -116,8 +142,8 @@ export default async function handler(req, res) {
         parsedDiscountValue,
         parsedMinPrice,
         parsedMaxUses,
-        valid_from,
-        valid_until,
+        validFromStr,
+        validUntilStr,
       ]
     )
 

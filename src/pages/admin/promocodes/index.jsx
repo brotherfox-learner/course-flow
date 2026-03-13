@@ -11,7 +11,8 @@ import {
 import { Search, Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
 import AdminLayout from "@/components/layout/AdminLayout"
-import { useEffect, useMemo, useState } from "react"
+import Modal from "@/common/modal"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import axios from "axios"
 import { useAuth } from "@/context/AuthContext"
 import { format } from "date-fns"
@@ -22,33 +23,58 @@ export default function PromoCodeList() {
   const [promoCodes, setPromoCodes] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState("")
+  const [deleteModal, setDeleteModal] = useState({ open: false, promo: null })
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const fetchPromoCodes = useCallback(async () => {
+    if (!token) return
+    setIsLoading(true)
+    setErrorMessage("")
+    try {
+      const res = await axios.get("/api/admin/promocodes", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setPromoCodes(res.data.promoCodes || [])
+    } catch (error) {
+      console.error("Fetch promo codes failed:", error)
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        await logout()
+        return
+      }
+      setErrorMessage(error.response?.data?.message || "Failed to fetch promo codes")
+    } finally {
+      setIsLoading(false)
+    }
+  }, [token, logout])
 
   useEffect(() => {
-    const fetchPromoCodes = async () => {
-      if (!token) return
-      setIsLoading(true)
-      setErrorMessage("")
-      try {
-        const res = await axios.get("/api/admin/promocodes", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        setPromoCodes(res.data.promoCodes || [])
-      } catch (error) {
-        console.error("Fetch promo codes failed:", error)
-        if (error.response?.status === 401 || error.response?.status === 403) {
-          await logout()
-          return
-        }
-        setErrorMessage(error.response?.data?.message || "Failed to fetch promo codes")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
     fetchPromoCodes()
-  }, [token, logout])
+  }, [fetchPromoCodes])
+
+  const handleDeleteClick = (promo) => {
+    setDeleteModal({ open: true, promo })
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.promo || !token) return
+    setIsDeleting(true)
+    setErrorMessage("")
+    try {
+      await axios.delete(`/api/admin/promocodes/${deleteModal.promo.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setDeleteModal({ open: false, promo: null })
+      await fetchPromoCodes()
+    } catch (error) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        await logout()
+        return
+      }
+      setErrorMessage(error.response?.data?.message || "Failed to delete promo code")
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   const formatDate = (date) => {
     if (!date) return "-"
@@ -85,7 +111,13 @@ export default function PromoCodeList() {
   const statusBadgeClass = (status) => {
     if (status === "active") return "bg-green-100 text-green-700"
     if (status === "expired") return "bg-red-100 text-red-700"
+    if (status === "inactive") return "bg-amber-100 text-amber-700"
     return "bg-slate-100 text-slate-700"
+  }
+
+  const statusLabel = (status) => {
+    if (status === "inactive") return "Scheduled"
+    return status?.charAt(0).toUpperCase() + (status?.slice(1) ?? "")
   }
 
   return (
@@ -157,13 +189,19 @@ export default function PromoCodeList() {
                   <TableCell>{formatUsage(promo)}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusBadgeClass(promo.status)}`}>
-                      {promo.status}
+                      {statusLabel(promo.status)}
                     </span>
                   </TableCell>
                   <TableCell className="text-slate-500">{formatDate(promo.created_at)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-500" disabled>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-slate-400 hover:text-red-500"
+                        onClick={() => handleDeleteClick(promo)}
+                        disabled={isDeleting}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                       <Link href={`/admin/promocodes/${promo.id}`}>
@@ -179,6 +217,21 @@ export default function PromoCodeList() {
           </TableBody>
         </Table>
       </div>
+
+      <Modal
+        open={deleteModal.open}
+        onClose={() => setDeleteModal({ open: false, promo: null })}
+        title="Delete Promo Code"
+        message={
+          deleteModal.promo
+            ? `Are you sure you want to delete "${deleteModal.promo.code}"? This cannot be undone.`
+            : ""
+        }
+        primaryLabel="Delete"
+        secondaryLabel="Cancel"
+        onPrimaryClick={handleDeleteConfirm}
+        onSecondaryClick={() => setDeleteModal({ open: false, promo: null })}
+      />
     </AdminLayout>
   )
 }

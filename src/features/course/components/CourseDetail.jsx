@@ -167,7 +167,7 @@ export default function CourseDetail() {
   const formatFileSize = (bytes) => {
     if (!bytes) return "";
     const mb = bytes / (1024 * 1024);
-    return mb >= 1 ? `${mb.toFixed(0)} mb` : `${Math.round(bytes / 1024)} KB`;
+    return mb >= 1 ? `${mb.toFixed(0)} MB` : `${Math.round(bytes / 1024)} KB`;
   };
 
   if (loading) {
@@ -386,7 +386,7 @@ export default function CourseDetail() {
                 onClick={() => setBarExpanded((prev) => !prev)}
                 className="shrink-0 w-6 h-6 flex items-center justify-center text-[#646D89]"
                 aria-expanded={barExpanded}
-                aria-label={barExpanded ? "ย่อ" : "ขยาย"}
+                aria-label={barExpanded ? "Collapse" : "Expand"}
               >
                 {barExpanded ? "▲" : "▼"}
               </button>
