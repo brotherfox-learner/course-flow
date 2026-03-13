@@ -5,8 +5,9 @@ import useProfile from "../hook/useProfile";
 import LoadingOverlay from "./LoadingOverlay";
 import { useAuth } from "@/context/AuthContext";
 import AvatarCrop from "./AvatarCrop";
-
+import { useRouter } from "next/router";
 export default function ProfilePage() {
+    const router = useRouter();
     /* ================= styles ================= */
     const styleInput =
         "w-full body2 text-black bg-white border border-gray-400 rounded-lg p-3 placeholder:text-gray-600 focus:outline-none focus:border-orange-500"
@@ -201,13 +202,21 @@ export default function ProfilePage() {
                     {/* Email */}
                     <div className="flex flex-col gap-1">
                         <label className={styleLabel}>Email</label>
-                        <input
-                            name="email"
-                            type="email"
-                            value={form.email}
-                            disabled
-                            className="w-full body2 text-black/40 bg-gray-200 border border-gray-400 rounded-lg p-3"
-                        />
+                        <div className="flex flex-row gap-2">
+                            <input
+                                name="email"
+                                type="email"
+                                value={form.email}
+                                disabled
+                                className="w-full body2 text-black/40 bg-gray-200 border border-gray-400 rounded-lg p-3"
+                            />
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => router.push("/profile/change-email")}>
+                                Change
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Submit */}

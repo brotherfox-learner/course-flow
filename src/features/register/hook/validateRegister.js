@@ -46,6 +46,9 @@ export function validateRegister(form) {
   if (!form.email) {
     errors.email = "Email is required"
   }
+  if (!/\S+@\S+\.\S+/.test(form.email)) {
+    errors.email = "Invalid email format"
+  }
 
   if (!form.password || form.password.length < 8) {
     errors.password = "Password must be at least 8 characters"

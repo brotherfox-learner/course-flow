@@ -20,6 +20,15 @@ function formatDate(date) {
   return `${day}/${month}/${year}`
 }
 
+function getLatestSelectableDate() {
+  const today = new Date()
+
+  return new Date(
+    today.getFullYear() - 18,
+    today.getMonth(),
+    today.getDate()
+  )
+}
 // ใส่ / อัตโนมัติจากตัวเลข
 function formatInput(value) {
   const digits = value.replace(/\D/g, "").slice(0, 8)
@@ -104,7 +113,7 @@ export default function DatePickerInput({
       },
     })
   }
-
+  const latestSelectableDate = getLatestSelectableDate()
   return (
     <div className="w-full">
       <Popover open={open} onOpenChange={setOpen}>
@@ -147,6 +156,7 @@ export default function DatePickerInput({
           <Calendar
             mode="single"
             selected={date}
+            defaultMonth={date || latestSelectableDate}
             captionLayout="dropdown"
             fromYear={1900}
             toYear={currentYear - 18}
