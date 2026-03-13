@@ -226,7 +226,7 @@ export default function AddLessonPage() {
       <SubmitBanner status={bannerStatus} message={bannerStatus === "loading" ? "กำลังสร้างบทเรียน… กรุณาอย่าปิดหน้านี้" : undefined} />
 
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-8 p-8 bg-white min-h-[92px] border-b border-slate-200">
         <div>
           <p className="text-sm text-slate-400 mb-1">
             Course &apos;{courseName}&apos;
@@ -259,6 +259,7 @@ export default function AddLessonPage() {
         </div>
       </div>
 
+      <div className="m-8 mb-16">
       {pageError && (
         <div className="bg-orange-100/20 border border-orange-500 rounded-lg px-4 py-3 mb-6">
           <p className="text-orange-500 text-sm">{pageError}</p>
@@ -344,6 +345,7 @@ export default function AddLessonPage() {
             + Add Sub-lesson
           </Button>
         </div>
+      </div>
       </div>
 
       {/* Delete Sub-Lesson Confirmation Modal */}

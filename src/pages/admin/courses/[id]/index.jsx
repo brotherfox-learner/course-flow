@@ -442,7 +442,7 @@ export default function EditCourse() {
         <title>Edit Course - Admin Panel</title>
       </Head>
       <SubmitBanner status={bannerStatus} message={bannerStatus === "loading" ? "Saving course... Please do not close this page" : undefined} />
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-8 p-8 bg-white min-h-[92px] border-b border-slate-200">
         <h1 className="text-2xl font-medium text-slate-800 flex items-center gap-2">
           <span className="text-slate-400 cursor-pointer hover:text-slate-600" onClick={() => router.push('/admin/courses')}>&larr;</span>
           Course &apos;{courseData.name}&apos;
@@ -465,6 +465,7 @@ export default function EditCourse() {
         </div>
       </div>
 
+      <div className="m-8 mb-16">
       {pageError && (
         <div className="bg-orange-100/20 border border-orange-500 rounded-lg px-4 py-3 mb-6">
           <p className="text-orange-500 text-sm">{pageError}</p>
@@ -812,6 +813,7 @@ export default function EditCourse() {
             Delete Course
           </Button>
         </div>
+      </div>
       </div>
       <Modal
         open={isDeleteOpen}

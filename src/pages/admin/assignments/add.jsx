@@ -207,7 +207,7 @@ export default function AddAssignment() {
         <title>Add Assignment - Admin Panel</title>
       </Head>
 
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-slate-200">
         <h1 className="text-2xl font-medium text-slate-800">Add Assignment</h1>
         <div className="flex gap-4">
           <Button
@@ -227,6 +227,7 @@ export default function AddAssignment() {
         </div>
       </div>
 
+      <div className="m-8 mb-16">
       {submitError && (
         <div className="bg-orange-100/20 border border-orange-500 rounded-lg px-4 py-3 mb-6">
           <p className="text-orange-500 text-sm">{submitError}</p>
@@ -468,6 +469,7 @@ export default function AddAssignment() {
             Add Question
           </button>
         </div>
+      </div>
       </div>
     </AdminLayout>
   )

@@ -294,7 +294,7 @@ export default function EditPromoCode() {
         <title>Edit Promo Code - Admin Panel</title>
       </Head>
 
-      <header className="flex justify-between items-center mb-8">
+      <header className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-slate-200">
         <h1 className="text-2xl font-medium text-slate-800 flex items-center gap-2">
           <button
             type="button"
@@ -324,6 +324,7 @@ export default function EditPromoCode() {
         </div>
       </header>
 
+      <div className="m-8 mb-16">
       {submitError && (
         <div className="bg-orange-100/20 border border-orange-500 rounded-lg px-4 py-3 mb-6">
           <p className="text-orange-500 text-sm">{submitError}</p>
@@ -464,6 +465,7 @@ export default function EditPromoCode() {
         >
           {isDeleting ? "Deleting..." : "Delete Promo Code"}
         </Button>
+      </div>
       </div>
 
       <Modal
