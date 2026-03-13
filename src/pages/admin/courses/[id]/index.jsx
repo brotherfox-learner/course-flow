@@ -1,10 +1,12 @@
 import Head from "next/head"
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import axios from "axios"
 import Button from "@/common/navbar/Button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import AdminLayout from "@/components/layout/AdminLayout"
 import Modal from "@/common/modal"
 import { useRouter } from "next/router"
@@ -34,6 +36,18 @@ export default function EditCourse() {
   const { id } = router.query
   const { token, loading, logout } = useAuth()
   const [hasPromoCode, setHasPromoCode] = useState(true)
+  const [promoCodes, setPromoCodes] = useState([])
+  const [promoData, setPromoData] = useState({
+    code: "",
+    discountType: "percent",
+    discountAmount: "",
+    discountPercent: "",
+    minPurchase: "0",
+    validFrom: "",
+    validTo: "",
+    usageLimit: "",
+  })
+  const [isAddingPromo, setIsAddingPromo] = useState(false)
   const [pageError, setPageError] = useState("")
   const [isPageLoading, setIsPageLoading] = useState(true)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
@@ -97,15 +111,19 @@ export default function EditCourse() {
       setPageError("")
       try {
         const headers = { Authorization: `Bearer ${token}` }
-        const [courseRes, lessonsRes, materialsRes] = await Promise.all([
+        const [courseRes, lessonsRes, materialsRes, promoCodesRes] = await Promise.all([
           axios.get(`/api/admin/courses/${id}`, { headers }),
           axios.get(`/api/admin/lessons/${id}`, { headers }),
           axios.get(`/api/admin/course-materials?course_id=${id}`, { headers }).catch(() => ({ data: { materials: [] } })),
+          axios.get(`/api/admin/courses/${id}/promocodes`, { headers }).catch(() => ({ data: { promoCodes: [] } })),
         ])
 
         const course = courseRes.data.course
         const lessons = lessonsRes.data.lessons ?? []
         const materials = materialsRes.data?.materials ?? []
+        const promos = promoCodesRes.data?.promoCodes ?? []
+        setPromoCodes(promos)
+        setHasPromoCode(promos.length > 0)
 
         setCourseData({
           name: course?.course_name ?? "",
@@ -393,7 +411,7 @@ export default function EditCourse() {
       <Head>
         <title>Edit Course - Admin Panel</title>
       </Head>
-      <SubmitBanner status={bannerStatus} message={bannerStatus === "loading" ? "กำลังบันทึกคอร์ส… กรุณาอย่าปิดหน้านี้" : undefined} />
+      <SubmitBanner status={bannerStatus} message={bannerStatus === "loading" ? "Saving course... Please do not close this page" : undefined} />
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-medium text-slate-800 flex items-center gap-2">
           <span className="text-slate-400 cursor-pointer hover:text-slate-600" onClick={() => router.push('/admin/courses')}>&larr;</span>
@@ -439,8 +457,8 @@ export default function EditCourse() {
           </div>
         </div>
 
-        <div className="mb-10 p-8 bg-[#F6F8FE] rounded-xl">
-          <div className="flex items-center gap-3">
+        <section className="mb-10 p-8 bg-[#F6F8FE] rounded-xl">
+          <div className="flex items-center gap-3 mb-4">
             <input
               type="checkbox"
               id="promo"
@@ -450,8 +468,173 @@ export default function EditCourse() {
             />
             <Label htmlFor="promo" className="font-medium text-slate-800 text-[16px]">Promo code</Label>
           </div>
-          <p className="text-[13px] text-slate-400 mt-2">Promo code จะถูกจัดการแยกที่หน้า Admin &gt; Promo Codes</p>
-        </div>
+          {hasPromoCode ? (
+            <div>
+              <p className="text-[13px] text-slate-500 mb-4">Promo codes that a course นี้</p>
+              {promoCodes.length > 0 ? (
+                <ul className="space-y-2">
+                  {promoCodes.map((promo) => (
+                    <li key={promo.id}>
+                      <Link
+                        href={`/admin/promocodes/${promo.id}`}
+                        className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200 hover:border-[#2F5FAC] hover:bg-slate-50 transition-colors"
+                      >
+                        <span className="font-medium text-slate-800">{promo.code}</span>
+                        <span className={`text-xs px-2 py-1 rounded ${promo.status === "active" ? "bg-green-100 text-green-700" : promo.status === "expired" ? "bg-slate-100 text-slate-500" : "bg-amber-100 text-amber-700"}`}>
+                          {promo.status}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[13px] text-slate-400">There is no promo code that is associated with this course</p>
+              )}
+            </div>
+          ) : (
+            <article>
+              <p className="text-[13px] text-slate-500 mb-4">Add promo code for this course</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                <div>
+                  <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Set promo code</Label>
+                  <Input
+                    placeholder="NEWYEAR200"
+                    value={promoData.code}
+                    onChange={(e) => setPromoData((p) => ({ ...p, code: e.target.value }))}
+                    className="h-12 border-slate-300 bg-white text-[15px]"
+                  />
+                </div>
+                <div>
+                  <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Minimum purchase amount (THB)</Label>
+                  <Input
+                    placeholder="0"
+                    type="number"
+                    value={promoData.minPurchase}
+                    onChange={(e) => setPromoData((p) => ({ ...p, minPurchase: e.target.value }))}
+                    className="h-12 border-slate-300 bg-white text-[15px]"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label className="mb-4 block text-slate-700 font-medium text-[15px]">Select discount type</Label>
+                  <RadioGroup
+                    value={promoData.discountType}
+                    onValueChange={(v) => setPromoData((p) => ({ ...p, discountType: v }))}
+                    className="flex flex-col sm:flex-row gap-12"
+                  >
+                    <div className="flex items-center gap-3">
+                      <RadioGroupItem value="thb" id="course-promo-thb" className="w-5 h-5 border-slate-300 text-[#2F5FAC] data-[state=checked]:border-[#2F5FAC]" />
+                      <Label htmlFor="course-promo-thb" className="text-slate-700 font-medium text-[15px]">Discount (THB)</Label>
+                      <Input
+                        className="w-32 ml-2 h-12 border-slate-300 bg-white text-[15px]"
+                        placeholder="200"
+                        type="number"
+                        value={promoData.discountAmount}
+                        onChange={(e) => setPromoData((p) => ({ ...p, discountAmount: e.target.value }))}
+                        disabled={promoData.discountType !== "thb"}
+                      />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <RadioGroupItem value="percent" id="course-promo-percent" className="w-5 h-5 border-slate-300 text-[#2F5FAC] data-[state=checked]:border-[#2F5FAC]" />
+                      <Label htmlFor="course-promo-percent" className="text-slate-700 font-medium text-[15px]">Discount (%)</Label>
+                      <Input
+                        className="w-32 ml-2 h-12 border-slate-300 bg-white text-[15px]"
+                        placeholder="30"
+                        type="number"
+                        value={promoData.discountPercent}
+                        onChange={(e) => setPromoData((p) => ({ ...p, discountPercent: e.target.value }))}
+                        disabled={promoData.discountType !== "percent"}
+                      />
+                    </div>
+                  </RadioGroup>
+                </div>
+                <div>
+                  <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Valid From</Label>
+                  <Input
+                    type="date"
+                    value={promoData.validFrom}
+                    onChange={(e) => setPromoData((p) => ({ ...p, validFrom: e.target.value }))}
+                    className="h-12 border-slate-300 bg-white text-[15px]"
+                  />
+                </div>
+                <div>
+                  <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Valid To</Label>
+                  <Input
+                    type="date"
+                    value={promoData.validTo}
+                    onChange={(e) => setPromoData((p) => ({ ...p, validTo: e.target.value }))}
+                    className="h-12 border-slate-300 bg-white text-[15px]"
+                  />
+                </div>
+                <div>
+                  <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Usage Limit</Label>
+                  <Input
+                    type="number"
+                    placeholder="100"
+                    value={promoData.usageLimit}
+                    onChange={(e) => setPromoData((p) => ({ ...p, usageLimit: e.target.value }))}
+                    className="h-12 border-slate-300 bg-white text-[15px]"
+                  />
+                </div>
+              </div>
+              <p className="text-[12px] text-slate-400 mt-4">This discount code will be locked for this course only</p>
+              <Button
+                onClick={async () => {
+                  if (!promoData.code.trim()) return
+                  if (!promoData.validFrom || !promoData.validTo) {
+                    setPageError("Please fill in Valid From and Valid To")
+                    return
+                  }
+                  setIsAddingPromo(true)
+                  setPageError("")
+                  try {
+                    await axios.post(
+                      "/api/admin/promocodes/create",
+                      {
+                        code: promoData.code,
+                        name: promoData.code,
+                        discount_type: promoData.discountType === "thb" ? "fixed" : "percent",
+                        discount_value:
+                          promoData.discountType === "thb"
+                            ? Number(promoData.discountAmount)
+                            : Number(promoData.discountPercent),
+                        min_price: Number(promoData.minPurchase) || 0,
+                        max_uses: promoData.usageLimit ? Number(promoData.usageLimit) : null,
+                        valid_from: promoData.validFrom,
+                        valid_until: promoData.validTo,
+                        course_ids: [Number(id)],
+                      },
+                      { headers: { Authorization: `Bearer ${token}` } }
+                    )
+                    const promocodesRes = await axios.get(`/api/admin/courses/${id}/promocodes`, {
+                      headers: { Authorization: `Bearer ${token}` },
+                    })
+                    setPromoCodes(promocodesRes.data?.promoCodes ?? [])
+                    setHasPromoCode(true)
+                    setPromoData({
+                      code: "",
+                      discountType: "percent",
+                      discountAmount: "",
+                      discountPercent: "",
+                      minPurchase: "0",
+                      validFrom: "",
+                      validTo: "",
+                      usageLimit: "",
+                    })
+                  } catch (err) {
+                    console.error("Create promo code failed:", err)
+                    setPageError(err.response?.data?.message || "Failed to create promo code")
+                  } finally {
+                    setIsAddingPromo(false)
+                  }
+                }}
+                disabled={isAddingPromo}
+                className="mt-4 bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-11 px-6 rounded-md font-medium text-[15px] disabled:opacity-50"
+              >
+                {isAddingPromo ? "Adding..." : "Add Promo Code"}
+              </Button>
+            </article>
+          )}
+        </section>
 
         <div className="space-y-8">
           <div>

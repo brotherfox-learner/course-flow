@@ -272,7 +272,6 @@ function AssignmentCard({ assignment, token, onRefresh }) {
               const gr = gradingResults?.[q.id]
               const isGraded = !!gr
               const isSubmitted = (statusKey === "submitted" || statusKey === "graded") && !gradingResults
-
               return (
                 <div key={q.id}>
                   {/* Question text */}
@@ -296,12 +295,16 @@ function AssignmentCard({ assignment, token, onRefresh }) {
                             ? "bg-green-50 border-green-200"
                             : "bg-gray-50 border-gray-200"
                           }`}>
-                          <p className={`body4 font-medium mb-0.5 ${gr.correct_text_answer ? "text-green-700" : "text-gray-500"
+                          <p className={`body4 font-medium mb-0.5 ${gr.correct_text_answer ? "text-green-800" : "text-gray-500"
                             }`}>
                             {gr.correct_text_answer ? "Model answer:" : "No model answer set"}
                           </p>
                           {gr.correct_text_answer && (
-                            <p className="body3 text-green-800">{gr.correct_text_answer}</p>
+                            <div className="body3 text-green-800 [&>span]:block">
+                              {gr.correct_text_answer.split(/\r?\n/).map((line, i) => (
+                                <span key={i}>{line || "\u00A0"}</span>
+                              ))}
+                            </div>
                           )}
                         </div>
                       )}

@@ -1014,9 +1014,11 @@ function QuestionView({
                     : "No model answer set"}
                 </p>
                 {gr.correct_text_answer && (
-                  <p className="body2 text-green-800">
-                    {gr.correct_text_answer}
-                  </p>
+                  <div className="body2 text-green-800 [&>span]:block">
+                    {gr.correct_text_answer.split(/\r?\n/).map((line, i) => (
+                      <span key={i}>{line || "\u00A0"}</span>
+                    ))}
+                  </div>
                 )}
               </div>
               <div className="flex items-center justify-between pt-1">
