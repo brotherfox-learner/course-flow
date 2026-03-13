@@ -118,6 +118,7 @@ export default function CourseContent({
   const textContentContainerRef = useRef(null);
   const hasMarkedCompleteRef = useRef(false);
   const videoMarkCompleteSentRef = useRef(false);
+  const contentCompletedRef = useRef(false);
   const videoRef = useRef(null);
   const videoRestoredRef = useRef(false);
   const videoSaveTimeLastRef = useRef(0);
@@ -150,7 +151,15 @@ export default function CourseContent({
     hasMarkedCompleteRef.current = false;
     videoMarkCompleteSentRef.current = false;
     videoRestoredRef.current = false;
+    contentCompletedRef.current = false;
   }, [subLessonId]);
+
+  const questions = assignmentData?.questions || [];
+  const submissionStatus = assignmentData?.submission?.status || "pending";
+  const submissionDisplay = getStatusDisplay(submissionStatus);
+  const hasAssignment = assignmentData?.hasAssignment && questions.length > 0;
+  const isSubmittedOrGraded =
+    submissionStatus === "submitted" || submissionStatus === "graded";
 
   useEffect(() => {
     if (!isTextType || !subLessonId || !onMarkComplete) return;
@@ -160,15 +169,25 @@ export default function CourseContent({
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        if (!entry?.isIntersecting || hasMarkedCompleteRef.current) return;
-        hasMarkedCompleteRef.current = true;
-        onMarkComplete(subLessonId);
+        if (!entry?.isIntersecting || contentCompletedRef.current) return;
+        contentCompletedRef.current = true;
+        if (!hasAssignment) {
+          if (!hasMarkedCompleteRef.current && onMarkComplete) {
+            hasMarkedCompleteRef.current = true;
+            onMarkComplete(subLessonId);
+          }
+          return;
+        }
+        if (isSubmittedOrGraded && !hasMarkedCompleteRef.current && onMarkComplete) {
+          hasMarkedCompleteRef.current = true;
+          onMarkComplete(subLessonId);
+        }
       },
       { threshold: 0, root, rootMargin: "0px" }
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [isTextType, subLessonId, onMarkComplete]);
+  }, [isTextType, subLessonId, onMarkComplete, hasAssignment, isSubmittedOrGraded]);
 
   useEffect(() => {
     if (!subLessonId || !token) {
@@ -382,7 +401,6 @@ export default function CourseContent({
     });
   };
 
-  const questions = assignmentData?.questions || [];
   const currentQuestion = questions[currentQuestionIndex] || null;
 
   const isCurrentAnswered = (() => {
@@ -446,6 +464,18 @@ export default function CourseContent({
           is_correct: data.submissionStatus === "submitted",
         },
       }));
+
+      if (
+        (data.submissionStatus === "submitted" ||
+          data.submissionStatus === "graded") &&
+        subLessonId &&
+        onMarkComplete &&
+        !hasMarkedCompleteRef.current &&
+        contentCompletedRef.current
+      ) {
+        hasMarkedCompleteRef.current = true;
+        onMarkComplete(subLessonId);
+      }
 
       if (data.gradingResult.is_correct) {
         if (autoAdvanceTimerRef.current)
@@ -514,10 +544,6 @@ export default function CourseContent({
     }
   };
 
-  const handleMarkCompleteClick = () => {
-    if (subLessonId && onMarkComplete) onMarkComplete(subLessonId);
-  };
-
   const handlePrevQuestion = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
@@ -533,11 +559,7 @@ export default function CourseContent({
     }
   };
 
-  const submissionStatus = assignmentData?.submission?.status || "pending";
-  const sc = getStatusDisplay(submissionStatus);
-  const hasAssignment = assignmentData?.hasAssignment && questions.length > 0;
-  const isSubmittedOrGraded =
-    submissionStatus === "submitted" || submissionStatus === "graded";
+  const sc = submissionDisplay;
 
   return (
     <article
@@ -548,7 +570,7 @@ export default function CourseContent({
         <h1 className="headline3 lg:headline2 text-black w-full">{title}</h1>
       </header>
 
-      {isVideoType && (
+          {isVideoType && (
         <section
           ref={videoSectionRef}
           className="w-full flex-none order-1 self-stretch"
@@ -615,12 +637,24 @@ export default function CourseContent({
                     }
                   }
 
-                  if (!subLessonId || !onMarkComplete || videoMarkCompleteSentRef.current) return;
+                  if (!subLessonId || !onMarkComplete || videoMarkCompleteSentRef.current)
+                    return;
                   if (!duration || duration <= 0) return;
                   const percent = (currentTime / duration) * 100;
                   if (percent >= 90) {
-                    videoMarkCompleteSentRef.current = true;
-                    onMarkComplete(subLessonId);
+                    if (contentCompletedRef.current) return;
+                    contentCompletedRef.current = true;
+                    if (!hasAssignment) {
+                      videoMarkCompleteSentRef.current = true;
+                      if (!hasMarkedCompleteRef.current) {
+                        hasMarkedCompleteRef.current = true;
+                        onMarkComplete(subLessonId);
+                      }
+                    } else if (isSubmittedOrGraded && !hasMarkedCompleteRef.current) {
+                      videoMarkCompleteSentRef.current = true;
+                      hasMarkedCompleteRef.current = true;
+                      onMarkComplete(subLessonId);
+                    }
                   }
                 }}
                 onEnded={async (e) => {
@@ -645,9 +679,22 @@ export default function CourseContent({
                     }
                   }
 
-                  if (!subLessonId || !onMarkComplete || videoMarkCompleteSentRef.current) return;
-                  videoMarkCompleteSentRef.current = true;
-                  onMarkComplete(subLessonId);
+                  if (!subLessonId || !onMarkComplete || videoMarkCompleteSentRef.current)
+                    return;
+                  if (!contentCompletedRef.current) {
+                    contentCompletedRef.current = true;
+                  }
+                  if (!hasAssignment) {
+                    videoMarkCompleteSentRef.current = true;
+                    if (!hasMarkedCompleteRef.current) {
+                      hasMarkedCompleteRef.current = true;
+                      onMarkComplete(subLessonId);
+                    }
+                  } else if (isSubmittedOrGraded && !hasMarkedCompleteRef.current) {
+                    videoMarkCompleteSentRef.current = true;
+                    hasMarkedCompleteRef.current = true;
+                    onMarkComplete(subLessonId);
+                  }
                 }}
                 onPause={async (e) => {
                   const el = e.currentTarget;
@@ -725,20 +772,7 @@ export default function CourseContent({
                 </div>
               </div>
             </div>
-          )}
-          {!showPlaceholder && subLessonId && onMarkComplete && (
-            <div className="w-full flex justify-start mt-4">
-              <Button
-                type="button"
-                variant="primary"
-                size="lg"
-                onClick={handleMarkCompleteClick}
-                className="body2 rounded-xl"
-              >
-                Mark as complete
-              </Button>
-            </div>
-          )}
+        )}
           {isVideoType && content && (
             <section
               className="w-full flex-none order-1 self-stretch mt-6 rounded-[8px] border border-gray-300 bg-white p-4 max-h-[320px] overflow-y-auto"

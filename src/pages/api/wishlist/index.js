@@ -82,10 +82,20 @@ export default async function handler(req, res) {
     const courseIdInt = Number(courseId);
 
     try {
+      // Do not overwrite active/completed enrollment: purchased courses must stay in My Courses
+      const existing = await pool.query(
+        `SELECT status FROM enrollments WHERE user_id = $1 AND course_id = $2`,
+        [userId, courseIdInt]
+      );
+      const currentStatus = existing.rows[0]?.status;
+      if (currentStatus === "active" || currentStatus === "completed") {
+        return res.status(200).json({ success: true, alreadyEnrolled: true });
+      }
+
       await pool.query(
-        `INSERT INTO enrollments (user_id, course_id, status, enrolled_at)
-         VALUES ($1, $2, 'wishlist', NOW())
-         ON CONFLICT (user_id, course_id) DO UPDATE SET status = 'wishlist', enrolled_at = NOW()`,
+        `INSERT INTO enrollments (user_id, course_id, status, enrolled_at, updated_at)
+         VALUES ($1, $2, 'wishlist', NOW(), NOW())
+         ON CONFLICT (user_id, course_id) DO UPDATE SET status = 'wishlist', enrolled_at = NOW(), updated_at = NOW()`,
         [userId, courseIdInt]
       );
       return res.status(200).json({ success: true });

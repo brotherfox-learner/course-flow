@@ -80,6 +80,16 @@ export default async function handler(req, res) {
           ? Math.round((completedSubLessonIds.length / totalSubLessons) * 100)
           : 0;
 
+      // Sync enrollment: if progress is 100% but enrollment still 'active', set to 'completed'
+      if (totalSubLessons > 0 && progressPercent >= 100) {
+        await pool.query(
+          `UPDATE enrollments
+           SET status = 'completed', completed_at = NOW(), updated_at = NOW()
+           WHERE user_id = $1 AND course_id = $2 AND status = 'active'`,
+          [userId, courseId]
+        );
+      }
+
       return res.status(200).json({
         completedSubLessonIds,
         inProgressSubLessonIds,
@@ -118,6 +128,33 @@ export default async function handler(req, res) {
            DO UPDATE SET status = 'completed', updated_at = NOW()`,
           [userId, sub_lesson_id]
         );
+
+        // If all sub-lessons are completed, set enrollment to 'completed'
+        const totalResult = await pool.query(
+          `SELECT COUNT(sl.id)::int AS total
+           FROM lessons l
+           JOIN sub_lessons sl ON sl.lesson_id = l.id
+           WHERE l.course_id = $1`,
+          [courseId]
+        );
+        const totalSubLessons = totalResult.rows[0]?.total ?? 0;
+        const completedResult = await pool.query(
+          `SELECT COUNT(slp.sub_lesson_id)::int AS completed
+           FROM sub_lesson_progress slp
+           JOIN sub_lessons sl ON sl.id = slp.sub_lesson_id
+           JOIN lessons l ON l.id = sl.lesson_id
+           WHERE slp.user_id = $1 AND slp.status = 'completed' AND l.course_id = $2`,
+          [userId, courseId]
+        );
+        const completedCount = completedResult.rows[0]?.completed ?? 0;
+        if (totalSubLessons > 0 && completedCount >= totalSubLessons) {
+          await pool.query(
+            `UPDATE enrollments
+             SET status = 'completed', completed_at = NOW(), updated_at = NOW()
+             WHERE user_id = $1 AND course_id = $2 AND status = 'active'`,
+            [userId, courseId]
+          );
+        }
       } else {
         await pool.query(
           `INSERT INTO sub_lesson_progress (user_id, sub_lesson_id, status)
