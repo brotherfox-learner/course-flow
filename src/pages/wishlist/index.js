@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/features/wishlist/hooks";
 import MyWishlist from "@/features/wishlist/components/MyWishlist";
 
-const WISHLIST_PAGE_SIZE = 6;
+const WISHLIST_PAGE_SIZE = 9;
 
 export default function WishlistPage() {
   const router = useRouter();

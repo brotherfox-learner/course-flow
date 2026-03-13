@@ -74,10 +74,11 @@ export default async function handler(req, res) {
        ${whereClause}
        GROUP BY c.id
        ORDER BY c.created_at DESC
+       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+
     `
-    // LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-    // queryParams.push(parsedLimit, offset)
-    // const result = await pool.query(coursesQuery, queryParams)
+    queryParams.push(parsedLimit, offset)
+    const result = await pool.query(coursesQuery, queryParams)
 
     return res.status(200).json({ 
       courses: result.rows,

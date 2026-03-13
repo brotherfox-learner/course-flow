@@ -500,7 +500,8 @@ export default function EditCourse() {
           </div>
           {hasPromoCode ? (
             <div>
-              <p className="text-[13px] text-slate-500 mb-4">Promo codes that a course นี้</p>
+              {promoCodes.length > 0 && <p className="text-[13px] text-slate-500 mb-4">Promo codes that are associated with this course.</p>}
+              
               {promoCodes.length > 0 ? (
                 <ul className="space-y-2">
                   {promoCodes.map((promo) => (
