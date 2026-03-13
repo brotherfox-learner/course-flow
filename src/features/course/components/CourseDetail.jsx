@@ -159,7 +159,7 @@ export default function CourseDetail() {
 const wishlistButtonDisabledMobile = wishlistAdding || wishlistRemoving || enrollmentLoading || hasEnrollment;
 
   const primaryButtonLabel = hasCompletedEnrollment
-    ? "Review This Course"
+    ? "You have completed this course"
     : hasActiveEnrollment
       ? "Start Learning"
       : "Subscribe This Course";

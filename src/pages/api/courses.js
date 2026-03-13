@@ -7,10 +7,11 @@ export default async function handler(req, res) {
 
   try {
     const result = await pool.query(
-      `SELECT c.*, COUNT(l.id)::int AS lesson_count
+      `SELECT c.*, COUNT(l.id)::int AS lesson_count, c.updated_at
        FROM courses c
        LEFT JOIN lessons l ON l.course_id = c.id
-       GROUP BY c.id`
+       GROUP BY c.id
+       ORDER BY c.updated_at DESC`
     );
     res.status(200).json({ courses: result.rows });
   } catch (error) {
