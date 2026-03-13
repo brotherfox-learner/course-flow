@@ -120,7 +120,7 @@ export default function CourseList() {
       <Head>
         <title>Course - Admin Panel</title>
       </Head>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-slate-200">
         <h1 className="text-2xl font-medium text-slate-800">Course</h1>
         <div className="flex items-center gap-4">
           <div className="relative w-[320px]">
@@ -140,6 +140,7 @@ export default function CourseList() {
         </div>
       </div>
 
+      <div className="m-8 mb-16">
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <Table>
           <TableHeader className="bg-[#E2E8F0] h-12">
@@ -231,7 +232,7 @@ export default function CourseList() {
 
       {/* Pagination */}
       {!isLoading && courses.length > 0 && (
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6 flex justify-center cursor-pointer">
           <Pagination
             currentPage={currentPage}
             totalItems={totalItems}
@@ -240,6 +241,7 @@ export default function CourseList() {
           />
         </div>
       )}
+      </div>
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">

@@ -108,7 +108,7 @@ export default function AssignmentList() {
       <Head>
         <title>Assignments - Admin Panel</title>
       </Head>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-slate-200">
         <h1 className="text-2xl font-medium text-slate-800">Assignments</h1>
         <div className="flex items-center gap-4">
           <div className="relative w-[320px]">
@@ -128,6 +128,7 @@ export default function AssignmentList() {
         </div>
       </div>
 
+      <div className="m-8 mb-16">
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <Table>
           <TableHeader className="bg-[#E2E8F0] h-12">
@@ -203,7 +204,7 @@ export default function AssignmentList() {
       </div>
 
       {!isLoading && total > 0 && (
-        <div className="flex justify-center mt-8 mb-15">
+        <div className="flex justify-center mt-8 cursor-pointer">
           {total > PAGE_SIZE ? (
             <Pagination
               currentPage={currentPage}
@@ -218,6 +219,7 @@ export default function AssignmentList() {
           )}
         </div>
       )}
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>

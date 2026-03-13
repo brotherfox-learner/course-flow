@@ -122,8 +122,8 @@ export default function PromoCodeList() {
 
   return (
     <AdminLayout>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-semibold">Promo code</h1>
+      <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-slate-200">
+        <h1 className="text-2xl font-medium text-slate-800">Promo code</h1>
         <div className="flex items-center gap-4">
           <div className="relative w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -142,6 +142,7 @@ export default function PromoCodeList() {
         </div>
       </div>
 
+      <div className="m-8 mb-16">
       {errorMessage && (
         <div className="bg-orange-100/20 border border-orange-500 rounded-lg px-4 py-3 mb-6">
           <p className="text-orange-500 text-sm">{errorMessage}</p>
@@ -216,6 +217,7 @@ export default function PromoCodeList() {
             )}
           </TableBody>
         </Table>
+      </div>
       </div>
 
       <Modal
