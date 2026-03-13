@@ -43,7 +43,7 @@ export default async function handler(req, res) {
        FROM courses c
        LEFT JOIN lessons l ON l.course_id = c.id
        GROUP BY c.id
-       ORDER BY c.created_at DESC`
+       ORDER BY c.updated_at DESC`
     )
 
     return res.status(200).json({ courses: result.rows })

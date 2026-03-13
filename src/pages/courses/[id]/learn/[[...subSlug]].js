@@ -21,15 +21,19 @@ function getFlatSubLessons(lessons) {
 /** สร้าง slug สำหรับ sub-lesson โดยอิงจาก id + name เพื่อให้ unique และอ่านง่าย */
 function slugifySubLesson(sub) {
   if (!sub) return null;
+  const idPart = sub.id != null ? String(sub.id) : null;
   const namePart = typeof sub.name === "string" ? sub.name : "";
   const base = `${namePart}`.trim();
-  if (!base) return null;
-  return base
+  const nameSlug = base
     .toLowerCase()
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9-]/g, "")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
+  if (!idPart) {
+    return nameSlug || null;
+  }
+  return nameSlug ? `${idPart}-${nameSlug}` : idPart;
 }
 
 /** หน้ารายวิชาเรียน — เลือกหัวข้อ, บันทึกความคืบหน้า (จบแล้ว/กำลังเรียน) + sync URL slug ตาม sub-lesson */
@@ -283,7 +287,14 @@ export default function CourseLearnPage() {
 
     const findBySlug = (slug) => {
       if (!slug) return null;
-      const index = flatSubLessons.findIndex((item) => slugifySubLesson(item.sub) === slug);
+      // รองรับรูปแบบใหม่ (id-prefix) และรูปแบบเก่า (จากชื่ออย่างเดียว)
+      const [idPrefix] = slug.split("-");
+      let index = flatSubLessons.findIndex(
+        (item) => idPrefix && String(item.sub?.id) === String(idPrefix)
+      );
+      if (index === -1) {
+        index = flatSubLessons.findIndex((item) => slugifySubLesson(item.sub) === slug);
+      }
       if (index === -1) return null;
       const item = flatSubLessons[index];
       return { ...item, index };
