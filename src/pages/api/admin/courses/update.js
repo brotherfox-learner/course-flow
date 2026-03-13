@@ -80,6 +80,9 @@ export default async function handler(req, res) {
       return res.status(404).json({ message: "Course not found" })
     }
 
+    // Generate updated slug from course name
+    const slug = course_name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
+
     // Update course
     const result = await pool.query(
       `UPDATE courses SET 
@@ -90,9 +93,10 @@ export default async function handler(req, res) {
         course_detail = $5,
         cover_img_url = $6,
         vdo_trailer_url = $7,
+        slug = $8,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $8
-      RETURNING id, course_name, price, total_learning_time, course_summary, course_detail, cover_img_url, vdo_trailer_url`,
+      WHERE id = $9
+      RETURNING id, course_name, slug, price, total_learning_time, course_summary, course_detail, cover_img_url, vdo_trailer_url`,
       [
         course_name.trim(),
         parsedPrice,
@@ -101,6 +105,7 @@ export default async function handler(req, res) {
         course_detail.trim(),
         cover_img_url.trim(),
         vdo_trailer_url.trim(),
+        slug,
         parsedCourseId
       ]
     )

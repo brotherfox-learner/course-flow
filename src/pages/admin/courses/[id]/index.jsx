@@ -11,7 +11,6 @@ import { useRouter } from "next/router"
 import { useAuth } from "@/context/AuthContext"
 import SortableList from "@/features/admin-coureses/component/SortableList"
 import AttachFileUpload from "@/features/admin-coureses/component/AttachFileUpload"
-import useDeleteCourse from "@/features/admin-coureses/hook/useDeleteCourse"
 import VideoUpload from "@/components/upload/VideoUpload"
 import ImageUpload from "@/components/upload/ImageUpload"
 import SubmitBanner from "@/common/SubmitBanner"
@@ -39,7 +38,38 @@ export default function EditCourse() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [bannerStatus, setBannerStatus] = useState("idle")
-  const { deleteCourse, loading: deleteLoading } = useDeleteCourse(token)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleConfirmDelete = async () => {
+    setIsDeleteOpen(false)
+    setIsDeleting(true)
+    setBannerStatus("loading")
+    try {
+      const res = await fetch("/api/admin/courses/delete", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ course_id: id }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || "Delete failed")
+      setBannerStatus("success")
+      setTimeout(() => router.push("/admin/courses"), 600)
+    } catch (err) {
+      console.error("Delete course error:", err)
+      if (err.message === "Invalid token" || err.message === "Forbidden") {
+        await logout()
+        return
+      }
+      setPageError(err.message || "Failed to delete course")
+      setBannerStatus("error")
+      setTimeout(() => setBannerStatus("idle"), 3000)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   const [isAddSubLessonOpen, setIsAddSubLessonOpen] = useState(false)
   const [activeLessonId, setActiveLessonId] = useState(null)
@@ -593,7 +623,7 @@ export default function EditCourse() {
             size="ghost"
             className="text-red-500 hover:text-red-500 active:text-red-500"
             onClick={() => setIsDeleteOpen(true)}
-            disabled={deleteLoading}
+            disabled={isDeleting || isSaving}
           >
             Delete Course
           </Button>
@@ -604,8 +634,8 @@ export default function EditCourse() {
         onClose={() => setIsDeleteOpen(false)}
         message="Are you sure you want to delete this course?"
         primaryLabel="No, keep it"
-        secondaryLabel={deleteLoading ? "Deleting..." : "Yes, I want to delete this course"}
-        onSecondaryClick={() => deleteCourse(id)}
+        secondaryLabel={"Yes, I want to delete this course"}
+        onSecondaryClick={handleConfirmDelete}
       />
 
       {/* Add Sub-Lesson Dialog */}

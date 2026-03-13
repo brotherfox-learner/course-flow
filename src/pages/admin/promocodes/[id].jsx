@@ -135,7 +135,7 @@ export default function EditPromoCode() {
         const headers = { Authorization: `Bearer ${token}` }
         const [promoRes, coursesRes] = await Promise.all([
           axios.get(`/api/admin/promocodes/${id}`, { headers }),
-          axios.get("/api/admin/courses", { headers }),
+          axios.get("/api/admin/courses", { headers, params: { limit: 999 } }),
         ])
 
         const p = promoRes.data.promoCode

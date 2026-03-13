@@ -7,7 +7,7 @@ const supabase = createClient(
 )
 
 export default async function handler(req, res) {
-  if (req.method !== "GET" && req.method !== "DELETE") {
+  if (req.method !== "GET") {
     return res.status(405).json({ message: "Method not allowed" })
   }
 
@@ -63,132 +63,6 @@ export default async function handler(req, res) {
     } catch (error) {
       console.error("Fetch admin course error:", error)
       return res.status(500).json({ message: "Internal server error" })
-    }
-  }
-
-  if (req.method === "DELETE") {
-    const client = await pool.connect()
-    try {
-      await client.query("BEGIN")
-
-      // Delete assignment chain (submission_selected_options → submission_answers → assignment_submissions → question_options → assignment_questions → assignments)
-      await client.query(
-        `DELETE FROM submission_selected_options WHERE submission_answer_id IN (
-          SELECT sa.id FROM submission_answers sa
-          JOIN assignment_submissions asub ON sa.submission_id = asub.id
-          JOIN assignments a ON asub.assignment_id = a.id
-          JOIN sub_lessons sl ON a.sub_lesson_id = sl.id
-          JOIN lessons l ON sl.lesson_id = l.id
-          WHERE l.course_id = $1
-        )`, [id]
-      )
-      await client.query(
-        `DELETE FROM submission_answers WHERE submission_id IN (
-          SELECT asub.id FROM assignment_submissions asub
-          JOIN assignments a ON asub.assignment_id = a.id
-          JOIN sub_lessons sl ON a.sub_lesson_id = sl.id
-          JOIN lessons l ON sl.lesson_id = l.id
-          WHERE l.course_id = $1
-        )`, [id]
-      )
-      await client.query(
-        `DELETE FROM assignment_submissions WHERE assignment_id IN (
-          SELECT a.id FROM assignments a
-          JOIN sub_lessons sl ON a.sub_lesson_id = sl.id
-          JOIN lessons l ON sl.lesson_id = l.id
-          WHERE l.course_id = $1
-        )`, [id]
-      )
-      await client.query(
-        `DELETE FROM question_options WHERE question_id IN (
-          SELECT aq.id FROM assignment_questions aq
-          JOIN assignments a ON aq.assignment_id = a.id
-          JOIN sub_lessons sl ON a.sub_lesson_id = sl.id
-          JOIN lessons l ON sl.lesson_id = l.id
-          WHERE l.course_id = $1
-        )`, [id]
-      )
-      await client.query(
-        `DELETE FROM assignment_questions WHERE assignment_id IN (
-          SELECT a.id FROM assignments a
-          JOIN sub_lessons sl ON a.sub_lesson_id = sl.id
-          JOIN lessons l ON sl.lesson_id = l.id
-          WHERE l.course_id = $1
-        )`, [id]
-      )
-      await client.query(
-        `DELETE FROM assignments WHERE sub_lesson_id IN (
-          SELECT sl.id FROM sub_lessons sl
-          JOIN lessons l ON sl.lesson_id = l.id
-          WHERE l.course_id = $1
-        )`, [id]
-      )
-
-      // Delete sub_lesson_progress
-      await client.query(
-        `DELETE FROM sub_lesson_progress WHERE sub_lesson_id IN (
-          SELECT sl.id FROM sub_lessons sl
-          JOIN lessons l ON sl.lesson_id = l.id
-          WHERE l.course_id = $1
-        )`, [id]
-      )
-
-      // Delete sub-lessons
-      await client.query(
-        `DELETE FROM sub_lessons WHERE lesson_id IN (
-          SELECT id FROM lessons WHERE course_id = $1
-        )`, [id]
-      )
-
-      // Delete lesson_materials
-      await client.query(
-        `DELETE FROM lesson_materials WHERE lesson_id IN (
-          SELECT id FROM lessons WHERE course_id = $1
-        )`, [id]
-      )
-
-      // Delete lessons
-      await client.query(`DELETE FROM lessons WHERE course_id = $1`, [id])
-
-      // Delete course_materials
-      await client.query(`DELETE FROM course_materials WHERE course_id = $1`, [id])
-
-      // Delete promo_code_courses
-      await client.query(`DELETE FROM promo_code_courses WHERE course_id = $1`, [id])
-
-      // Delete payments (must come before enrollments due to FK)
-      await client.query(`DELETE FROM payments WHERE course_id = $1`, [id])
-
-      // Delete promo_code_usages linked to enrollments of this course
-      await client.query(
-        `DELETE FROM promo_code_usages WHERE enrollment_id IN (
-          SELECT id FROM enrollments WHERE course_id = $1
-        )`, [id]
-      )
-
-      // Delete enrollments
-      await client.query(`DELETE FROM enrollments WHERE course_id = $1`, [id])
-
-      // Delete course
-      const result = await client.query(`DELETE FROM courses WHERE id = $1`, [id])
-
-      if (result.rowCount === 0) {
-        await client.query("ROLLBACK")
-        return res.status(404).json({ message: "Course not found" })
-      }
-
-      await client.query("COMMIT")
-
-      return res.status(200).json({ 
-        success: true, 
-        message: "Course deleted successfully" 
-      })
-    } catch (error) {
-      await client.query("ROLLBACK")
-      console.error("Delete course error:", error)
-      return res.status(500).json({ message: "Internal server error" })
-    } finally {
-      client.release()
     }
   }
 }
