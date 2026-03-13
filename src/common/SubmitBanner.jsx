@@ -16,19 +16,19 @@ export default function SubmitBanner({ status = "idle", message }) {
     loading: {
       bg: "bg-[#2F5FAC]",
       icon: <Loader2 className="w-4 h-4 animate-spin text-white" />,
-      text: message || "กำลังบันทึก… กรุณาอย่าปิดหน้านี้",
+      text: message || "Saving... Please do not close this page",
       textColor: "text-white",
     },
     success: {
       bg: "bg-emerald-500",
       icon: <CheckCircle2 className="w-4 h-4 text-white" />,
-      text: message || "บันทึกสำเร็จ!",
+      text: message || "Saved!",
       textColor: "text-white",
     },
     error: {
       bg: "bg-red-500",
       icon: <AlertCircle className="w-4 h-4 text-white" />,
-      text: message || "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง",
+      text: message || "Something went wrong. Please try again",
       textColor: "text-white",
     },
   }

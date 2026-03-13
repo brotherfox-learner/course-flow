@@ -20,7 +20,7 @@ import {
 import { Search, Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
 import AdminLayout from "@/components/layout/AdminLayout"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import axios from "axios"
 import { useAuth } from "@/context/AuthContext"
 import { format } from "date-fns"
@@ -32,7 +32,6 @@ export default function AssignmentList() {
   const [assignments, setAssignments] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [inputValue, setInputValue] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [deleteId, setDeleteId] = useState(null)
@@ -59,20 +58,18 @@ export default function AssignmentList() {
     }
   }
 
+  const hasFetchedInitial = useRef(false)
+
   useEffect(() => {
-    if (token) {
+    if (!token) return
+    if (!hasFetchedInitial.current) {
+      hasFetchedInitial.current = true
       fetchAssignments(1, searchTerm)
+    } else {
+      const timer = setTimeout(() => fetchAssignments(1, searchTerm), 400)
+      return () => clearTimeout(timer)
     }
-  }, [token])
-
-  const handleSearch = () => {
-    setSearchTerm(inputValue)
-    fetchAssignments(1, inputValue)
-  }
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") handleSearch()
-  }
+  }, [token, searchTerm])
 
   const handlePageChange = (page) => {
     fetchAssignments(page, searchTerm)
@@ -115,15 +112,11 @@ export default function AssignmentList() {
         <h1 className="text-2xl font-medium text-slate-800">Assignments</h1>
         <div className="flex items-center gap-4">
           <div className="relative w-[320px]">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 cursor-pointer"
-              onClick={handleSearch}
-            />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" aria-hidden />
             <Input
               placeholder="Search..."
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 h-11 border-slate-300 rounded-md shadow-sm text-[15px]"
             />
           </div>
