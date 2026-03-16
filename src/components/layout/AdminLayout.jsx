@@ -6,7 +6,7 @@ export default function AdminLayout({ children, className }) {
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-white">
         <AdminSidebar />
-        <main className={`flex-1 p-0 ${className}`}>
+        <main className={`flex-1 p-0 bg-gray-100 ${className}`}>
           {children}
         </main>
       </div>

@@ -133,7 +133,7 @@ export default function CourseList() {
             />
           </div>
           <Link href="/admin/courses/add">
-            <Button className="h-11 px-6 bg-[#2F5FAC] hover:bg-[#254A8A] text-white rounded-md font-medium shadow-sm text-[15px]">
+            <Button variant="primary" size="admin">
               + Add Course
             </Button>
           </Link>
@@ -143,16 +143,16 @@ export default function CourseList() {
       <div className="m-8 mb-16">
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <Table>
-          <TableHeader className="bg-[#E2E8F0] h-12">
-            <TableRow className="hover:bg-[#E2E8F0] border-b-0">
-              <TableHead className="w-16 text-center text-slate-600 font-medium"> </TableHead>
-              <TableHead className="text-slate-600 font-medium">Image</TableHead>
-              <TableHead className="text-slate-600 font-medium">Course name</TableHead>
-              <TableHead className="text-slate-600 font-medium">Lesson</TableHead>
-              <TableHead className="text-slate-600 font-medium">Price</TableHead>
-              <TableHead className="text-slate-600 font-medium">Created date</TableHead>
-              <TableHead className="text-slate-600 font-medium">Updated date</TableHead>
-              <TableHead className="text-center text-slate-600 font-medium">Action</TableHead>
+          <TableHeader className="bg-gray-300 h-[41px]">
+            <TableRow className="hover:bg-gray-300 border-b-0">
+              <TableHead className="w-12 text-center body3 text-gray-800 font-normal"> </TableHead>
+              <TableHead className="w-24 body3 text-gray-800 font-normal">Image</TableHead>
+              <TableHead className="body3 text-gray-800 font-normal">Course name</TableHead>
+              <TableHead className="body3 text-gray-800 font-normal">Lesson</TableHead>
+              <TableHead className="body3 text-gray-800 font-normal">Price</TableHead>
+              <TableHead className="body3 text-gray-800 font-normal">Created date</TableHead>
+              <TableHead className="body3 text-gray-800 font-normal">Updated date</TableHead>
+              <TableHead className="text-center body3 text-gray-800 font-normal">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -170,10 +170,10 @@ export default function CourseList() {
               </TableRow>
             ) : (
               courses.map((course, index) => (
-                <TableRow key={course.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors h-20">
-                  <TableCell className="text-center font-normal text-slate-600">{(currentPage - 1) * pageSize + index + 1}</TableCell>
+                <TableRow key={course.id} className="border-b border-gray-200 hover:bg-gray-100 transition-colors h-[88px]">
+                  <TableCell className="text-center body2 font-normal text-black">{(currentPage - 1) * pageSize + index + 1}</TableCell>
                   <TableCell>
-                    <div className="w-[100px] h-[70px] bg-slate-200 rounded object-cover overflow-hidden">
+                    <div className="w-16 h-[47px] bg-gray-200 rounded object-cover overflow-hidden">
                       {course.image ? (
                         <img src={course.image} alt={course.name} className="w-full h-full object-cover" />
                       ) : (
@@ -189,36 +189,36 @@ export default function CourseList() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium text-slate-800 text-[15px]">
+                  <TableCell className="body2 font-normal text-black">
                     <a
                       href={`/courses/${course.slug || course.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-[#2F5FAC] hover:underline cursor-pointer"
+                      className="hover:text-blue-500 hover:underline cursor-pointer"
                     >
                       {course.name}
                     </a>
                   </TableCell>
-                  <TableCell className="text-slate-600 text-[15px]">{course.lessons || 0} Lessons</TableCell>
-                  <TableCell className="text-slate-600 text-[15px]">
+                  <TableCell className="body2 font-normal text-black">{course.lessons || 0} Lessons</TableCell>
+                  <TableCell className="body2 font-normal text-black">
                     {Number(course.price).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </TableCell>
-                  <TableCell className="text-slate-500 text-[14px]">{formatDate(course.created_at)}</TableCell>
-                  <TableCell className="text-slate-500 text-[14px]">{formatDate(course.updated_at)}</TableCell>
+                  <TableCell className="body2 font-normal text-black">{formatDate(course.created_at)}</TableCell>
+                  <TableCell className="body2 font-normal text-black">{formatDate(course.updated_at)}</TableCell>
                   <TableCell>
                     <div className="flex justify-center gap-4">
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-9 w-9 text-[#8BA4D4] hover:text-red-500 hover:bg-red-50 rounded-full"
+                        className="h-9 w-9 text-blue-300 hover:text-red-500 hover:bg-red-50 rounded-full"
                         onClick={() => handleDeleteClick(course)}
                         disabled={isDeleting}
                       >
-                        <Trash2 className="h-[20px] w-[20px]" />
+                        <Trash2 className="h-6 w-6" />
                       </Button>
                       <Link href={`/admin/courses/${course.id}`}>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 text-[#8BA4D4] hover:text-[#2F5FAC] hover:bg-blue-50 rounded-full">
-                          <Edit className="h-[20px] w-[20px]" />
+                        <Button variant="ghost" size="icon" className="h-9 w-9 text-blue-300 hover:text-blue-500 hover:bg-blue-50 rounded-full">
+                          <Edit className="h-6 w-6" />
                         </Button>
                       </Link>
                     </div>
@@ -253,16 +253,17 @@ export default function CourseList() {
           </DialogHeader>
           <DialogFooter className="flex gap-2 sm:justify-end">
             <Button
-              variant="outline"
-              className="border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600"
+              variant="cancel"
+              size="admin"
               onClick={handleDeleteCancel}
               disabled={isDeleting}
             >
               Cancel
             </Button>
             <Button
-              variant="destructive"
-              className="bg-red-600 hover:bg-red-700 text-white"
+              variant="primary"
+              size="admin"
+              className="bg-red-500 hover:bg-red-600"
               onClick={handleDeleteConfirm}
               disabled={isDeleting}
             >

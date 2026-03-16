@@ -308,14 +308,15 @@ export default function EditPromoCode() {
         </h1>
         <div className="flex gap-4">
           <Button
-            variant="outline"
-            className="border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600 h-11 px-8 font-medium text-[15px]"
+            variant="cancel"
+            size="admin"
             onClick={() => router.push("/admin/promocodes")}
           >
             Cancel
           </Button>
           <Button
-            className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-11 px-8 font-medium shadow-sm text-[15px]"
+            variant="primary"
+            size="admin"
             onClick={handleSave}
             disabled={isSubmitting || !token}
           >
@@ -459,7 +460,7 @@ export default function EditPromoCode() {
       <div className="flex justify-end mt-4 max-w-4xl">
         <Button
           variant="ghost"
-          className="text-red-500 hover:bg-red-50 hover:text-red-600 font-medium"
+          className="text-base font-bold text-red-500 hover:text-red-500 hover:bg-red-50"
           onClick={handleDeleteClick}
           disabled={isDeleting}
         >
