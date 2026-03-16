@@ -243,16 +243,17 @@ export default function AddLessonPage() {
         </div>
         <div className="flex gap-4">
           <Button
-            variant="outline"
-            className="border-[#F97316] text-[#F97316] hover:bg-orange-50 hover:text-[#EA580C] h-11 px-8 rounded-md font-medium text-[15px]"
+            variant="cancel"
+            size="admin"
             onClick={() => router.push(`/admin/courses/${courseId}`)}
           >
             Cancel
           </Button>
           <Button
+            variant="primary"
+            size="admin"
             onClick={handleCreate}
             disabled={isSubmitting}
-            className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-11 px-8 rounded-md font-medium shadow-sm text-[15px] disabled:opacity-50"
           >
             {isSubmitting ? "Creating..." : "Create"}
           </Button>
@@ -340,7 +341,7 @@ export default function AddLessonPage() {
             variant="outline"
             onClick={handleAddSubLesson}
             disabled={isSubmitting}
-            className="border-[#F97316] text-[#F97316] hover:bg-orange-50 hover:text-[#EA580C] rounded-full px-6 h-10 text-sm font-medium"
+            className="border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-500 rounded-full px-6 h-10 text-sm font-bold"
           >
             + Add Sub-lesson
           </Button>

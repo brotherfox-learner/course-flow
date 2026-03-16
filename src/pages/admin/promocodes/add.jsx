@@ -220,14 +220,15 @@ export default function AddPromoCode() {
         <h1 className="text-2xl font-medium text-slate-800">Add Promo code</h1>
         <div className="flex gap-4">
           <Button
-            variant="outline"
-            className="border-orange-500 text-orange-500 hover:bg-orange-50"
+            variant="cancel"
+            size="admin"
             onClick={() => router.push("/admin/promocodes")}
           >
             Cancel
           </Button>
           <Button
-            className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white"
+            variant="primary"
+            size="admin"
             onClick={handleSubmit}
             disabled={isSubmitting || !token}
           >

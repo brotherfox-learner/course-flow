@@ -295,16 +295,17 @@ export default function EditAssignment() {
         </h1>
         <div className="flex gap-4">
           <Button
-            variant="outline"
-            className="border-[#F97316] text-[#F97316] hover:bg-orange-50 hover:text-[#EA580C] h-11 px-8 rounded-md font-medium text-[15px]"
+            variant="cancel"
+            size="admin"
             onClick={() => router.push("/admin/assignments")}
           >
             Cancel
           </Button>
           <Button
+            variant="primary"
+            size="admin"
             onClick={handleSave}
             disabled={isSubmitting || isPageLoading || loading || !token}
-            className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-11 px-8 rounded-md font-medium shadow-sm text-[15px] disabled:opacity-50"
           >
             {isSubmitting ? "Saving..." : "Save"}
           </Button>
@@ -582,7 +583,7 @@ export default function EditAssignment() {
         <div className="flex justify-end mb-12">
           <Button
             variant="ghost"
-            className="text-[#2F5FAC] hover:bg-blue-50 hover:text-[#1E3A8A] font-medium"
+            className="text-base font-bold text-red-500 hover:text-red-500 hover:bg-red-50"
             onClick={() => setIsDeleteOpen(true)}
           >
             Delete Assignment
@@ -602,14 +603,16 @@ export default function EditAssignment() {
           </DialogHeader>
           <DialogFooter className="mt-4 flex gap-2 sm:justify-end">
             <Button
-              variant="outline"
-              className="border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600"
+              variant="cancel"
+              size="admin"
               onClick={() => setIsDeleteOpen(false)}
             >
               Cancel
             </Button>
             <Button
-              className="bg-red-500 hover:bg-red-600 text-white"
+              variant="primary"
+              size="admin"
+              className="bg-red-500 hover:bg-red-600"
               onClick={handleDelete}
               disabled={isDeleting}
             >

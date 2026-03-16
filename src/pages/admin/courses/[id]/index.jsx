@@ -2,7 +2,7 @@ import Head from "next/head"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import axios from "axios"
-import Button from "@/common/navbar/Button"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -442,25 +442,26 @@ export default function EditCourse() {
         <title>Edit Course - Admin Panel</title>
       </Head>
       <SubmitBanner status={bannerStatus} message={bannerStatus === "loading" ? "Saving course... Please do not close this page" : undefined} />
-      <div className="flex justify-between items-center mb-8 p-8 bg-white min-h-[92px] border-b border-slate-200">
-        <h1 className="text-2xl font-medium text-slate-800 flex items-center gap-2">
-          <span className="text-slate-400 cursor-pointer hover:text-slate-600" onClick={() => router.push('/admin/courses')}>&larr;</span>
+      <div className="flex justify-between items-center mb-8 p-8 bg-white min-h-[92px] border-b border-gray-400">
+        <h1 className="text-2xl font-medium text-black flex items-center gap-2">
+          <span className="text-gray-600 cursor-pointer hover:text-gray-800" onClick={() => router.push('/admin/courses')}>&larr;</span>
           Course &apos;{courseData.name}&apos;
         </h1>
         <div className="flex gap-4">
           <Button
-            variant="secondary"
-            className="border-[#F97316] text-[#F97316] hover:bg-orange-50 hover:text-[#EA580C] h-11 px-8 rounded-md font-medium text-[15px]"
+            variant="cancel"
+            size="admin"
             onClick={() => router.push('/admin/courses')}
           >
             Cancel
           </Button>
           <Button 
+            variant="primary"
+            size="admin"
             onClick={handleUpdateCourse}
             disabled={isSaving}
-            className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-11 px-8 rounded-md font-medium shadow-sm text-[15px] disabled:opacity-50"
           >
-            {isSaving ? "Saving..." : "Save Changes"}
+            {isSaving ? "Saving..." : "Edit"}
           </Button>
         </div>
       </div>
@@ -472,19 +473,19 @@ export default function EditCourse() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-10 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 mb-8">
+      <div className="bg-white rounded-2xl border border-gray-300 shadow-sm px-[100px] pt-10 pb-[60px] mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8 mb-8">
           <div className="col-span-2">
-            <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Course name <span className="text-[#C82A2A]">*</span></Label>
-            <Input value={courseData.name} onChange={(e) => setCourseData(prev => ({ ...prev, name: e.target.value }))} className="h-12 border-slate-300 text-[15px]" />
+            <Label className="mb-1 block body2 text-black font-normal">Course name <span className="text-[#C82A2A]">*</span></Label>
+            <Input value={courseData.name} onChange={(e) => setCourseData(prev => ({ ...prev, name: e.target.value }))} className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600" />
           </div>
           <div>
-            <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Price <span className="text-[#C82A2A]">*</span></Label>
-            <Input value={courseData.price} onChange={(e) => setCourseData(prev => ({ ...prev, price: e.target.value }))} type="number" className="h-12 border-slate-300 text-[15px]" />
+            <Label className="mb-1 block body2 text-black font-normal">Price <span className="text-[#C82A2A]">*</span></Label>
+            <Input value={courseData.price} onChange={(e) => setCourseData(prev => ({ ...prev, price: e.target.value }))} type="number" className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600" />
           </div>
           <div>
-            <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Total learning time <span className="text-[#C82A2A]">*</span></Label>
-            <Input value={courseData.learningTime} onChange={(e) => setCourseData(prev => ({ ...prev, learningTime: e.target.value }))} type="number" className="h-12 border-slate-300 text-[15px]" />
+            <Label className="mb-1 block body2 text-black font-normal">Total learning time <span className="text-[#C82A2A]">*</span></Label>
+            <Input value={courseData.learningTime} onChange={(e) => setCourseData(prev => ({ ...prev, learningTime: e.target.value }))} type="number" className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600" />
           </div>
         </div>
 
@@ -497,7 +498,7 @@ export default function EditCourse() {
               checked={hasPromoCode}
               onChange={(e) => setHasPromoCode(e.target.checked)}
             />
-            <Label htmlFor="promo" className="font-medium text-slate-800 text-[16px]">Promo code</Label>
+            <Label htmlFor="promo" className="font-medium text-gray-800 body2">Promo code</Label>
           </div>
           {hasPromoCode ? (
             <div>
@@ -526,38 +527,38 @@ export default function EditCourse() {
           ) : (
             <article>
               <p className="text-[13px] text-slate-500 mb-4">Add promo code for this course</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
                 <div>
-                  <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Set promo code</Label>
+                  <Label className="mb-1 block body2 text-black font-normal">Set promo code</Label>
                   <Input
                     placeholder="NEWYEAR200"
                     value={promoData.code}
                     onChange={(e) => setPromoData((p) => ({ ...p, code: e.target.value }))}
-                    className="h-12 border-slate-300 bg-white text-[15px]"
+                    className="h-12 border-gray-400 rounded-lg bg-white body2 placeholder:text-gray-600"
                   />
                 </div>
                 <div>
-                  <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Minimum purchase amount (THB)</Label>
+                  <Label className="mb-1 block body2 text-black font-normal">Minimum purchase amount (THB)</Label>
                   <Input
                     placeholder="0"
                     type="number"
                     value={promoData.minPurchase}
                     onChange={(e) => setPromoData((p) => ({ ...p, minPurchase: e.target.value }))}
-                    className="h-12 border-slate-300 bg-white text-[15px]"
+                    className="h-12 border-gray-400 rounded-lg bg-white body2 placeholder:text-gray-600"
                   />
                 </div>
                 <div className="col-span-2">
-                  <Label className="mb-4 block text-slate-700 font-medium text-[15px]">Select discount type</Label>
+                  <Label className="mb-4 block body2 text-black font-normal">Select discount type</Label>
                   <RadioGroup
                     value={promoData.discountType}
                     onValueChange={(v) => setPromoData((p) => ({ ...p, discountType: v }))}
                     className="flex flex-col sm:flex-row gap-12"
                   >
                     <div className="flex items-center gap-3">
-                      <RadioGroupItem value="thb" id="course-promo-thb" className="w-5 h-5 border-slate-300 text-[#2F5FAC] data-[state=checked]:border-[#2F5FAC]" />
-                      <Label htmlFor="course-promo-thb" className="text-slate-700 font-medium text-[15px]">Discount (THB)</Label>
+                      <RadioGroupItem value="thb" id="course-promo-thb" className="w-5 h-5 border-gray-400 text-blue-500 data-[state=checked]:border-blue-500" />
+                      <Label htmlFor="course-promo-thb" className="body2 text-black font-normal">Discount (THB)</Label>
                       <Input
-                        className="w-32 ml-2 h-12 border-slate-300 bg-white text-[15px]"
+                        className="w-32 ml-2 h-12 border-gray-400 rounded-lg bg-white body2 placeholder:text-gray-600"
                         placeholder="200"
                         type="number"
                         value={promoData.discountAmount}
@@ -566,10 +567,10 @@ export default function EditCourse() {
                       />
                     </div>
                     <div className="flex items-center gap-3">
-                      <RadioGroupItem value="percent" id="course-promo-percent" className="w-5 h-5 border-slate-300 text-[#2F5FAC] data-[state=checked]:border-[#2F5FAC]" />
-                      <Label htmlFor="course-promo-percent" className="text-slate-700 font-medium text-[15px]">Discount (%)</Label>
+                      <RadioGroupItem value="percent" id="course-promo-percent" className="w-5 h-5 border-gray-400 text-blue-500 data-[state=checked]:border-blue-500" />
+                      <Label htmlFor="course-promo-percent" className="body2 text-black font-normal">Discount (%)</Label>
                       <Input
-                        className="w-32 ml-2 h-12 border-slate-300 bg-white text-[15px]"
+                        className="w-32 ml-2 h-12 border-gray-400 rounded-lg bg-white body2 placeholder:text-gray-600"
                         placeholder="30"
                         type="number"
                         value={promoData.discountPercent}
@@ -580,31 +581,31 @@ export default function EditCourse() {
                   </RadioGroup>
                 </div>
                 <div>
-                  <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Valid From</Label>
+                  <Label className="mb-1 block body2 text-black font-normal">Valid From</Label>
                   <Input
                     type="date"
                     value={promoData.validFrom}
                     onChange={(e) => setPromoData((p) => ({ ...p, validFrom: e.target.value }))}
-                    className="h-12 border-slate-300 bg-white text-[15px]"
+                    className="h-12 border-gray-400 rounded-lg bg-white body2"
                   />
                 </div>
                 <div>
-                  <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Valid To</Label>
+                  <Label className="mb-1 block body2 text-black font-normal">Valid To</Label>
                   <Input
                     type="date"
                     value={promoData.validTo}
                     onChange={(e) => setPromoData((p) => ({ ...p, validTo: e.target.value }))}
-                    className="h-12 border-slate-300 bg-white text-[15px]"
+                    className="h-12 border-gray-400 rounded-lg bg-white body2"
                   />
                 </div>
                 <div>
-                  <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Usage Limit</Label>
+                  <Label className="mb-1 block body2 text-black font-normal">Usage Limit</Label>
                   <Input
                     type="number"
                     placeholder="100"
                     value={promoData.usageLimit}
                     onChange={(e) => setPromoData((p) => ({ ...p, usageLimit: e.target.value }))}
-                    className="h-12 border-slate-300 bg-white text-[15px]"
+                    className="h-12 border-gray-400 rounded-lg bg-white body2 placeholder:text-gray-600"
                   />
                 </div>
               </div>
@@ -660,7 +661,9 @@ export default function EditCourse() {
                   }
                 }}
                 disabled={isAddingPromo}
-                className="mt-4 bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-11 px-6 rounded-md font-medium text-[15px] disabled:opacity-50"
+                variant="primary"
+                size="admin"
+                className="mt-4"
               >
                 {isAddingPromo ? "Adding..." : "Add Promo Code"}
               </Button>
@@ -670,18 +673,18 @@ export default function EditCourse() {
 
         <div className="space-y-8">
           <div>
-            <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Course summary <span className="text-[#C82A2A]">*</span></Label>
-            <Input value={courseData.summary} onChange={(e) => setCourseData(prev => ({ ...prev, summary: e.target.value }))} className="h-12 border-slate-300 text-[15px]" />
+            <Label className="mb-1 block body2 text-black font-normal">Course summary <span className="text-[#C82A2A]">*</span></Label>
+            <Input value={courseData.summary} onChange={(e) => setCourseData(prev => ({ ...prev, summary: e.target.value }))} className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600" />
           </div>
           <div>
-            <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Course detail <span className="text-[#C82A2A]">*</span></Label>
-            <Textarea value={courseData.detail} onChange={(e) => setCourseData(prev => ({ ...prev, detail: e.target.value }))} className="min-h-[300px] border-slate-300 resize-none text-[14px] leading-relaxed p-4 text-slate-600" />
+            <Label className="mb-1 block body2 text-black font-normal">Course detail <span className="text-[#C82A2A]">*</span></Label>
+            <Textarea value={courseData.detail} onChange={(e) => setCourseData(prev => ({ ...prev, detail: e.target.value }))} className="min-h-[300px] border-gray-400 rounded-lg resize-none body2 leading-relaxed p-4 placeholder:text-gray-600" />
           </div>
         </div>
 
         <div className="space-y-8 mt-10">
           <div>
-            <Label className="mb-1 block text-slate-700 font-medium text-[15px]">Cover image <span className="text-[#C82A2A]">*</span></Label>
+            <Label className="mb-1 block body2 text-black font-normal">Cover image <span className="text-[#C82A2A]">*</span></Label>
             <p className="text-[13px] text-slate-400 mb-3">Supported file types: .jpg, .png, .jpeg. Max file size: 5 MB</p>
             <ImageUpload
               value={courseData.coverImageData}
@@ -691,7 +694,7 @@ export default function EditCourse() {
           </div>
 
           <div>
-            <Label className="mb-1 block text-slate-700 font-medium text-[15px]">Video Trailer <span className="text-[#C82A2A]">*</span></Label>
+            <Label className="mb-1 block body2 text-black font-normal">Video Trailer <span className="text-[#C82A2A]">*</span></Label>
             
             {/* Video Upload Component */}
             <VideoUpload
@@ -706,7 +709,7 @@ export default function EditCourse() {
                 placeholder="Or enter video trailer URL manually"
                 value={courseData.vdoTrailerUrl}
                 onChange={(e) => setCourseData(prev => ({ ...prev, vdoTrailerUrl: e.target.value }))}
-                className="h-12 border-slate-300 text-[15px]"
+                className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
               />
             </div>
             
@@ -716,7 +719,7 @@ export default function EditCourse() {
           </div>
 
           <div>
-            <Label className="mb-1 block text-slate-700 font-medium text-[15px]">Attach File (Optional)</Label>
+            <Label className="mb-1 block body2 text-black font-normal">Attach File (Optional)</Label>
             <AttachFileUpload
               token={token}
               files={courseData.materials}
@@ -769,8 +772,9 @@ export default function EditCourse() {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-[22px] font-medium text-slate-800">Lesson</h2>
           <Button
+            variant="primary"
+            size="admin"
             onClick={() => router.push(`/admin/courses/${id}/lessons/add`)}
-            className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-12 px-6 rounded-md font-medium shadow-sm text-[15px] disabled:opacity-50"
             disabled={isLoading || !token || !id}
           >
             + Add Lesson
@@ -778,13 +782,12 @@ export default function EditCourse() {
         </div>
 
         <div className="bg-slate-100 rounded-xl overflow-hidden">
-          <div className="grid grid-cols-12 bg-[#E2E8F0] p-4 text-slate-500 font-medium text-[15px]">
+          <div className="grid grid-cols-12 bg-gray-300 p-4 body3 text-gray-800 font-normal">
             <div className="col-span-1 text-center"></div>
             <div className="col-span-6">Lesson name</div>
             <div className="col-span-3">Sub-lesson</div>
             <div className="col-span-2 text-center">Action</div>
           </div>
-          {/* Drag and Drop */}
           <div className="bg-white">
             {isLoading
               ? <div className="p-6 text-slate-500">Loading lessons...</div>
@@ -805,8 +808,7 @@ export default function EditCourse() {
         <div className="flex justify-end mt-4">
           <Button
             variant="ghost"
-            size="ghost"
-            className="text-red-500 hover:text-red-500 active:text-red-500"
+            className="text-base font-bold text-red-500 hover:text-red-500 hover:bg-red-50 active:text-red-500"
             onClick={() => setIsDeleteOpen(true)}
             disabled={isDeleting || isSaving}
           >
@@ -831,37 +833,37 @@ export default function EditCourse() {
             <h3 className="text-lg font-medium mb-4">Add Sub-Lesson</h3>
             <div className="space-y-4">
               <div>
-                <Label className="mb-2 block text-slate-700 text-[15px]">Sub-lesson name</Label>
+                <Label className="mb-1 block body2 text-black font-normal">Sub-lesson name</Label>
                 <Input
                   value={newSubLessonName}
                   onChange={(e) => setNewSubLessonName(e.target.value)}
                   placeholder="Enter sub-lesson name"
-                  className="h-12"
+                  className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
                 />
               </div>
               <div>
-                <Label className="mb-2 block text-slate-700 text-[15px]">Video URL (Optional)</Label>
+                <Label className="mb-1 block body2 text-black font-normal">Video URL (Optional)</Label>
                 <Input
                   value={newSubLessonVdoUrl}
                   onChange={(e) => setNewSubLessonVdoUrl(e.target.value)}
                   placeholder="https://..."
-                  className="h-12"
+                  className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
                 />
               </div>
               <div>
-                <Label className="mb-2 block text-slate-700 text-[15px]">Video Duration in minutes (Optional)</Label>
+                <Label className="mb-1 block body2 text-black font-normal">Video Duration in minutes (Optional)</Label>
                 <Input
                   type="number"
                   value={newSubLessonVdoTime}
                   onChange={(e) => setNewSubLessonVdoTime(e.target.value)}
                   placeholder="10"
-                  className="h-12"
+                  className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
                 />
               </div>
             </div>
             <div className="flex justify-end gap-3 mt-6">
-              <Button variant="secondary" onClick={() => setIsAddSubLessonOpen(false)}>Cancel</Button>
-              <Button onClick={handleAddSubLesson} disabled={isSavingSubLesson} className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white">
+              <Button variant="cancel" size="admin" onClick={() => setIsAddSubLessonOpen(false)}>Cancel</Button>
+              <Button variant="primary" size="admin" onClick={handleAddSubLesson} disabled={isSavingSubLesson}>
                 {isSavingSubLesson ? "Adding..." : "Add"}
               </Button>
             </div>
@@ -876,37 +878,37 @@ export default function EditCourse() {
             <h3 className="text-lg font-medium mb-4">Edit Sub-Lesson</h3>
             <div className="space-y-4">
               <div>
-                <Label className="mb-2 block text-slate-700 text-[15px]">Sub-lesson name</Label>
+                <Label className="mb-1 block body2 text-black font-normal">Sub-lesson name</Label>
                 <Input
                   value={editSubLessonName}
                   onChange={(e) => setEditSubLessonName(e.target.value)}
                   placeholder="Sub-lesson name"
-                  className="h-12"
+                  className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
                 />
               </div>
               <div>
-                <Label className="mb-2 block text-slate-700 text-[15px]">Video URL (Optional)</Label>
+                <Label className="mb-1 block body2 text-black font-normal">Video URL (Optional)</Label>
                 <Input
                   value={editSubLessonVdoUrl}
                   onChange={(e) => setEditSubLessonVdoUrl(e.target.value)}
                   placeholder="https://..."
-                  className="h-12"
+                  className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
                 />
               </div>
               <div>
-                <Label className="mb-2 block text-slate-700 text-[15px]">Video Duration in minutes (Optional)</Label>
+                <Label className="mb-1 block body2 text-black font-normal">Video Duration in minutes (Optional)</Label>
                 <Input
                   type="number"
                   value={editSubLessonVdoTime}
                   onChange={(e) => setEditSubLessonVdoTime(e.target.value)}
                   placeholder="10"
-                  className="h-12"
+                  className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
                 />
               </div>
             </div>
             <div className="flex justify-end gap-3 mt-6">
-              <Button variant="secondary" onClick={() => setIsEditSubLessonOpen(false)}>Cancel</Button>
-              <Button onClick={handleUpdateSubLesson} className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white">Save</Button>
+              <Button variant="cancel" size="admin" onClick={() => setIsEditSubLessonOpen(false)}>Cancel</Button>
+              <Button variant="primary" size="admin" onClick={handleUpdateSubLesson}>Save</Button>
             </div>
           </div>
         </div>

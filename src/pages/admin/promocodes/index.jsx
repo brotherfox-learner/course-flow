@@ -135,7 +135,7 @@ export default function PromoCodeList() {
             />
           </div>
           <Link href="/admin/promocodes/add">
-            <Button className="h-10 bg-blue-600 hover:bg-blue-700">
+            <Button variant="primary" size="admin">
               + Add Promo Code
             </Button>
           </Link>
