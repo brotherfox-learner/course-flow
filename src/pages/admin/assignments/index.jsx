@@ -121,7 +121,7 @@ export default function AssignmentList() {
             />
           </div>
           <Link href="/admin/assignments/add">
-            <Button className="h-11 px-6 bg-[#2F5FAC] hover:bg-[#254A8A] text-white rounded-md font-medium shadow-sm text-[15px]">
+            <Button variant="primary" size="admin">
               + Add Assignment
             </Button>
           </Link>
@@ -181,17 +181,17 @@ export default function AssignmentList() {
                         variant="ghost"
                         size="icon"
                         onClick={() => setDeleteId(a.id)}
-                        className="h-9 w-9 text-[#8BA4D4] hover:text-red-500 hover:bg-red-50 rounded-full"
+                        className="h-9 w-9 text-blue-300 hover:text-red-500 hover:bg-red-50 rounded-full"
                       >
-                        <Trash2 className="h-[20px] w-[20px]" />
+                        <Trash2 className="h-6 w-6" />
                       </Button>
                       <Link href={`/admin/assignments/${a.id}`}>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-9 w-9 text-[#8BA4D4] hover:text-[#2F5FAC] hover:bg-blue-50 rounded-full"
+                          className="h-9 w-9 text-blue-300 hover:text-blue-500 hover:bg-blue-50 rounded-full"
                         >
-                          <Edit className="h-[20px] w-[20px]" />
+                          <Edit className="h-6 w-6" />
                         </Button>
                       </Link>
                     </div>
@@ -232,14 +232,16 @@ export default function AssignmentList() {
           </DialogHeader>
           <DialogFooter className="mt-4 flex gap-2 sm:justify-end">
             <Button
-              variant="outline"
-              className="border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600"
+              variant="cancel"
+              size="admin"
               onClick={() => setDeleteId(null)}
             >
               Cancel
             </Button>
             <Button
-              className="bg-red-500 hover:bg-red-600 text-white"
+              variant="primary"
+              size="admin"
+              className="bg-red-500 hover:bg-red-600"
               onClick={handleDelete}
               disabled={isDeleting}
             >

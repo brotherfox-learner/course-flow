@@ -211,16 +211,17 @@ export default function AddAssignment() {
         <h1 className="text-2xl font-medium text-slate-800">Add Assignment</h1>
         <div className="flex gap-4">
           <Button
-            variant="outline"
-            className="border-[#F97316] text-[#F97316] hover:bg-orange-50 hover:text-[#EA580C] h-11 px-8 rounded-md font-medium text-[15px]"
+            variant="cancel"
+            size="admin"
             onClick={() => router.push("/admin/assignments")}
           >
             Cancel
           </Button>
           <Button
+            variant="primary"
+            size="admin"
             onClick={handleCreate}
             disabled={isSubmitting || loading || !token}
-            className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-11 px-8 rounded-md font-medium shadow-sm text-[15px] disabled:opacity-50"
           >
             {isSubmitting ? "Creating..." : "Create"}
           </Button>

@@ -82,7 +82,7 @@ export function AdminLoginForm() {
             CourseFlow
           </span>
           {/* Title */}
-          <h2 className="headline3 font-bold text-gray-700 text-center">
+          <h2 className="headline3 font-bold text-gray-700 text-center" style={{ fontFamily: 'var(--font-nunito), Nunito, sans-serif' }}>
             Admin Panel Control
           </h2>
         </div>
