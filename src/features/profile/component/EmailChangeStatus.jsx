@@ -28,9 +28,8 @@ export default function EmailChangeStatus() {
       )}
 
       {success && (
-        <>
-          <CheckCircle size={100} color="#2FAC61" />
-
+        <div className="flex flex-col items-center justify-center gap-8 w-[600px] h-[350px] rounded-2xl text-white bg-linear2">
+          <CheckCircle size={100} color="#FFFFFF" />
           <h3 className="headline3">
             Email updated successfully
           </h3>
@@ -41,7 +40,9 @@ export default function EmailChangeStatus() {
           >
             Go to Profile
           </Button>
-        </>
+
+
+        </div>
       )}
 
     </div>
