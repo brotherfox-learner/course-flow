@@ -1,13 +1,15 @@
 import { Mail } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
+import Lottie from "lottie-react"
+import SentEmail from "@/assets/animation/Sent-Email.json"
 
 function EmailCheck() {
 
     const router = useRouter()
 
-    const [oldEmail, setOldEmail] = useState("")
-    const [newEmail, setNewEmail] = useState("")
+    const [oldEmail, setOldEmail] = useState("boss120244@gmail.com")
+    const [newEmail, setNewEmail] = useState("boss120244@gmail.com")
 
     useEffect(() => {
 
@@ -28,31 +30,28 @@ function EmailCheck() {
         <div className="relative bg-white h-screen px-4 py-10 overflow-hidden">
 
             <div className="flex flex-col items-center gap-10 max-w-[798px] py-10 mx-auto bg-gray-100 rounded-2xl">
-
-                <h3 className="headline3 text-black lg:headline2">
-                    Check your email
-                </h3>
-
-                <Mail size={100} color="#2FAC8E" strokeWidth={2} />
-
-                <p className="flex flex-col items-center gap-2 text-center">
-
+                <div className="flex flex-col items-center gap-3">
+                    <h3 className="headline3 text-black lg:headline2">
+                        Check your email
+                    </h3>
+                    <Lottie
+                        animationData={SentEmail}
+                        loop={false}
+                        className="w-[200px]"
+                    />
+                </div>
+                <p className="flex flex-col items-center gap-2 text-center body2 lg:body1">
                     <span>We sent confirmation links to</span>
-
-                    <span className="font-semibold">
+                    <span className="font-bold">
                         {oldEmail}
                     </span>
-
                     <span>and</span>
-
-                    <span className="font-semibold">
+                    <span className="font-bold">
                         {newEmail}
                     </span>
-
                     <span>
                         Please confirm both emails
                     </span>
-
                 </p>
 
             </div>
