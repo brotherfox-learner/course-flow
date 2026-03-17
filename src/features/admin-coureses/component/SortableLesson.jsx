@@ -58,11 +58,11 @@ export default function SortableLesson({ item, onDelete, onEdit, onAddSubLesson,
         const activeSubId = Number(String(active.id).split("-")[1]);
         const overSubId = Number(String(over.id).split("-")[1]);
 
-        const oldIndex = item.sub_lessons.findIndex((s) => Number(s.id) === activeSubId);
-        const newIndex = item.sub_lessons.findIndex((s) => Number(s.id) === overSubId);
+        const oldIndex = (item.subLessons || []).findIndex((s) => Number(s.id) === activeSubId);
+        const newIndex = (item.subLessons || []).findIndex((s) => Number(s.id) === overSubId);
         if (oldIndex === -1 || newIndex === -1) return;
 
-        const reordered = arrayMove(item.sub_lessons, oldIndex, newIndex);
+        const reordered = arrayMove(item.subLessons || [], oldIndex, newIndex);
         const updatedSubLessons = reordered.map((sub, index) => ({
             ...sub,
             order_index: index + 1,
@@ -74,21 +74,20 @@ export default function SortableLesson({ item, onDelete, onEdit, onAddSubLesson,
     }
 
     return (
-        <div className="py-8 border-b border-gray-200">
-
-            <li
+        <div className="flex flex-col">
+            {/* Lesson Row */}
+            <div
                 ref={setNodeRef}
                 style={style}
-                className="grid grid-cols-12 items-center bg-white"
+                className="flex h-[88px] bg-white border-b border-[#F1F2F6] hover:bg-gray-50"
             >
-
                 {/* drag handle */}
-                <div
-                    {...attributes}
-                    {...listeners}
-                    className="col-span-1 flex justify-center cursor-grab"
-                >
-                    <div className="grid grid-cols-2 gap-1">
+                <div className="w-[56px] flex-shrink-0 flex justify-center items-center">
+                    <div
+                        {...attributes}
+                        {...listeners}
+                        className="grid grid-cols-2 gap-1 py-6 px-6 cursor-grab"
+                    >
                         {Array.from({ length: 6 }).map((_, i) => (
                             <div
                                 key={i}
@@ -98,87 +97,87 @@ export default function SortableLesson({ item, onDelete, onEdit, onAddSubLesson,
                     </div>
                 </div>
 
+                {/* order */}
+                <div className="w-[48px] flex-shrink-0 flex justify-center items-center">
+                    <span className="text-base text-black">{item.order_index}</span>
+                </div>
+
                 {/* lesson name */}
-                <div className="col-span-6 flex items-center gap-4">
-                    <span className="text-slate-600 font-medium">
-                        {item.order_index}
-                    </span>
-                    <span>{item.name}</span>
+                <div className="flex-1 flex items-center px-4">
+                    <span className="text-base text-black">{item.name}</span>
                 </div>
 
                 {/* sub lesson count */}
-                <div className="col-span-3 text-slate-600">
-                    {(item.sub_lessons || []).length}
+                <div className="w-[396px] flex-shrink-0 flex items-center px-4">
+                    <span className="text-base text-black">{(item.subLessons || []).length}</span>
                 </div>
 
                 {/* action */}
-                <div className="col-span-2 flex justify-center gap-3">
-
-                    <Button
-                        iconOnly
+                <div className="w-[120px] flex-shrink-0 flex justify-center items-center gap-4">
+                    <button
+                        type="button"
                         onClick={() => onDelete && onDelete(item.id)}
-                        className="h-9 w-9 text-blue-300 cursor-pointer hover:text-red-500 hover:bg-red-50 active:bg-red-100 rounded-full"
+                        className="text-[#8DADE0] hover:text-red-500 transition-colors"
                     >
-                        <Trash2 className="h-[18px] w-[18px]" />
-                    </Button>
+                        <Trash2 className="h-6 w-6" />
+                    </button>
 
-                    <Button
-                        iconOnly
+                    <button
+                        type="button"
                         onClick={() => onEdit && onEdit(item)}
-                        className="h-9 w-9 text-blue-300 cursor-pointer hover:text-blue-500 hover:bg-blue-50 active:bg-blue-100 rounded-full"
+                        className="text-[#8DADE0] hover:text-blue-500 transition-colors"
                     >
-                        <Edit className="h-[18px] w-[18px]" />
-                    </Button>
+                        <Edit className="h-6 w-6" />
+                    </button>
 
-                    <Button iconOnly onClick={switchToggle} className="h-9 w-9 cursor-pointer hover:bg-gray-50 active:bg-gray-200 rounded-full">
+                    <button
+                        type="button"
+                        onClick={switchToggle}
+                        className="text-[#8DADE0] hover:text-gray-600 transition-colors"
+                    >
                         {!isShow
-                            ? <ChevronDown className="h-[18px] w-[18px]" />
-                            : <ChevronUp className="h-[18px] w-[18px]" />}
-                    </Button>
-
+                            ? <ChevronDown className="h-6 w-6" />
+                            : <ChevronUp className="h-6 w-6" />}
+                    </button>
                 </div>
+            </div>
 
-            </li>
-
+            {/* Sub-lessons expansion */}
             {isShow && (
-                <DndContext
-                    sensors={subSensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleSubDragEnd}
-                >
-                    <SortableContext
-                        items={item.sub_lessons.map((s) => `sub-${s.id}`)}
-                        strategy={verticalListSortingStrategy}
+                <div className="bg-gray-50 p-4 border-b border-[#F1F2F6]">
+                    <DndContext
+                        sensors={subSensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleSubDragEnd}
                     >
-
-                        <ul className="space-y-2 px-15 pt-8">
-
-                            {item.sub_lessons.map((sub) => (
-                                <SortableSubLesson
-                                    key={sub.id}
-                                    sub={sub}
-                                    lessonId={item.id}
-                                    onDelete={onDeleteSubLesson}
-                                    onEdit={onEditSubLesson}
-                                />
-                            ))}
-
-                            <li className="flex justify-center py-2">
-                                <button
-                                    type="button"
-                                    onClick={() => onAddSubLesson && onAddSubLesson(item.id)}
-                                    className="text-[#2F5FAC] text-sm font-medium hover:underline"
-                                >
-                                    + Add Sub-Lesson
-                                </button>
-                            </li>
-
-                        </ul>
-
-                    </SortableContext>
-                </DndContext>
+                        <SortableContext
+                            items={(item.subLessons || []).map((s) => `sub-${s.id}`)}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            <div className="space-y-2">
+                                {(item.subLessons || []).map((sub) => (
+                                    <SortableSubLesson
+                                        key={sub.id}
+                                        sub={sub}
+                                        lessonId={item.id}
+                                        onDelete={onDeleteSubLesson}
+                                        onEdit={onEditSubLesson}
+                                    />
+                                ))}
+                                <div className="flex justify-center py-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => onAddSubLesson && onAddSubLesson(item.id)}
+                                        className="text-[#2F5FAC] text-sm font-medium hover:underline"
+                                    >
+                                        + Add Sub-Lesson
+                                    </button>
+                                </div>
+                            </div>
+                        </SortableContext>
+                    </DndContext>
+                </div>
             )}
-
         </div>
     );
 }
