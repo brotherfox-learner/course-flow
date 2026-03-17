@@ -32,7 +32,7 @@ function createEmptyQuestion() {
 
 export default function AddAssignment() {
   const router = useRouter()
-  const { token, loading, logout } = useAuth()
+  const { token, loading, logout, profile, isLoggedIn } = useAuth()
 
   const [coursesTree, setCoursesTree] = useState([])
   const [selectedCourseId, setSelectedCourseId] = useState("")
@@ -45,18 +45,21 @@ export default function AddAssignment() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    if (!loading && !token) router.push("/admin/login")
-  }, [loading, token, router])
+    if (loading) return
+    if (!isLoggedIn || !profile || profile.role !== "admin") {
+      router.push("/admin/login")
+    }
+  }, [loading, isLoggedIn, profile, router])
 
   useEffect(() => {
-    if (!token) return
+    if (!token || loading || !isLoggedIn || profile?.role !== "admin") return
     axios
       .get("/api/admin/assignments/courses-tree", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setCoursesTree(res.data.courses || []))
       .catch((err) => console.error("Fetch courses tree error:", err))
-  }, [token])
+  }, [token, loading, isLoggedIn, profile])
 
   const selectedCourse = coursesTree.find((c) => String(c.id) === String(selectedCourseId))
   const lessons = selectedCourse?.lessons || []

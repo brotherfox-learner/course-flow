@@ -29,7 +29,7 @@ export default function AssignmentList() {
   const [total, setTotal] = useState(0)
   const [deleteId, setDeleteId] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
-  const { token, logout } = useAuth()
+  const { token, logout, profile, isLoggedIn, loading } = useAuth()
 
   const fetchAssignments = async (page = 1, search = "") => {
     setIsLoading(true)
@@ -44,7 +44,7 @@ export default function AssignmentList() {
     } catch (error) {
       console.error("Error fetching assignments:", error)
       if (error.response?.status === 401 || error.response?.status === 403) {
-        logout()
+        await logout()
       }
     } finally {
       setIsLoading(false)
@@ -54,7 +54,9 @@ export default function AssignmentList() {
   const hasFetchedInitial = useRef(false)
 
   useEffect(() => {
-    if (!token) return
+    // โหลดเฉพาะเมื่อ auth เสร็จ และเป็น admin เท่านั้น
+    if (!token || loading || !isLoggedIn || profile?.role !== "admin") return
+
     if (!hasFetchedInitial.current) {
       hasFetchedInitial.current = true
       fetchAssignments(1, searchTerm)
@@ -62,7 +64,7 @@ export default function AssignmentList() {
       const timer = setTimeout(() => fetchAssignments(1, searchTerm), 400)
       return () => clearTimeout(timer)
     }
-  }, [token, searchTerm])
+  }, [token, searchTerm, loading, isLoggedIn, profile])
 
   const handlePageChange = (page) => {
     fetchAssignments(page, searchTerm)

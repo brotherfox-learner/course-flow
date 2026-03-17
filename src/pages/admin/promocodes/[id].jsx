@@ -103,7 +103,7 @@ function CourseMultiSelect({ courses, selectedIds, onChange }) {
 export default function EditPromoCode() {
   const router = useRouter()
   const { id } = router.query
-  const { token, logout } = useAuth()
+  const { token, logout, loading, profile, isLoggedIn } = useAuth()
 
   const [formData, setFormData] = useState({
     code: "",
@@ -128,7 +128,7 @@ export default function EditPromoCode() {
 
   /* Fetch courses list + promo code data */
   useEffect(() => {
-    if (!token || !id) return
+    if (!token || !id || loading || !isLoggedIn || profile?.role !== "admin") return
 
     const fetchAll = async () => {
       setIsLoading(true)
@@ -169,7 +169,7 @@ export default function EditPromoCode() {
     }
 
     fetchAll()
-  }, [token, id, logout])
+  }, [token, id, logout, loading, isLoggedIn, profile])
 
   const handleChange = (e) => {
     const { name, value } = e.target

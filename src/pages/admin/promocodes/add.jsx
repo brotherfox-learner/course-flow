@@ -104,7 +104,7 @@ function CourseMultiSelect({ courses, selectedIds, onChange }) {
 
 export default function AddPromoCode() {
   const router = useRouter()
-  const { token, logout } = useAuth()
+  const { token, logout, loading, profile, isLoggedIn } = useAuth()
 
   const [formData, setFormData] = useState({
     code: "",
@@ -126,12 +126,12 @@ export default function AddPromoCode() {
 
   /* Fetch courses list for multi-select */
   useEffect(() => {
-    if (!token) return
+    if (!token || loading || !isLoggedIn || profile?.role !== "admin") return
     axios
       .get("/api/admin/courses", { headers: { Authorization: `Bearer ${token}` }, params: { limit: 999 } })
       .then((r) => setCourses(r.data?.courses || []))
       .catch(() => setCourses([]))
-  }, [token])
+  }, [token, loading, isLoggedIn, profile])
 
   const handleChange = (e) => {
     const { name, value } = e.target

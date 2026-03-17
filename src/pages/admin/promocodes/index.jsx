@@ -20,7 +20,7 @@ import { useAuth } from "@/context/AuthContext"
 import { format } from "date-fns"
 
 export default function PromoCodeList() {
-  const { token, loading, logout } = useAuth()
+  const { token, loading, logout, profile, isLoggedIn } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
   const [promoCodes, setPromoCodes] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -31,7 +31,7 @@ export default function PromoCodeList() {
   const [pageSize] = useState(10)
 
   const fetchPromoCodes = useCallback(async () => {
-    if (!token) return
+    if (!token || loading || !isLoggedIn || profile?.role !== "admin") return
     setIsLoading(true)
     setErrorMessage("")
     try {
@@ -49,7 +49,7 @@ export default function PromoCodeList() {
     } finally {
       setIsLoading(false)
     }
-  }, [token, logout])
+  }, [token, logout, loading, isLoggedIn, profile])
 
   useEffect(() => {
     fetchPromoCodes()
