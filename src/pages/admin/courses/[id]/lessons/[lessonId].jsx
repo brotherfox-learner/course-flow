@@ -373,7 +373,7 @@ export default function EditLessonPage() {
           Lesson &apos;{lessonName}&apos; - Admin Panel
         </title>
       </Head>
-      <SubmitBanner status={bannerStatus} message={bannerStatus === "loading" ? "กำลังบันทึกบทเรียน… กรุณาอย่าปิดหน้านี้" : undefined} />
+      <SubmitBanner status={bannerStatus} message={bannerStatus === "loading" ? "Saving lesson... Please do not close this page" : undefined} />
 
       {/* Header */}
       <div className="flex justify-between items-center mb-8 p-8 bg-white min-h-[92px] border-b border-slate-200">

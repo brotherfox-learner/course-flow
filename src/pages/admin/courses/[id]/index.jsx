@@ -75,7 +75,7 @@ export default function EditCourse() {
 
   const { token, loading, logout } = useAuth()
 
-  const [hasPromoCode, setHasPromoCode] = useState(true)
+  const [hasPromoCode, setHasPromoCode] = useState(false)
 
   const [promoCodes, setPromoCodes] = useState([])
 
@@ -876,7 +876,7 @@ export default function EditCourse() {
       </Head>
 
       <SubmitBanner status={bannerStatus} message={bannerStatus === "loading" ? "Saving course... Please do not close this page" : undefined} />
-      <div className="flex justify-between items-center mb-8 p-8 bg-white min-h-[92px] border-b border-gray-400">
+      <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-gray-400 shrink-0">
         <h1 className="text-2xl font-medium text-black flex items-center gap-2">
           <span className="text-gray-600 cursor-pointer hover:text-gray-800" onClick={() => router.push('/admin/courses')}>&larr;</span>
           Course &apos;{courseData.name}&apos;
@@ -947,7 +947,7 @@ export default function EditCourse() {
 
           <section className="mb-10 p-8 bg-[#F6F8FE] rounded-xl">
 
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center justify-start gap-3 mb-4">
 
               <input
 
@@ -965,55 +965,28 @@ export default function EditCourse() {
 
             {hasPromoCode ? (
 
-              <div>
-
-                {promoCodes.length > 0 && <p className="text-[13px] text-slate-500 mb-4">Promo codes that are associated with this course.</p>}
-
-
-
-                {promoCodes.length > 0 ? (
-
-                  <ul className="space-y-2">
-
-                    {promoCodes.map((promo) => (
-
-                      <li key={promo.id}>
-
-                        <Link
-
-                          href={`/admin/promocodes/${promo.id}`}
-
-                          className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200 hover:border-[#2F5FAC] hover:bg-slate-50 transition-colors"
-
-                        >
-
-                          <span className="font-medium text-slate-800">{promo.code}</span>
-
-                          <span className={`text-xs px-2 py-1 rounded ${promo.status === "active" ? "bg-green-100 text-green-700" : promo.status === "expired" ? "bg-slate-100 text-slate-500" : "bg-amber-100 text-amber-700"}`}>
-
-                            {promo.status}
-
-                          </span>
-
-                        </Link>
-
-                      </li>
-
-                    ))}
-
-                  </ul>
-
-                ) : (
-
-                  <p className="text-[13px] text-slate-400">There is no promo code that is associated with this course</p>
-
-                )}
-
-              </div>
-
-            ) : (
-
               <article>
+
+                {promoCodes.length > 0 && (
+                  <div className="mb-6">
+                    <p className="text-[13px] text-slate-500 mb-4">Promo codes that are associated with this course.</p>
+                    <ul className="space-y-2">
+                      {promoCodes.map((promo) => (
+                        <li key={promo.id}>
+                          <Link
+                            href={`/admin/promocodes/${promo.id}`}
+                            className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200 hover:border-[#2F5FAC] hover:bg-slate-50 transition-colors"
+                          >
+                            <span className="font-medium text-slate-800">{promo.code}</span>
+                            <span className={`text-xs px-2 py-1 rounded ${promo.status === "active" ? "bg-green-100 text-green-700" : promo.status === "expired" ? "bg-slate-100 text-slate-500" : "bg-amber-100 text-amber-700"}`}>
+                              {promo.status}
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 <p className="text-[13px] text-slate-500 mb-4">Add promo code for this course</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
@@ -1255,7 +1228,7 @@ export default function EditCourse() {
 
               </article>
 
-            )}
+            ) : null}
 
           </section>
 
@@ -1282,13 +1255,22 @@ export default function EditCourse() {
             <div>
               <Label className="mb-1 block body2 text-black font-normal">Cover image <span className="text-[#5483D0]">*</span></Label>
               <p className="text-[13px] text-slate-400 mb-3">Supported file types: .jpg, .png, .jpeg. Max file size: 5 MB</p>
-
+              {/* Image Upload Component */}
+              {/*Fallback URL input for manual entry */}
+              <div className="my-4">
+                <Input
+                  placeholder="Cover image URL"
+                  value={courseData.coverImgUrl}
+                  onChange={(e) => setCourseData(prev => ({ ...prev, coverImgUrl: e.target.value }))}
+                  className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
+                />
+              </div>
               <ImageUpload
 
                 value={courseData.coverImageData}
 
                 onChange={handleImageUpload}
-
+                className="max-w-[300px] max-h-[300px] min-h-[300px] min-w-[300px]"
                 maxSize={5 * 1024 * 1024}
 
               />
@@ -1303,25 +1285,11 @@ export default function EditCourse() {
 
               {/* Video Upload Component */}
 
-              <VideoUpload
-
-                value={courseData.videoTrailerData}
-
-                onChange={handleVideoUpload}
-
-                className="mb-3"
-
-              />
-
-
-
-              {/* Fallback URL input for manual entry */}
-
-              <div className="mt-4">
+              <div className="my-4">
 
                 <Input
 
-                  placeholder="Or enter video trailer URL manually"
+                  placeholder="Video trailer URL"
 
                   value={courseData.vdoTrailerUrl}
 
@@ -1330,6 +1298,21 @@ export default function EditCourse() {
                 />
 
               </div>
+              <div className="my-4">
+                <VideoUpload
+
+                  value={courseData.videoTrailerData}
+
+                  onChange={handleVideoUpload}
+
+                  className="max-w-[300px] max-h-[300px] min-h-[300px] min-w-[300px]"
+                />
+              </div>
+
+
+
+              {/* Fallback URL input for manual entry */}
+
 
 
 
@@ -1463,145 +1446,55 @@ export default function EditCourse() {
 
 
 
-        <div className="rounded-lg overflow-hidden border border-slate-200">
-      {/* Header */}
-      <div className="flex bg-[#E4E6ED] h-[41px]">
-        <div className="w-[56px] flex-shrink-0"></div>
-        <div className="w-[48px] flex-shrink-0"></div>
-        <div className="flex-1 flex items-center px-4">
-          <span className="text-sm text-[#424C6B]">Lesson name</span>
-        </div>
-        <div className="w-[396px] flex-shrink-0 flex items-center px-4">
-          <span className="text-sm text-[#424C6B]">Sub-lesson</span>
-        </div>
-        <div className="w-[120px] flex-shrink-0 flex items-center justify-center">
-          <span className="text-sm text-[#424C6B]">Action</span>
-        </div>
-      </div>
-
-      {/* Body */}
-      {isLoading ? (
-        <div className="flex items-center justify-center h-32 text-slate-500">
-          Loading lessons...
-        </div>
-      ) : (
-        <SortableList
-          lessons={courseData.lessons}
-          setLessons={setLessons}
-          courseId={id}
-          token={token}
-          onDeleteLesson={handleDeleteLesson}
-          onEditLesson={(lesson) => router.push(`/admin/courses/${id}/lessons/${lesson.id}`)}
-          onAddSubLesson={openAddSubLesson}
-          onDeleteSubLesson={handleDeleteSubLesson}
-          onEditSubLesson={openEditSubLesson}
-        />
-      )}
-    </div>
-
-    <div className="flex justify-end mt-4">
-
-      <Button
-
-        variant="ghost"
-        className="text-base font-bold text-red-500 hover:text-red-500 hover:bg-red-50 active:text-red-500"
-        onClick={() => setIsDeleteOpen(true)}
-
-        disabled={isDeleting || isSaving}
-
-      >
-
-        Delete Course
-
-      </Button>
-
-    </div>
-
-  </div>
-
-      </div >
-
-    <Modal
-
-      open={isDeleteOpen}
-
-      onClose={() => setIsDeleteOpen(false)}
-
-      message="Are you sure you want to delete this course?"
-
-      primaryLabel="No, keep it"
-
-      secondaryLabel={"Yes, I want to delete this course"}
-
-      onSecondaryClick={handleConfirmDelete}
-
-    />
-
-
-
-  {/* Add Sub-Lesson Dialog */ }
-
-  {
-    isAddSubLessonOpen && (
-
-      <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-
-        <div className="bg-white rounded-xl p-8 w-full max-w-md shadow-lg">
-
-          <h3 className="text-lg font-medium mb-4">Add Sub-Lesson</h3>
-
-          <div className="space-y-4">
-
-            <div>
-              <Label className="mb-1 block body2 text-black font-normal">Sub-lesson name</Label>
-              <Input
-
-                value={newSubLessonName}
-
-                onChange={(e) => setNewSubLessonName(e.target.value)}
-
-                placeholder="Enter sub-lesson name"
-                className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
-              />
-
+          <div className="rounded-lg overflow-hidden border border-slate-200">
+            {/* Header */}
+            <div className="flex bg-[#E4E6ED] h-[41px]">
+              <div className="w-[56px] flex-shrink-0"></div>
+              <div className="w-[48px] flex-shrink-0"></div>
+              <div className="flex-1 flex items-center px-4">
+                <span className="text-sm text-[#424C6B]">Lesson name</span>
+              </div>
+              <div className="w-[396px] flex-shrink-0 flex items-center px-4">
+                <span className="text-sm text-[#424C6B]">Sub-lesson</span>
+              </div>
+              <div className="w-[120px] flex-shrink-0 flex items-center justify-center">
+                <span className="text-sm text-[#424C6B]">Action</span>
+              </div>
             </div>
 
-            <div>
-              <Label className="mb-1 block body2 text-black font-normal">Video URL (Optional)</Label>
-              <Input
-
-                value={newSubLessonVdoUrl}
-
-                onChange={(e) => setNewSubLessonVdoUrl(e.target.value)}
-
-                placeholder="https://..."
-                className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
+            {/* Body */}
+            {isLoading ? (
+              <div className="flex items-center justify-center h-32 text-slate-500">
+                Loading lessons...
+              </div>
+            ) : (
+              <SortableList
+                lessons={courseData.lessons}
+                setLessons={setLessons}
+                courseId={id}
+                token={token}
+                onDeleteLesson={handleDeleteLesson}
+                onEditLesson={(lesson) => router.push(`/admin/courses/${id}/lessons/${lesson.id}`)}
+                onAddSubLesson={openAddSubLesson}
+                onDeleteSubLesson={handleDeleteSubLesson}
+                onEditSubLesson={openEditSubLesson}
               />
-
-            </div>
-
-            <div>
-              <Label className="mb-1 block body2 text-black font-normal">Video Duration in minutes (Optional)</Label>
-              <Input
-
-                type="number"
-
-                value={newSubLessonVdoTime}
-
-                onChange={(e) => setNewSubLessonVdoTime(e.target.value)}
-
-                placeholder="10"
-                className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
-              />
-
-            </div>
-
+            )}
           </div>
 
-          <div className="flex justify-end gap-3 mt-6">
-            <Button variant="cancel" size="admin" onClick={() => setIsAddSubLessonOpen(false)}>Cancel</Button>
-            <Button variant="primary" size="admin" onClick={handleAddSubLesson} disabled={isSavingSubLesson}>
-              {isSavingSubLesson ? "Adding..." : "Add"}
+          <div className="flex justify-end mt-4">
+
+            <Button
+
+              variant="ghost"
+              className="text-base font-bold text-red-500 hover:text-red-500 hover:bg-red-50 active:text-red-500"
+              onClick={() => setIsDeleteOpen(true)}
+
+              disabled={isDeleting || isSaving}
+
+            >
+
+              Delete Course
 
             </Button>
 
@@ -1609,83 +1502,173 @@ export default function EditCourse() {
 
         </div>
 
-      </div>
+      </div >
 
-    )
-  }
+      <Modal
+
+        open={isDeleteOpen}
+
+        onClose={() => setIsDeleteOpen(false)}
+
+        message="Are you sure you want to delete this course?"
+
+        primaryLabel="No, keep it"
+
+        secondaryLabel={"Yes, I want to delete this course"}
+
+        onSecondaryClick={handleConfirmDelete}
+
+      />
 
 
 
-  {/* Edit Sub-Lesson Dialog */ }
+      {/* Add Sub-Lesson Dialog */}
 
-  {
-    isEditSubLessonOpen && (
+      {
+        isAddSubLessonOpen && (
 
-      <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
 
-        <div className="bg-white rounded-xl p-8 w-full max-w-md shadow-lg">
+            <div className="bg-white rounded-xl p-8 w-full max-w-md shadow-lg">
 
-          <h3 className="text-lg font-medium mb-4">Edit Sub-Lesson</h3>
+              <h3 className="text-lg font-medium mb-4">Add Sub-Lesson</h3>
 
-          <div className="space-y-4">
+              <div className="space-y-4">
 
-            <div>
-              <Label className="mb-1 block body2 text-black font-normal">Sub-lesson name</Label>
-              <Input
+                <div>
+                  <Label className="mb-1 block body2 text-black font-normal">Sub-lesson name</Label>
+                  <Input
 
-                value={editSubLessonName}
+                    value={newSubLessonName}
 
-                onChange={(e) => setEditSubLessonName(e.target.value)}
+                    onChange={(e) => setNewSubLessonName(e.target.value)}
 
-                placeholder="Sub-lesson name"
-                className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
-              />
+                    placeholder="Enter sub-lesson name"
+                    className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
+                  />
 
-            </div>
+                </div>
 
-            <div>
-              <Label className="mb-1 block body2 text-black font-normal">Video URL (Optional)</Label>
-              <Input
+                <div>
+                  <Label className="mb-1 block body2 text-black font-normal">Video URL (Optional)</Label>
+                  <Input
 
-                value={editSubLessonVdoUrl}
+                    value={newSubLessonVdoUrl}
 
-                onChange={(e) => setEditSubLessonVdoUrl(e.target.value)}
+                    onChange={(e) => setNewSubLessonVdoUrl(e.target.value)}
 
-                placeholder="https://..."
-                className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
-              />
+                    placeholder="https://..."
+                    className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
+                  />
 
-            </div>
+                </div>
 
-            <div>
-              <Label className="mb-1 block body2 text-black font-normal">Video Duration in minutes (Optional)</Label>
-              <Input
+                <div>
+                  <Label className="mb-1 block body2 text-black font-normal">Video Duration in minutes (Optional)</Label>
+                  <Input
 
-                type="number"
+                    type="number"
 
-                value={editSubLessonVdoTime}
+                    value={newSubLessonVdoTime}
 
-                onChange={(e) => setEditSubLessonVdoTime(e.target.value)}
+                    onChange={(e) => setNewSubLessonVdoTime(e.target.value)}
 
-                placeholder="10"
-                className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
-              />
+                    placeholder="10"
+                    className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
+                  />
+
+                </div>
+
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6">
+                <Button variant="cancel" size="admin" onClick={() => setIsAddSubLessonOpen(false)}>Cancel</Button>
+                <Button variant="primary" size="admin" onClick={handleAddSubLesson} disabled={isSavingSubLesson}>
+                  {isSavingSubLesson ? "Adding..." : "Add"}
+
+                </Button>
+
+              </div>
 
             </div>
 
           </div>
 
-          <div className="flex justify-end gap-3 mt-6">
-            <Button variant="cancel" size="admin" onClick={() => setIsEditSubLessonOpen(false)}>Cancel</Button>
-            <Button variant="primary" size="admin" onClick={handleUpdateSubLesson}>Save</Button>
+        )
+      }
+
+
+
+      {/* Edit Sub-Lesson Dialog */}
+
+      {
+        isEditSubLessonOpen && (
+
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+
+            <div className="bg-white rounded-xl p-8 w-full max-w-md shadow-lg">
+
+              <h3 className="text-lg font-medium mb-4">Edit Sub-Lesson</h3>
+
+              <div className="space-y-4">
+
+                <div>
+                  <Label className="mb-1 block body2 text-black font-normal">Sub-lesson name</Label>
+                  <Input
+
+                    value={editSubLessonName}
+
+                    onChange={(e) => setEditSubLessonName(e.target.value)}
+
+                    placeholder="Sub-lesson name"
+                    className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
+                  />
+
+                </div>
+
+                <div>
+                  <Label className="mb-1 block body2 text-black font-normal">Video URL (Optional)</Label>
+                  <Input
+
+                    value={editSubLessonVdoUrl}
+
+                    onChange={(e) => setEditSubLessonVdoUrl(e.target.value)}
+
+                    placeholder="https://..."
+                    className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
+                  />
+
+                </div>
+
+                <div>
+                  <Label className="mb-1 block body2 text-black font-normal">Video Duration in minutes (Optional)</Label>
+                  <Input
+
+                    type="number"
+
+                    value={editSubLessonVdoTime}
+
+                    onChange={(e) => setEditSubLessonVdoTime(e.target.value)}
+
+                    placeholder="10"
+                    className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
+                  />
+
+                </div>
+
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6">
+                <Button variant="cancel" size="admin" onClick={() => setIsEditSubLessonOpen(false)}>Cancel</Button>
+                <Button variant="primary" size="admin" onClick={handleUpdateSubLesson}>Save</Button>
+              </div>
+
+            </div>
+
           </div>
 
-        </div>
-
-      </div>
-
-    )
-  }
+        )
+      }
 
     </AdminLayout >
 

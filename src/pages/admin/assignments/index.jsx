@@ -101,7 +101,7 @@ export default function AssignmentList() {
       <Head>
         <title>Assignments - Admin Panel</title>
       </Head>
-      <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-slate-200">
+      <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-slate-200 shrink-0">
         <h1 className="text-2xl font-medium text-slate-800">Assignments</h1>
         <div className="flex items-center gap-4">
           <div className="relative w-[320px]">

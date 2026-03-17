@@ -67,12 +67,15 @@ export default function ImageUpload({
   }, [onChange, preview]);
 
   const formatFileSize = (bytes) => {
+    if (bytes == null || typeof bytes !== 'number' || !Number.isFinite(bytes) || bytes < 0) return '';
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
+
+  const displayName = preview?.name === 'cover' ? 'Cover image' : (preview?.name || 'Image');
 
   const getAspectRatioClass = () => {
     switch (aspectRatio) {
@@ -88,7 +91,7 @@ export default function ImageUpload({
   };
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`space-y-4 ${className} `}>
       {/* Upload Area */}
       {!preview && (
         <Card 
@@ -104,7 +107,7 @@ export default function ImageUpload({
             <Upload className="w-12 h-12 text-gray-400 mb-4" />
             <div className="space-y-2">
               <p className="text-lg font-medium text-gray-700">
-                {isDragActive ? 'Drop image here' : 'Upload image'}
+                {isDragActive ? 'Drop Image here' : 'Upload Image'}
               </p>
               <p className="text-sm text-gray-500">
                 Drag and drop or click to browse
@@ -132,7 +135,7 @@ export default function ImageUpload({
 
       {/* Image Preview */}
       {preview && (
-        <Card className="p-4">
+        <Card className={`p-4 ${className}`}>
           <div className="space-y-4">
             {/* Image Info */}
             <div className="flex items-start justify-between">
@@ -140,11 +143,11 @@ export default function ImageUpload({
                 <div className="p-2 bg-green-100 rounded-lg">
                   <ImageIcon className="w-6 h-6 text-green-600" />
                 </div>
-                <div className="space-y-1">
-                  <h4 className="font-medium text-gray-900">{preview.name}</h4>
+                <div className="space-y-1 min-w-0 flex-1">
+                  <h4 className="font-medium text-gray-900 truncate max-w-[150px]" title={displayName}>{displayName}</h4>
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
                     <span>{formatFileSize(preview.size)}</span>
-                    {preview.width && preview.height && (
+                    {typeof preview.width === 'number' && typeof preview.height === 'number' && Number.isFinite(preview.width) && Number.isFinite(preview.height) && (
                       <span>{preview.width} × {preview.height}px</span>
                     )}
                   </div>
@@ -165,7 +168,7 @@ export default function ImageUpload({
               <img
                 src={preview.preview}
                 alt={preview.name}
-                className="w-full h-full object-contain"
+                className="w-full h-full min-h-[200px] object-fill"
               />
             </div>
           </div>

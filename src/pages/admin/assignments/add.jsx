@@ -207,7 +207,7 @@ export default function AddAssignment() {
         <title>Add Assignment - Admin Panel</title>
       </Head>
 
-      <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-slate-200">
+      <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-gray-400 shrink-0">
         <h1 className="text-2xl font-medium text-slate-800">Add Assignment</h1>
         <div className="flex gap-4">
           <Button
@@ -235,7 +235,7 @@ export default function AddAssignment() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-10 mb-8">
+      <div className="bg-white rounded-2xl border border-gray-300 shadow-sm px-[100px] pt-10 pb-[60px] mb-8">
         {/* Cascaded Selectors */}
         <div className="mb-8">
           <div className="mb-6">
