@@ -55,7 +55,7 @@ function mapQuestionsFromApi(apiQuestions = []) {
 export default function EditAssignment() {
   const router = useRouter()
   const { id } = router.query
-  const { token, loading, logout } = useAuth()
+  const { token, loading, logout, profile, isLoggedIn } = useAuth()
 
   const [isPageLoading, setIsPageLoading] = useState(true)
   const [pageError, setPageError] = useState("")
@@ -74,23 +74,26 @@ export default function EditAssignment() {
   const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
-    if (!loading && !token) router.push("/admin/login")
-  }, [loading, token, router])
+    if (loading) return
+    if (!isLoggedIn || !profile || profile.role !== "admin") {
+      router.push("/admin/login")
+    }
+  }, [loading, isLoggedIn, profile, router])
 
   // Load courses tree
   useEffect(() => {
-    if (!token) return
+    if (!token || loading || !isLoggedIn || profile?.role !== "admin") return
     axios
       .get("/api/admin/assignments/courses-tree", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setCoursesTree(res.data.courses || []))
       .catch((err) => console.error("Fetch courses tree error:", err))
-  }, [token])
+  }, [token, loading, isLoggedIn, profile])
 
   // Load assignment data
   useEffect(() => {
-    if (!id || !token) return
+    if (!id || !token || loading || !isLoggedIn || profile?.role !== "admin") return
     const fetchAssignment = async () => {
       setIsPageLoading(true)
       setPageError("")
@@ -116,7 +119,7 @@ export default function EditAssignment() {
       }
     }
     fetchAssignment()
-  }, [id, token, logout])
+  }, [id, token, logout, loading, isLoggedIn, profile])
 
   const selectedCourse = coursesTree.find((c) => String(c.id) === String(selectedCourseId))
   const lessons = selectedCourse?.lessons || []

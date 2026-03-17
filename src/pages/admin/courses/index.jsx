@@ -29,7 +29,7 @@ export default function CourseList() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize] = useState(10)
   const [totalItems, setTotalItems] = useState(0)
-  const { token, logout } = useAuth()
+  const { token, logout, profile, isLoggedIn, loading } = useAuth()
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -49,17 +49,21 @@ export default function CourseList() {
       } catch (error) {
         console.error("Error fetching courses:", error)
         if (error.response?.status === 401 || error.response?.status === 403) {
-          logout()
+          await logout()
         }
       } finally {
         setIsLoading(false)
       }
     }
 
-    if (token) {
+    // ให้โหลดคอร์สเฉพาะเมื่อ:
+    // - auth เช็คเสร็จแล้ว (loading = false)
+    // - login แล้ว
+    // - และเป็น admin เท่านั้น
+    if (!loading && isLoggedIn && profile?.role === "admin" && token) {
       fetchCourses()
     }
-  }, [token, currentPage, pageSize, searchTerm, logout])
+  }, [token, currentPage, pageSize, searchTerm, logout, loading, isLoggedIn, profile])
 
   // Reset to page 1 when search term changes
   useEffect(() => {
