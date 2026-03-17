@@ -75,6 +75,7 @@ export function AuthProvider({ children }) {
       fetchProfile(token)
     } else {
       setProfile(null)
+      setProfileLoading(false)
     }
   }, [token, fetchProfile])
 
