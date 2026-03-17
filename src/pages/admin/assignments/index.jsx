@@ -131,14 +131,14 @@ export default function AssignmentList() {
       <div className="m-8 mb-16">
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <Table>
-          <TableHeader className="bg-[#E2E8F0] h-12">
-            <TableRow className="hover:bg-[#E2E8F0] border-b-0">
-              <TableHead className="text-slate-600 font-medium">Assignment detail</TableHead>
-              <TableHead className="text-slate-600 font-medium">Course</TableHead>
-              <TableHead className="text-slate-600 font-medium">Lesson</TableHead>
-              <TableHead className="text-slate-600 font-medium">Sub-lesson</TableHead>
-              <TableHead className="text-slate-600 font-medium">Created date</TableHead>
-              <TableHead className="text-center text-slate-600 font-medium">Action</TableHead>
+          <TableHeader className="bg-gray-300 h-[41px]">
+            <TableRow className="hover:bg-gray-300 border-b-0">
+              <TableHead className="text-slate-600 font-medium body3 text-gray-800 font-normal">Assignment detail</TableHead>
+              <TableHead className="text-slate-600 font-medium body3 text-gray-800 font-normal">Course</TableHead>
+              <TableHead className="text-slate-600 font-medium body3 text-gray-800 font-normal">Lesson</TableHead>
+              <TableHead className="text-slate-600 font-medium body3 text-gray-800 font-normal">Sub-lesson</TableHead>
+              <TableHead className="text-slate-600 font-medium body3 text-gray-800 font-normal">Created date</TableHead>
+              <TableHead className="text-center text-slate-600 font-medium body3 text-gray-800 font-normal">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -158,21 +158,21 @@ export default function AssignmentList() {
               assignments.map((a) => (
                 <TableRow
                   key={a.id}
-                  className="border-b border-slate-100 hover:bg-slate-50 transition-colors h-16"
+                  className="border-b border-[#F1F2F6] hover:bg-gray-100 transition-colors h-[88px]"
                 >
-                  <TableCell className="text-slate-700 text-[15px]">
+                  <TableCell className="body2 font-normal text-black">
                     {truncate(a.first_question)}
                   </TableCell>
-                  <TableCell className="text-slate-600 text-[15px]">
+                  <TableCell className="body2 font-normal text-black">
                     {truncate(a.course_name)}
                   </TableCell>
-                  <TableCell className="text-slate-600 text-[15px]">
+                  <TableCell className="body2 font-normal text-black">
                     {truncate(a.lesson_name)}
                   </TableCell>
-                  <TableCell className="text-slate-600 text-[15px]">
+                  <TableCell className="body2 font-normal text-black">
                     {truncate(a.sub_lesson_name)}
                   </TableCell>
-                  <TableCell className="text-slate-500 text-[14px]">
+                  <TableCell className="body2 font-normal text-black">
                     {formatDate(a.created_at)}
                   </TableCell>
                   <TableCell>

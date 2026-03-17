@@ -7,6 +7,14 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import AdminLayout from "@/components/layout/AdminLayout"
 import Modal from "@/common/modal"
 import { useRouter } from "next/router"
@@ -476,15 +484,15 @@ export default function EditCourse() {
       <div className="bg-white rounded-2xl border border-gray-300 shadow-sm px-[100px] pt-10 pb-[60px] mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8 mb-8">
           <div className="col-span-2">
-            <Label className="mb-1 block body2 text-black font-normal">Course name <span className="text-[#C82A2A]">*</span></Label>
+            <Label className="mb-1 block body2 text-black font-normal">Course name <span className="text-[#5483D0]">*</span></Label>
             <Input value={courseData.name} onChange={(e) => setCourseData(prev => ({ ...prev, name: e.target.value }))} className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600" />
           </div>
           <div>
-            <Label className="mb-1 block body2 text-black font-normal">Price <span className="text-[#C82A2A]">*</span></Label>
+            <Label className="mb-1 block body2 text-black font-normal">Price <span className="text-[#5483D0]">*</span></Label>
             <Input value={courseData.price} onChange={(e) => setCourseData(prev => ({ ...prev, price: e.target.value }))} type="number" className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600" />
           </div>
           <div>
-            <Label className="mb-1 block body2 text-black font-normal">Total learning time <span className="text-[#C82A2A]">*</span></Label>
+            <Label className="mb-1 block body2 text-black font-normal">Total learning time <span className="text-[#5483D0]">*</span></Label>
             <Input value={courseData.learningTime} onChange={(e) => setCourseData(prev => ({ ...prev, learningTime: e.target.value }))} type="number" className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600" />
           </div>
         </div>
@@ -673,18 +681,18 @@ export default function EditCourse() {
 
         <div className="space-y-8">
           <div>
-            <Label className="mb-1 block body2 text-black font-normal">Course summary <span className="text-[#C82A2A]">*</span></Label>
+            <Label className="mb-1 block body2 text-black font-normal">Course summary <span className="text-[#5483D0]">*</span></Label>
             <Input value={courseData.summary} onChange={(e) => setCourseData(prev => ({ ...prev, summary: e.target.value }))} className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600" />
           </div>
           <div>
-            <Label className="mb-1 block body2 text-black font-normal">Course detail <span className="text-[#C82A2A]">*</span></Label>
+            <Label className="mb-1 block body2 text-black font-normal">Course detail <span className="text-[#5483D0]">*</span></Label>
             <Textarea value={courseData.detail} onChange={(e) => setCourseData(prev => ({ ...prev, detail: e.target.value }))} className="min-h-[300px] border-gray-400 rounded-lg resize-none body2 leading-relaxed p-4 placeholder:text-gray-600" />
           </div>
         </div>
 
         <div className="space-y-8 mt-10">
           <div>
-            <Label className="mb-1 block body2 text-black font-normal">Cover image <span className="text-[#C82A2A]">*</span></Label>
+            <Label className="mb-1 block body2 text-black font-normal">Cover image <span className="text-[#5483D0]">*</span></Label>
             <p className="text-[13px] text-slate-400 mb-3">Supported file types: .jpg, .png, .jpeg. Max file size: 5 MB</p>
             <ImageUpload
               value={courseData.coverImageData}
@@ -694,7 +702,7 @@ export default function EditCourse() {
           </div>
 
           <div>
-            <Label className="mb-1 block body2 text-black font-normal">Video Trailer <span className="text-[#C82A2A]">*</span></Label>
+            <Label className="mb-1 block body2 text-black font-normal">Video Trailer <span className="text-[#5483D0]">*</span></Label>
             
             {/* Video Upload Component */}
             <VideoUpload
@@ -781,29 +789,38 @@ export default function EditCourse() {
           </Button>
         </div>
 
-        <div className="bg-slate-100 rounded-xl overflow-hidden">
-          <div className="grid grid-cols-12 bg-gray-300 p-4 body3 text-gray-800 font-normal">
-            <div className="col-span-1 text-center"></div>
-            <div className="col-span-6">Lesson name</div>
-            <div className="col-span-3">Sub-lesson</div>
-            <div className="col-span-2 text-center">Action</div>
-          </div>
-          <div className="bg-white">
-            {isLoading
-              ? <div className="p-6 text-slate-500">Loading lessons...</div>
-              : <SortableList
-                lessons={courseData.lessons}
-                setLessons={setLessons}
-                courseId={id}
-                token={token}
-                onDeleteLesson={handleDeleteLesson}
-                onEditLesson={(lesson) => router.push(`/admin/courses/${id}/lessons/${lesson.id}`)}
-                onAddSubLesson={openAddSubLesson}
-                onDeleteSubLesson={handleDeleteSubLesson}
-                onEditSubLesson={openEditSubLesson}
-              />
-            }
-          </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <Table>
+            <TableHeader className="bg-gray-300 h-[41px]">
+              <TableRow className="hover:bg-gray-300 border-b-0">
+                <TableHead className="w-12 text-center body3 text-gray-800 font-normal"></TableHead>
+                <TableHead className="w-24 body3 text-gray-800 font-normal">Image</TableHead>
+                <TableHead className="w-48 body3 text-gray-800 font-normal">Lesson name</TableHead>
+                <TableHead className="w-32 body3 text-gray-800 font-normal">Sub-lesson</TableHead>
+                <TableHead className="w-32 body3 text-gray-800 font-normal">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading
+                ? <TableRow>
+                    <TableCell colSpan={5} className="text-center h-32 text-slate-500">
+                      Loading lessons...
+                    </TableCell>
+                  </TableRow>
+                : <SortableList
+                    lessons={courseData.lessons}
+                    setLessons={setLessons}
+                    courseId={id}
+                    token={token}
+                    onDeleteLesson={handleDeleteLesson}
+                    onEditLesson={(lesson) => router.push(`/admin/courses/${id}/lessons/${lesson.id}`)}
+                    onAddSubLesson={openAddSubLesson}
+                    onDeleteSubLesson={handleDeleteSubLesson}
+                    onEditSubLesson={openEditSubLesson}
+                  />
+              }
+            </TableBody>
+          </Table>
         </div>
         <div className="flex justify-end mt-4">
           <Button

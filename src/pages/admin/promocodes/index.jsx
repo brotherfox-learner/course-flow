@@ -149,53 +149,53 @@ export default function PromoCodeList() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg border shadow-sm">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <Table>
-          <TableHeader className="bg-slate-100">
-            <TableRow>
-              <TableHead>Promo code</TableHead>
-              <TableHead>Discount</TableHead>
-              <TableHead>Courses</TableHead>
-              <TableHead>Valid period</TableHead>
-              <TableHead>Usage</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created date</TableHead>
-              <TableHead className="text-right">Action</TableHead>
+          <TableHeader className="bg-gray-300 h-[41px]">
+            <TableRow className="hover:bg-gray-300 border-b-0">
+              <TableHead className="body3 text-gray-800 font-normal">Promo code</TableHead>
+              <TableHead className="body3 text-gray-800 font-normal">Discount</TableHead>
+              <TableHead className="body3 text-gray-800 font-normal">Courses</TableHead>
+              <TableHead className="body3 text-gray-800 font-normal">Valid period</TableHead>
+              <TableHead className="body3 text-gray-800 font-normal">Usage</TableHead>
+              <TableHead className="body3 text-gray-800 font-normal">Status</TableHead>
+              <TableHead className="body3 text-gray-800 font-normal">Created date</TableHead>
+              <TableHead className="text-center body3 text-gray-800 font-normal">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center h-24 text-slate-500">
+                <TableCell colSpan={8} className="text-center h-32 text-slate-500">
                   Loading promo codes...
                 </TableCell>
               </TableRow>
             ) : filteredPromoCodes.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center h-24 text-slate-500">
+                <TableCell colSpan={8} className="text-center h-32 text-slate-500">
                   No promo codes found
                 </TableCell>
               </TableRow>
             ) : (
               filteredPromoCodes.map((promo) => (
-                <TableRow key={promo.id}>
-                  <TableCell className="font-medium">{promo.code}</TableCell>
-                  <TableCell>{formatDiscount(promo)}</TableCell>
-                  <TableCell>
+                <TableRow className="border-b border-[#F1F2F6] hover:bg-gray-100 transition-colors h-[88px]">
+                  <TableCell className="body2 font-normal text-black font-medium">{promo.code}</TableCell>
+                  <TableCell className="body2 font-normal text-black">{formatDiscount(promo)}</TableCell>
+                  <TableCell className="body2 font-normal text-black">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${promo.course_count > 0 ? "bg-blue-50 text-blue-600" : "bg-slate-100 text-slate-500"}`}>
                       {promo.course_count > 0 ? "Some" : "All"}
                     </span>
                   </TableCell>
-                  <TableCell>{formatValidPeriod(promo)}</TableCell>
-                  <TableCell>{formatUsage(promo)}</TableCell>
-                  <TableCell>
+                  <TableCell className="body2 font-normal text-black">{formatValidPeriod(promo)}</TableCell>
+                  <TableCell className="body2 font-normal text-black">{formatUsage(promo)}</TableCell>
+                  <TableCell className="body2 font-normal text-black">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusBadgeClass(promo.status)}`}>
                       {statusLabel(promo.status)}
                     </span>
                   </TableCell>
-                  <TableCell className="text-slate-500">{formatDate(promo.created_at)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                  <TableCell className="body2 font-normal text-black">{formatDate(promo.created_at)}</TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex justify-center gap-2">
                       <Button
                         variant="ghost"
                         size="icon"

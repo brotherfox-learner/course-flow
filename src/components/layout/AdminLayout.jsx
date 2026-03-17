@@ -1,15 +1,13 @@
 import { AdminSidebar } from "./AdminSidebar"
-import { SidebarProvider } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 
 export default function AdminLayout({ children, className }) {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-white">
-        <AdminSidebar />
-        <main className={`flex-1 p-0 bg-gray-100 ${className}`}>
-          {children}
-        </main>
-      </div>
+      <AdminSidebar />
+      <SidebarInset className={`p-0 bg-[#F6F7FC] ${className}`}>
+        {children}
+      </SidebarInset>
     </SidebarProvider>
   )
 }
