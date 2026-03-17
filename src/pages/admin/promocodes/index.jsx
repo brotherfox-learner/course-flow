@@ -1,3 +1,4 @@
+import Head from "next/head"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -12,6 +13,7 @@ import { Search, Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
 import AdminLayout from "@/components/layout/AdminLayout"
 import Modal from "@/common/modal"
+import Pagination from "@/common/pagination"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import axios from "axios"
 import { useAuth } from "@/context/AuthContext"
@@ -25,6 +27,8 @@ export default function PromoCodeList() {
   const [errorMessage, setErrorMessage] = useState("")
   const [deleteModal, setDeleteModal] = useState({ open: false, promo: null })
   const [isDeleting, setIsDeleting] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize] = useState(10)
 
   const fetchPromoCodes = useCallback(async () => {
     if (!token) return
@@ -87,6 +91,15 @@ export default function PromoCodeList() {
     )
   }, [promoCodes, searchTerm])
 
+  const paginatedPromoCodes = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredPromoCodes.slice(start, start + pageSize)
+  }, [filteredPromoCodes, currentPage, pageSize])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm])
+
   const formatDiscount = (promo) => {
     if (promo.discount_type === "percent") {
       return `${promo.discount_value}%`
@@ -122,16 +135,19 @@ export default function PromoCodeList() {
 
   return (
     <AdminLayout>
+      <Head>
+        <title>Promo Code - Admin Panel</title>
+      </Head>
       <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-slate-200">
         <h1 className="text-2xl font-medium text-slate-800">Promo code</h1>
         <div className="flex items-center gap-4">
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <div className="relative w-[320px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <Input 
               placeholder="Search..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-10"
+              className="pl-10 h-11 border-slate-300 rounded-md shadow-sm text-[15px]"
             />
           </div>
           <Link href="/admin/promocodes/add">
@@ -153,6 +169,7 @@ export default function PromoCodeList() {
         <Table>
           <TableHeader className="bg-gray-300 h-[41px]">
             <TableRow className="hover:bg-gray-300 border-b-0">
+              <TableHead className="w-[48px] text-center body3 text-gray-800 font-normal"> </TableHead>
               <TableHead className="body3 text-gray-800 font-normal">Promo code</TableHead>
               <TableHead className="body3 text-gray-800 font-normal">Discount</TableHead>
               <TableHead className="body3 text-gray-800 font-normal">Courses</TableHead>
@@ -166,48 +183,53 @@ export default function PromoCodeList() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center h-32 text-slate-500">
+                <TableCell colSpan={9} className="text-center h-32 text-slate-500">
                   Loading promo codes...
                 </TableCell>
               </TableRow>
-            ) : filteredPromoCodes.length === 0 ? (
+            ) : paginatedPromoCodes.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center h-32 text-slate-500">
+                <TableCell colSpan={9} className="text-center h-32 text-slate-500">
                   No promo codes found
                 </TableCell>
               </TableRow>
             ) : (
-              filteredPromoCodes.map((promo) => (
-                <TableRow className="border-b border-[#F1F2F6] hover:bg-gray-100 transition-colors h-[88px]">
-                  <TableCell className="body2 font-normal text-black font-medium">{promo.code}</TableCell>
+              paginatedPromoCodes.map((promo, index) => (
+                <TableRow key={promo.id} className="border-b border-[#F1F2F6] hover:bg-gray-100 transition-colors h-[88px]">
+                  <TableCell className="text-center body2 font-normal text-black">{(currentPage - 1) * pageSize + index + 1}</TableCell>
+                  <TableCell className="body2 font-medium text-black">{promo.code}</TableCell>
                   <TableCell className="body2 font-normal text-black">{formatDiscount(promo)}</TableCell>
                   <TableCell className="body2 font-normal text-black">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${promo.course_count > 0 ? "bg-blue-50 text-blue-600" : "bg-slate-100 text-slate-500"}`}>
                       {promo.course_count > 0 ? "Some" : "All"}
                     </span>
                   </TableCell>
-                  <TableCell className="body2 font-normal text-black">{formatValidPeriod(promo)}</TableCell>
+                  <TableCell className="body2 font-normal text-black whitespace-normal">
+                    <span>{formatDate(promo.valid_from)}</span>
+                    <span className="mx-1">-</span>
+                    <span>{formatDate(promo.valid_until)}</span>
+                  </TableCell>
                   <TableCell className="body2 font-normal text-black">{formatUsage(promo)}</TableCell>
                   <TableCell className="body2 font-normal text-black">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusBadgeClass(promo.status)}`}>
                       {statusLabel(promo.status)}
                     </span>
                   </TableCell>
-                  <TableCell className="body2 font-normal text-black">{formatDate(promo.created_at)}</TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex justify-center gap-2">
+                  <TableCell className="body2 font-normal text-black whitespace-normal">{formatDate(promo.created_at)}</TableCell>
+                  <TableCell>
+                    <div className="flex justify-center gap-4">
                       <Button
                         variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-red-500"
+                        size="icon-xs"
+                        className="h-9 w-9 text-blue-300 hover:text-red-500 hover:bg-red-50 rounded-full"
                         onClick={() => handleDeleteClick(promo)}
                         disabled={isDeleting}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="size-5" />
                       </Button>
                       <Link href={`/admin/promocodes/${promo.id}`}>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-blue-500">
-                          <Edit className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" className="h-9 w-9 text-blue-300 hover:text-blue-500 hover:bg-blue-50 rounded-full">
+                          <Edit className="size-5" />
                         </Button>
                       </Link>
                     </div>
@@ -218,6 +240,23 @@ export default function PromoCodeList() {
           </TableBody>
         </Table>
       </div>
+
+      {!isLoading && filteredPromoCodes.length > 0 && (
+        <div className="mt-6 flex justify-center cursor-pointer">
+          {filteredPromoCodes.length > pageSize ? (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filteredPromoCodes.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+            />
+          ) : (
+            <p className="text-sm text-slate-500">
+              Page 1 of 1 ({filteredPromoCodes.length} promo code{filteredPromoCodes.length !== 1 ? "s" : ""})
+            </p>
+          )}
+        </div>
+      )}
       </div>
 
       <Modal

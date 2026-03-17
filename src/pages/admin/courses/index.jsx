@@ -9,14 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import Modal from "@/common/modal"
 import { Search, Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
 import AdminLayout from "@/components/layout/AdminLayout"
@@ -145,8 +138,8 @@ export default function CourseList() {
         <Table>
           <TableHeader className="bg-gray-300 h-[41px]">
             <TableRow className="hover:bg-gray-300 border-b-0">
-              <TableHead className="w-12 text-center body3 text-gray-800 font-normal"> </TableHead>
-              <TableHead className="w-24 body3 text-gray-800 font-normal">Image</TableHead>
+              <TableHead className="w-[48px] text-center body3 text-gray-800 font-normal"> </TableHead>
+              <TableHead className="w-[96px]  body3 text-gray-800 font-normal">Image</TableHead>
               <TableHead className="body3 text-gray-800 font-normal">Course name</TableHead>
               <TableHead className="body3 text-gray-800 font-normal">Lesson</TableHead>
               <TableHead className="body3 text-gray-800 font-normal">Price</TableHead>
@@ -209,16 +202,16 @@ export default function CourseList() {
                     <div className="flex justify-center gap-4">
                       <Button 
                         variant="ghost" 
-                        size="icon" 
+                        size="icon-xs" 
                         className="h-9 w-9 text-blue-300 hover:text-red-500 hover:bg-red-50 rounded-full"
                         onClick={() => handleDeleteClick(course)}
                         disabled={isDeleting}
                       >
-                        <Trash2 className="h-6 w-6" />
+                        <Trash2 className="size-5" />
                       </Button>
                       <Link href={`/admin/courses/${course.id}`}>
                         <Button variant="ghost" size="icon" className="h-9 w-9 text-blue-300 hover:text-blue-500 hover:bg-blue-50 rounded-full">
-                          <Edit className="h-6 w-6" />
+                          <Edit className="size-5" />
                         </Button>
                       </Link>
                     </div>
@@ -243,35 +236,16 @@ export default function CourseList() {
       )}
       </div>
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Delete Course</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete "{courseToDelete?.name}"? This action cannot be undone and will permanently remove the course and all its lessons.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex gap-2 sm:justify-end">
-            <Button
-              variant="cancel"
-              size="admin"
-              onClick={handleDeleteCancel}
-              disabled={isDeleting}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="admin"
-              className="bg-red-500 hover:bg-red-600"
-              onClick={handleDeleteConfirm}
-              disabled={isDeleting}
-            >
-              {isDeleting ? "Deleting..." : "Delete Course"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <Modal
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        title="Delete Course"
+        message={`Are you sure you want to delete "${courseToDelete?.name || ""}"? This action cannot be undone and will permanently remove the course and all its lessons.`}
+        secondaryLabel="Cancel"
+        onSecondaryClick={handleDeleteCancel}
+        primaryLabel={isDeleting ? "Deleting..." : "Delete Course"}
+        onPrimaryClick={handleDeleteConfirm}
+      />
     </AdminLayout>
   )
 }
