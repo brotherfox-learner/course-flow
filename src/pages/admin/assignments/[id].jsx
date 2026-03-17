@@ -280,7 +280,7 @@ export default function EditAssignment() {
         <title>Edit Assignment - Admin Panel</title>
       </Head>
 
-      <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-slate-200">
+      <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-gray-400 shrink-0">
         <h1 className="text-2xl font-medium text-slate-800 flex items-center gap-2">
           <span
             className="text-slate-400 cursor-pointer hover:text-slate-600"
@@ -324,7 +324,7 @@ export default function EditAssignment() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-10 mb-8">
+      <div className="bg-white rounded-2xl border border-gray-300 shadow-sm px-[100px] pt-10 pb-[60px] mb-8">
         {isPageLoading ? (
           <div className="text-slate-500 text-center py-12">Loading assignment...</div>
         ) : (

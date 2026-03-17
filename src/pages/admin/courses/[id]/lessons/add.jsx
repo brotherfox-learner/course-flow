@@ -223,7 +223,7 @@ export default function AddLessonPage() {
       <Head>
         <title>Add Lesson - Admin Panel</title>
       </Head>
-      <SubmitBanner status={bannerStatus} message={bannerStatus === "loading" ? "กำลังสร้างบทเรียน… กรุณาอย่าปิดหน้านี้" : undefined} />
+      <SubmitBanner status={bannerStatus} message={bannerStatus === "loading" ? "Creating lesson... Please do not close this page" : undefined} />
 
       {/* Header */}
       <div className="flex justify-between items-center mb-8 p-8 bg-white min-h-[92px] border-b border-slate-200">
@@ -294,8 +294,8 @@ export default function AddLessonPage() {
         {/* Sub-Lesson section */}
         <h2 className="text-lg font-medium text-slate-800 mb-4">Sub-Lesson</h2>
         <p className="text-xs text-slate-400 mb-6">
-          สามารถเพิ่มบทเรียนย่อยได้ไม่จำกัด โดยอย่างน้อยต้องมี 1 ข้อ
-          (ไม่สามารถลดได้น้อยกว่า 1 ข้อ)
+          Can add unlimited sub-lessons, minimum 1 required
+          (Cannot reduce below 1 item)
         </p>
 
         <DndContext

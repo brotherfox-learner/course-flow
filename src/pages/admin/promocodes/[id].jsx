@@ -294,7 +294,7 @@ export default function EditPromoCode() {
         <title>Edit Promo Code - Admin Panel</title>
       </Head>
 
-      <header className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-slate-200">
+      <header className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-gray-400 shrink-0">
         <h1 className="text-2xl font-medium text-slate-800 flex items-center gap-2">
           <button
             type="button"
@@ -332,7 +332,7 @@ export default function EditPromoCode() {
         </div>
       )}
 
-      <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 max-w-[1440px]">
+      <section className="bg-white rounded-2xl border border-gray-300 shadow-sm px-[100px] pt-10 pb-[60px] mb-8">
         <div className="space-y-6">
 
           {/* Row 1: Code + Min purchase */}
@@ -457,7 +457,7 @@ export default function EditPromoCode() {
         </div>
       </section>
 
-      <div className="flex justify-end mt-4 max-w-[1440px]">
+      <div className="flex justify-end mt-4">
         <Button
           variant="ghost"
           className="text-base font-bold text-red-500 hover:text-red-500 hover:bg-red-50"

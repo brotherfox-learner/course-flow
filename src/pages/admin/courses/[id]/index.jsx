@@ -86,7 +86,7 @@ export default function EditCourse() {
 
   const { token, loading, logout } = useAuth()
 
-  const [hasPromoCode, setHasPromoCode] = useState(true)
+  const [hasPromoCode, setHasPromoCode] = useState(false)
 
   const [promoCodes, setPromoCodes] = useState([])
 
