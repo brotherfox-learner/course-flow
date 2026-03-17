@@ -58,7 +58,7 @@ export function AdminSidebar() {
   }
 
   return (
-    <Sidebar className="border-r border-gray-400 bg-white w-[240px]">
+    <Sidebar className="border-r border-gray-400 bg-white">
       <SidebarHeader className="px-6 pt-10 pb-6 flex flex-col items-center gap-6">
         <h1 className="text-[28px] font-bold text-center tracking-tight brand-gradient-text">
           CourseFlow
