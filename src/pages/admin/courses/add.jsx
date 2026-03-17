@@ -422,7 +422,7 @@ export default function AddCourse() {
             <input 
               type="checkbox" 
               id="promo" 
-              className="w-5 h-5 text-[#2F5FAC] rounded border-slate-300 focus:ring-[#2F5FAC]"
+              className="w-5 h-5 rounded border-slate-300 accent-[#2F5FAC] focus:ring-[#2F5FAC]"
               checked={hasPromoCode}
               onChange={(e) => setHasPromoCode(e.target.checked)}
             />
@@ -434,7 +434,7 @@ export default function AddCourse() {
               <div>
                 <Label className="mb-1 block body2 text-black font-normal">Set promo code</Label>
                 <Input
-                  placeholder="NEWYEAR200"
+                  placeholder="Enter promo code"
                   value={promoData.code}
                   onChange={(e) => setPromoData((p) => ({ ...p, code: e.target.value }))}
                   className="h-12 border-gray-400 rounded-lg bg-white body2 placeholder:text-gray-600"
@@ -458,7 +458,7 @@ export default function AddCourse() {
                   className="flex flex-col sm:flex-row gap-12"
                 >
                   <div className="flex items-center gap-3">
-                    <RadioGroupItem value="thb" id="course-promo-thb" className="w-5 h-5 border-gray-400 text-blue-500 data-[state=checked]:border-blue-500" />
+                    <RadioGroupItem value="thb" id="course-promo-thb" className="w-5 h-5 border-slate-300 text-[#2F5FAC] data-[state=checked]:border-[#2F5FAC]" />
                     <Label htmlFor="course-promo-thb" className="body2 text-black font-normal">Discount (THB)</Label>
                     <Input
                       className="w-32 ml-2 h-12 border-gray-400 rounded-lg bg-white body2 placeholder:text-gray-600"
@@ -470,7 +470,7 @@ export default function AddCourse() {
                     />
                   </div>
                   <div className="flex items-center gap-3">
-                    <RadioGroupItem value="percent" id="course-promo-percent" className="w-5 h-5 border-gray-400 text-blue-500 data-[state=checked]:border-blue-500" />
+                    <RadioGroupItem value="percent" id="course-promo-percent" className="w-5 h-5 border-slate-300 text-[#2F5FAC] data-[state=checked]:border-[#2F5FAC]" />
                     <Label htmlFor="course-promo-percent" className="body2 text-black font-normal">Discount (%)</Label>
                     <Input
                       className="w-32 ml-2 h-12 border-gray-400 rounded-lg bg-white body2 placeholder:text-gray-600"
@@ -505,14 +505,14 @@ export default function AddCourse() {
                 <Label className="mb-1 block body2 text-black font-normal">Usage Limit</Label>
                 <Input
                   type="number"
-                  placeholder="100"
+                  placeholder="Unlimited"
                   value={promoData.usageLimit}
                   onChange={(e) => setPromoData((p) => ({ ...p, usageLimit: e.target.value }))}
                   className="h-12 border-gray-400 rounded-lg bg-white body2 placeholder:text-gray-600"
                 />
               </div>
               <p className="col-span-2 text-[12px] text-slate-400 -mt-4">
-                โค้ดส่วนลดนี้จะถูกล็อคไว้สำหรับ course นี้เท่านั้น
+                This discount code will be locked for this course only
               </p>
             </div>
           )}

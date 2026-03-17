@@ -43,7 +43,7 @@ function CourseMultiSelect({ courses, selectedIds, onChange }) {
       <button
         type="button"
         onClick={() => setOpen((p) => !p)}
-        className="w-full min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 py-2 flex flex-wrap gap-2 items-center text-left bg-white focus:outline-none focus:ring-1 focus:ring-orange-300"
+        className="w-full min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 py-2 flex flex-wrap gap-2 items-center text-left bg-white hover:ring-orange-300 focus:outline-none focus:ring-1 focus:ring-orange-300"
       >
         {allSelected ? (
           <span className="text-[15px] text-slate-700">All courses</span>
@@ -325,14 +325,14 @@ export default function EditPromoCode() {
         </div>
       </header>
 
-      <div className="m-8 mb-16">
+      <div className="m-[40px] mb-16">
       {submitError && (
         <div className="bg-orange-100/20 border border-orange-500 rounded-lg px-4 py-3 mb-6">
           <p className="text-orange-500 text-sm">{submitError}</p>
         </div>
       )}
 
-      <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 max-w-4xl">
+      <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 max-w-[1440px]">
         <div className="space-y-6">
 
           {/* Row 1: Code + Min purchase */}
@@ -457,7 +457,7 @@ export default function EditPromoCode() {
         </div>
       </section>
 
-      <div className="flex justify-end mt-4 max-w-4xl">
+      <div className="flex justify-end mt-4 max-w-[1440px]">
         <Button
           variant="ghost"
           className="text-base font-bold text-red-500 hover:text-red-500 hover:bg-red-50"

@@ -339,7 +339,7 @@ export default function EditAssignment() {
                   <select
                     value={selectedCourseId}
                     onChange={(e) => handleCourseChange(e.target.value)}
-                    className="w-full h-12 border border-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#2F5FAC]/30 focus:border-[#2F5FAC]"
+                    className="w-full h-12 min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none hover:ring-orange-300 focus:outline-none focus:ring-1 focus:ring-orange-300"
                   >
                     <option value="">Select course</option>
                     {coursesTree.map((c) => (
@@ -362,7 +362,7 @@ export default function EditAssignment() {
                       value={selectedLessonId}
                       onChange={(e) => handleLessonChange(e.target.value)}
                       disabled={!selectedCourseId}
-                      className="w-full h-12 border border-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#2F5FAC]/30 focus:border-[#2F5FAC] disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full h-12 min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none hover:ring-orange-300 focus:outline-none focus:ring-1 focus:ring-orange-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <option value="">Select lesson</option>
                       {lessons.map((l) => (
@@ -383,7 +383,7 @@ export default function EditAssignment() {
                       value={selectedSubLessonId}
                       onChange={(e) => setSelectedSubLessonId(e.target.value)}
                       disabled={!selectedLessonId}
-                      className="w-full h-12 border border-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#2F5FAC]/30 focus:border-[#2F5FAC] disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full h-12 min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none hover:ring-orange-300 focus:outline-none focus:ring-1 focus:ring-orange-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <option value="">Select sub-lesson</option>
                       {subLessons.map((sl) => (
@@ -522,7 +522,7 @@ export default function EditAssignment() {
                                 onChange={(e) =>
                                   updateOption(qIdx, oIdx, "is_correct", e.target.checked)
                                 }
-                                className="w-4 h-4 text-[#2F5FAC] border-slate-300 flex-shrink-0"
+                                className="w-4 h-4 border-slate-300 flex-shrink-0 accent-[#2F5FAC]"
                                 name={
                                   q.question_type === "single_choice"
                                     ? `q-${q._id}-correct`

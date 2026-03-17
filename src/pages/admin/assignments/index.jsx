@@ -9,14 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import Modal from "@/common/modal"
 import { Search, Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
 import AdminLayout from "@/components/layout/AdminLayout"
@@ -133,33 +126,35 @@ export default function AssignmentList() {
         <Table>
           <TableHeader className="bg-gray-300 h-[41px]">
             <TableRow className="hover:bg-gray-300 border-b-0">
-              <TableHead className="text-slate-600 font-medium body3 text-gray-800 font-normal">Assignment detail</TableHead>
-              <TableHead className="text-slate-600 font-medium body3 text-gray-800 font-normal">Course</TableHead>
-              <TableHead className="text-slate-600 font-medium body3 text-gray-800 font-normal">Lesson</TableHead>
-              <TableHead className="text-slate-600 font-medium body3 text-gray-800 font-normal">Sub-lesson</TableHead>
-              <TableHead className="text-slate-600 font-medium body3 text-gray-800 font-normal">Created date</TableHead>
-              <TableHead className="text-center text-slate-600 font-medium body3 text-gray-800 font-normal">Action</TableHead>
+              <TableHead className="w-[48px] text-center body3 text-gray-800 font-normal"> </TableHead>
+              <TableHead className="body3 text-gray-800 font-normal">Assignment detail</TableHead>
+              <TableHead className="body3 text-gray-800 font-normal">Course</TableHead>
+              <TableHead className="body3 text-gray-800 font-normal">Lesson</TableHead>
+              <TableHead className="body3 text-gray-800 font-normal">Sub-lesson</TableHead>
+              <TableHead className="body3 text-gray-800 font-normal">Created date</TableHead>
+              <TableHead className="text-center body3 text-gray-800 font-normal">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center h-32 text-slate-500">
+                <TableCell colSpan={7} className="text-center h-32 text-slate-500">
                   Loading assignments...
                 </TableCell>
               </TableRow>
             ) : assignments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center h-32 text-slate-500">
+                <TableCell colSpan={7} className="text-center h-32 text-slate-500">
                   No assignments found
                 </TableCell>
               </TableRow>
             ) : (
-              assignments.map((a) => (
+              assignments.map((a, index) => (
                 <TableRow
                   key={a.id}
                   className="border-b border-[#F1F2F6] hover:bg-gray-100 transition-colors h-[88px]"
                 >
+                  <TableCell className="text-center body2 font-normal text-black">{(currentPage - 1) * PAGE_SIZE + index + 1}</TableCell>
                   <TableCell className="body2 font-normal text-black">
                     {truncate(a.first_question)}
                   </TableCell>
@@ -179,11 +174,12 @@ export default function AssignmentList() {
                     <div className="flex justify-center gap-4">
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon-xs"
                         onClick={() => setDeleteId(a.id)}
                         className="h-9 w-9 text-blue-300 hover:text-red-500 hover:bg-red-50 rounded-full"
+                        disabled={isDeleting}
                       >
-                        <Trash2 className="h-6 w-6" />
+                        <Trash2 className="size-5" />
                       </Button>
                       <Link href={`/admin/assignments/${a.id}`}>
                         <Button
@@ -191,7 +187,7 @@ export default function AssignmentList() {
                           size="icon"
                           className="h-9 w-9 text-blue-300 hover:text-blue-500 hover:bg-blue-50 rounded-full"
                         >
-                          <Edit className="h-6 w-6" />
+                          <Edit className="size-5" />
                         </Button>
                       </Link>
                     </div>
@@ -204,7 +200,7 @@ export default function AssignmentList() {
       </div>
 
       {!isLoading && total > 0 && (
-        <div className="flex justify-center mt-8 cursor-pointer">
+        <div className="mt-6 flex justify-center cursor-pointer">
           {total > PAGE_SIZE ? (
             <Pagination
               currentPage={currentPage}
@@ -221,35 +217,16 @@ export default function AssignmentList() {
       )}
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Delete Assignment</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this assignment? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="mt-4 flex gap-2 sm:justify-end">
-            <Button
-              variant="cancel"
-              size="admin"
-              onClick={() => setDeleteId(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="admin"
-              className="bg-red-500 hover:bg-red-600"
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <Modal
+        open={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        title="Delete Assignment"
+        message="Are you sure you want to delete this assignment? This action cannot be undone."
+        secondaryLabel="Cancel"
+        onSecondaryClick={() => setDeleteId(null)}
+        primaryLabel={isDeleting ? "Deleting..." : "Delete"}
+        onPrimaryClick={handleDelete}
+      />
     </AdminLayout>
   )
 }

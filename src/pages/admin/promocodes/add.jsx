@@ -43,7 +43,7 @@ function CourseMultiSelect({ courses, selectedIds, onChange }) {
       <button
         type="button"
         onClick={() => setOpen((p) => !p)}
-        className="w-full min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 py-2 flex flex-wrap gap-2 items-center text-left bg-white focus:outline-none focus:ring-1 focus:ring-orange-300"
+        className="w-full min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 py-2 flex flex-wrap gap-2 items-center text-left bg-white hover:ring-orange-300 focus:outline-none focus:ring-1 focus:ring-orange-300"
       >
         {allSelected ? (
           <span className="text-[15px] text-slate-700">All courses</span>
@@ -216,7 +216,7 @@ export default function AddPromoCode() {
 
   return (
     <AdminLayout>
-      <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-slate-200">
+      <div className="flex justify-between items-center p-8 bg-white h-[92px] border-b border-slate-200">
         <h1 className="text-2xl font-medium text-slate-800">Add Promo code</h1>
         <div className="flex gap-4">
           <Button
@@ -237,14 +237,14 @@ export default function AddPromoCode() {
         </div>
       </div>
 
-      <div className="m-8 mb-16">
+      <div className="m-[40px] mb-16">
       {submitError && (
         <div className="bg-orange-100/20 border border-orange-500 rounded-lg px-4 py-3 mb-6">
           <p className="text-orange-500 text-sm">{submitError}</p>
         </div>
       )}
 
-      <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 max-w-4xl">
+      <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 max-w-[1440px]">
         <form className="space-y-6" onSubmit={handleSubmit}>
 
           {/* Row 1: Code + Min purchase */}
@@ -253,7 +253,7 @@ export default function AddPromoCode() {
               <Label className="mb-2 block">Set promo code *</Label>
               <Input
                 name="code"
-                placeholder="NEWYEAR200"
+                placeholder="Enter promo code "
                 value={formData.code}
                 onChange={handleChange}
                 className={errors.code ? "border-red-500" : ""}

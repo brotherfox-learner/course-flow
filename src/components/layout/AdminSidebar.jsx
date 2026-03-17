@@ -60,9 +60,11 @@ export function AdminSidebar() {
   return (
     <Sidebar className="border-r border-gray-400 bg-white">
       <SidebarHeader className="px-6 pt-10 pb-6 flex flex-col items-center gap-6">
-        <h1 className="text-[28px] font-bold text-center tracking-tight brand-gradient-text">
-          CourseFlow
-        </h1>
+        <Link href="/" target="_blank" rel="noopener noreferrer" className="block">
+          <h1 className="text-[28px] font-bold text-center tracking-tight brand-gradient-text">
+            CourseFlow
+          </h1>
+        </Link>
         <p className="body2 text-gray-700 text-center font-normal">Admin Panel Control</p>
       </SidebarHeader>
       
