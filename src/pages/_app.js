@@ -1,6 +1,6 @@
 import { Inter, Nunito } from "next/font/google";
 import "@/styles/globals.css";
-import { AuthProvider } from "@/context/AuthContext"
+import { AuthProvider } from "@/features/auth/context/AuthContext"
 import { Toaster } from "sonner"
 
 const inter = Inter({

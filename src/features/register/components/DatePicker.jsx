@@ -1,10 +1,10 @@
-import React from "react"
-import { Calendar } from "@/components/ui/calendar"
+﻿import React from "react"
+import { Calendar } from "@/shared/ui/calendar"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/shared/ui/popover"
 import { CalendarIcon } from "lucide-react"
 
 /* ================= helpers ================= */

@@ -1,5 +1,5 @@
-import NavBar from "@/common/navbar/NavBar";
-import ChangeEmailSection from "@/features/profile/component/ChangeEmailSection";
+﻿import NavBar from "@/shared/components/navbar/NavBar";
+import ChangeEmailSection from "@/features/profile/components/ChangeEmailSection";
 
 
 function ChangeEmailPage() {

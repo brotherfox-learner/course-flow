@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
-import NavBar from "@/common/navbar/NavBar";
-import Footer from "@/common/Footer";
-import { useAuth } from "@/context/AuthContext";
+import NavBar from "@/shared/components/navbar/NavBar";
+import Footer from "@/shared/components/Footer";
+import { useAuth } from "@/features/auth/context/AuthContext";
 import { useCourseDetail } from "@/features/course/hooks/useCourseDetail";
 import { CourseProgress, CourseContent, CourseContentFooter } from "@/features/course-learning";
 

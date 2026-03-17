@@ -1,4 +1,4 @@
-import pool from "@/utils/db";
+import pool from "@/infrastructure/db";
 
 /**
  * GET /api/wishlist?userId=uuid

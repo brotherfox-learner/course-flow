@@ -1,9 +1,9 @@
-import Button from "@/common/navbar/Button"
+﻿import Button from "@/shared/components/navbar/Button"
 import { Mail } from "lucide-react"
-import useVerifyEmail from "../hook/useVerifyEmail"
+import useVerifyEmail from "../hooks/useVerifyEmail"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
-import { useAuth } from "@/context/AuthContext"
+import { useAuth } from "@/features/auth/context/AuthContext"
 import Lottie from "lottie-react"
 import Email from "@/assets/animation/Email.json"
 

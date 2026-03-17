@@ -1,6 +1,6 @@
-import Button from "@/common/navbar/Button"
+﻿import Button from "@/shared/components/navbar/Button"
 import DatePickerInput from "./DatePicker"
-import useRegister from "../hook/useRegister"
+import useRegister from "../hooks/useRegister"
 import Link from "next/link"
 import { ComboBox } from "./ComboBox"
 

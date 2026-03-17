@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/features/auth/context/AuthContext';
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 const SUPPORTED_FORMATS = ['mp4', 'mov', 'avi', 'mkv', 'webm'];

@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import Card from "@/common/card";
-import NavBar from "@/common/navbar/NavBar";
-import Footer from "@/common/Footer";
-import Pagination from "@/common/pagination";
-import { useAuth } from "@/context/AuthContext";
+import Card from "@/shared/components/card";
+import NavBar from "@/shared/components/navbar/NavBar";
+import Footer from "@/shared/components/Footer";
+import Pagination from "@/shared/components/pagination";
+import { useAuth } from "@/features/auth/context/AuthContext";
 
 const PAGE_SIZE = 8;
 

@@ -1,6 +1,6 @@
-import Head from "next/head"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+﻿import Head from "next/head"
+import { Button } from "@/shared/ui/button"
+import { Input } from "@/shared/ui/input"
 import {
   Table,
   TableBody,
@@ -8,16 +8,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import Modal from "@/common/modal"
+} from "@/shared/ui/table"
+import Modal from "@/shared/components/modal"
 import { Search, Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
-import AdminLayout from "@/components/layout/AdminLayout"
+import AdminLayout from "@/shared/layouts/AdminLayout"
 import { useEffect, useRef, useState } from "react"
 import axios from "axios"
-import { useAuth } from "@/context/AuthContext"
+import { useAuth } from "@/features/auth/context/AuthContext"
 import { format } from "date-fns"
-import Pagination from "@/common/pagination"
+import Pagination from "@/shared/components/pagination"
 
 const PAGE_SIZE = 10
 

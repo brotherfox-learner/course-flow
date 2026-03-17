@@ -1,9 +1,9 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { useRouter } from "next/router"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useAuth } from "@/context/AuthContext"
+import { Button } from "@/shared/ui/button"
+import { Input } from "@/shared/ui/input"
+import { Label } from "@/shared/ui/label"
+import { useAuth } from "@/features/auth/context/AuthContext"
 import axios from "axios"
 
 export function AdminLoginForm() {

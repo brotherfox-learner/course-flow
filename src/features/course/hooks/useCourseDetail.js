@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import {
+  fetchCourseById,
+  fetchLessonsByCourseId,
+  fetchCourses,
+} from "../services/course.service";
 
 /**
  * Fetch course, lessons, and other courses by course id
@@ -22,15 +26,14 @@ export function useCourseDetail(courseId) {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [courseRes, lessonsRes, coursesRes] = await Promise.all([
-          axios.get(`/api/courses/${courseId}`),
-          axios.get(`/api/lessons/${courseId}`),
-          axios.get("/api/courses").catch(() => ({ data: { courses: [] } })),
+        const [courseData, lessonsData, allCourses] = await Promise.all([
+          fetchCourseById(courseId),
+          fetchLessonsByCourseId(courseId),
+          fetchCourses().catch(() => []),
         ]);
-        setCourse(courseRes.data);
-        setLessons(Array.isArray(lessonsRes.data) ? lessonsRes.data : []);
-        const all = coursesRes.data?.courses ?? [];
-        const others = all
+        setCourse(courseData);
+        setLessons(lessonsData);
+        const others = allCourses
           .filter((c) => String(c.id) !== String(courseId))
           .slice(0, 3);
         setOtherCourses(others);

@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
-import pool from "@/utils/db"
+import pool from "@/infrastructure/db"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,

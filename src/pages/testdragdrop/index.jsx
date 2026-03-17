@@ -1,4 +1,4 @@
-import SortableList from "@/features/admin-coureses/component/SortableList";
+import SortableList from "@/features/admin-courses/components/SortableList";
 
 function TestDragDropPage() {
   return <SortableList />;

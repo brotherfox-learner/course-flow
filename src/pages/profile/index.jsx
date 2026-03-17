@@ -1,5 +1,5 @@
-import NavBar from "@/common/navbar/NavBar";
-import ProfileSection from "@/features/profile/component/ProfileSection";
+﻿import NavBar from "@/shared/components/navbar/NavBar";
+import ProfileSection from "@/features/profile/components/ProfileSection";
 
 function Profile() {
     return(

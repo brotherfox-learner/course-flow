@@ -1,0 +1,59 @@
+function Button({
+    children,
+    variant = "primary",
+    size = "lg",
+    iconOnly = false,
+    className = "",
+    ...props
+  }) {
+    const baseBehavior =
+      "inline-flex items-center justify-center transition-colors duration-200 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-black cursor-pointer";
+  
+    const sizes = {
+      sm: "text-xs p-[8px]",
+      md: "text-sm px-[16px] py-[8px] lg:text-base lg:px-[32px] lg:py-[18px]",
+      lg: "text-base px-[32px] py-[18px]",
+      ghost: "text-sm lg:text-base px-[8px] py-[4px]",
+    };
+  
+    const variants = {
+      primary: `
+        font-bold rounded-xl shadow-1
+        text-white bg-blue-500
+        hover:bg-blue-400
+        active:bg-blue-600
+        disabled:bg-gray-400
+        disabled:text-gray-600
+      `,
+      secondary: `
+        font-bold rounded-xl shadow-1
+        text-orange-500 border border-orange-500 bg-white
+        hover:border-orange-100 hover:text-orange-100
+        active:bg-gray-100
+        disabled:border-gray-400
+        disabled:text-gray-400
+      `,
+      ghost: `
+        font-bold
+        text-blue-500
+        hover:text-blue-400
+        active:text-blue-600
+        disabled:text-gray-500
+      `,
+    };
+  
+    const classNames = iconOnly
+      ? baseBehavior
+      : `${baseBehavior} ${variants[variant] || variants.primary} ${sizes[size]}`;
+  
+    return (
+      <button
+        className={`${classNames} ${className}`}
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  }
+  
+  export default Button;

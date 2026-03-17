@@ -1,6 +1,6 @@
-import NavBar from "@/common/navbar/NavBar";
-import SubFooter from "@/common/SubFooter";
-import Footer from "@/common/Footer";
+import NavBar from "@/shared/components/navbar/NavBar";
+import SubFooter from "@/shared/components/SubFooter";
+import Footer from "@/shared/components/Footer";
 import CourseDetail from "@/features/course/components/CourseDetail";
 
 export default function CourseDetailPage() {

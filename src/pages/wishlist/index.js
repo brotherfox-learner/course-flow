@@ -1,9 +1,9 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+﻿import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/router";
-import NavBar from "@/common/navbar/NavBar";
-import Footer from "@/common/Footer";
-import Pagination from "@/common/pagination";
-import { useAuth } from "@/context/AuthContext";
+import NavBar from "@/shared/components/navbar/NavBar";
+import Footer from "@/shared/components/Footer";
+import Pagination from "@/shared/components/pagination";
+import { useAuth } from "@/features/auth/context/AuthContext";
 import { useWishlist } from "@/features/wishlist/hooks";
 import MyWishlist from "@/features/wishlist/components/MyWishlist";
 

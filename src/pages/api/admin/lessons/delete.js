@@ -1,6 +1,6 @@
-import pool from "@/utils/db"
+import pool from "@/infrastructure/db"
 import { createClient } from "@supabase/supabase-js"
-import { deleteMultipleByUrl } from "@/utils/cloudinaryDelete"
+import { deleteMultipleByUrl } from "@/infrastructure/cloudinary"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
