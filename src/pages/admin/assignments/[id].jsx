@@ -55,7 +55,7 @@ function mapQuestionsFromApi(apiQuestions = []) {
 export default function EditAssignment() {
   const router = useRouter()
   const { id } = router.query
-  const { token, loading, logout } = useAuth()
+  const { token, loading, logout, profile, isLoggedIn } = useAuth()
 
   const [isPageLoading, setIsPageLoading] = useState(true)
   const [pageError, setPageError] = useState("")
@@ -74,23 +74,26 @@ export default function EditAssignment() {
   const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
-    if (!loading && !token) router.push("/admin/login")
-  }, [loading, token, router])
+    if (loading) return
+    if (!isLoggedIn || !profile || profile.role !== "admin") {
+      router.push("/admin/login")
+    }
+  }, [loading, isLoggedIn, profile, router])
 
   // Load courses tree
   useEffect(() => {
-    if (!token) return
+    if (!token || loading || !isLoggedIn || profile?.role !== "admin") return
     axios
       .get("/api/admin/assignments/courses-tree", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setCoursesTree(res.data.courses || []))
       .catch((err) => console.error("Fetch courses tree error:", err))
-  }, [token])
+  }, [token, loading, isLoggedIn, profile])
 
   // Load assignment data
   useEffect(() => {
-    if (!id || !token) return
+    if (!id || !token || loading || !isLoggedIn || profile?.role !== "admin") return
     const fetchAssignment = async () => {
       setIsPageLoading(true)
       setPageError("")
@@ -116,7 +119,7 @@ export default function EditAssignment() {
       }
     }
     fetchAssignment()
-  }, [id, token, logout])
+  }, [id, token, logout, loading, isLoggedIn, profile])
 
   const selectedCourse = coursesTree.find((c) => String(c.id) === String(selectedCourseId))
   const lessons = selectedCourse?.lessons || []
@@ -280,7 +283,7 @@ export default function EditAssignment() {
         <title>Edit Assignment - Admin Panel</title>
       </Head>
 
-      <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-slate-200">
+      <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-gray-400 shrink-0">
         <h1 className="text-2xl font-medium text-slate-800 flex items-center gap-2">
           <span
             className="text-slate-400 cursor-pointer hover:text-slate-600"
@@ -295,16 +298,17 @@ export default function EditAssignment() {
         </h1>
         <div className="flex gap-4">
           <Button
-            variant="outline"
-            className="border-[#F97316] text-[#F97316] hover:bg-orange-50 hover:text-[#EA580C] h-11 px-8 rounded-md font-medium text-[15px]"
+            variant="cancel"
+            size="admin"
             onClick={() => router.push("/admin/assignments")}
           >
             Cancel
           </Button>
           <Button
+            variant="primary"
+            size="admin"
             onClick={handleSave}
             disabled={isSubmitting || isPageLoading || loading || !token}
-            className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-11 px-8 rounded-md font-medium shadow-sm text-[15px] disabled:opacity-50"
           >
             {isSubmitting ? "Saving..." : "Save"}
           </Button>
@@ -323,7 +327,7 @@ export default function EditAssignment() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-10 mb-8">
+      <div className="bg-white rounded-2xl border border-gray-300 shadow-sm px-[100px] pt-10 pb-[60px] mb-8">
         {isPageLoading ? (
           <div className="text-slate-500 text-center py-12">Loading assignment...</div>
         ) : (
@@ -338,7 +342,7 @@ export default function EditAssignment() {
                   <select
                     value={selectedCourseId}
                     onChange={(e) => handleCourseChange(e.target.value)}
-                    className="w-full h-12 border border-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#2F5FAC]/30 focus:border-[#2F5FAC]"
+                    className="w-full h-12 min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none hover:ring-orange-300 focus:outline-none focus:ring-1 focus:ring-orange-300"
                   >
                     <option value="">Select course</option>
                     {coursesTree.map((c) => (
@@ -361,7 +365,7 @@ export default function EditAssignment() {
                       value={selectedLessonId}
                       onChange={(e) => handleLessonChange(e.target.value)}
                       disabled={!selectedCourseId}
-                      className="w-full h-12 border border-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#2F5FAC]/30 focus:border-[#2F5FAC] disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full h-12 min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none hover:ring-orange-300 focus:outline-none focus:ring-1 focus:ring-orange-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <option value="">Select lesson</option>
                       {lessons.map((l) => (
@@ -382,7 +386,7 @@ export default function EditAssignment() {
                       value={selectedSubLessonId}
                       onChange={(e) => setSelectedSubLessonId(e.target.value)}
                       disabled={!selectedLessonId}
-                      className="w-full h-12 border border-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#2F5FAC]/30 focus:border-[#2F5FAC] disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full h-12 min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none hover:ring-orange-300 focus:outline-none focus:ring-1 focus:ring-orange-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <option value="">Select sub-lesson</option>
                       {subLessons.map((sl) => (
@@ -521,7 +525,7 @@ export default function EditAssignment() {
                                 onChange={(e) =>
                                   updateOption(qIdx, oIdx, "is_correct", e.target.checked)
                                 }
-                                className="w-4 h-4 text-[#2F5FAC] border-slate-300 flex-shrink-0"
+                                className="w-4 h-4 border-slate-300 flex-shrink-0 accent-[#2F5FAC]"
                                 name={
                                   q.question_type === "single_choice"
                                     ? `q-${q._id}-correct`
@@ -582,7 +586,7 @@ export default function EditAssignment() {
         <div className="flex justify-end mb-12">
           <Button
             variant="ghost"
-            className="text-[#2F5FAC] hover:bg-blue-50 hover:text-[#1E3A8A] font-medium"
+            className="text-base font-bold text-red-500 hover:text-red-500 hover:bg-red-50"
             onClick={() => setIsDeleteOpen(true)}
           >
             Delete Assignment
@@ -602,14 +606,16 @@ export default function EditAssignment() {
           </DialogHeader>
           <DialogFooter className="mt-4 flex gap-2 sm:justify-end">
             <Button
-              variant="outline"
-              className="border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600"
+              variant="cancel"
+              size="admin"
               onClick={() => setIsDeleteOpen(false)}
             >
               Cancel
             </Button>
             <Button
-              className="bg-red-500 hover:bg-red-600 text-white"
+              variant="primary"
+              size="admin"
+              className="bg-red-500 hover:bg-red-600"
               onClick={handleDelete}
               disabled={isDeleting}
             >

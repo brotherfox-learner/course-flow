@@ -32,7 +32,7 @@ function createEmptyQuestion() {
 
 export default function AddAssignment() {
   const router = useRouter()
-  const { token, loading, logout } = useAuth()
+  const { token, loading, logout, profile, isLoggedIn } = useAuth()
 
   const [coursesTree, setCoursesTree] = useState([])
   const [selectedCourseId, setSelectedCourseId] = useState("")
@@ -45,18 +45,21 @@ export default function AddAssignment() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    if (!loading && !token) router.push("/admin/login")
-  }, [loading, token, router])
+    if (loading) return
+    if (!isLoggedIn || !profile || profile.role !== "admin") {
+      router.push("/admin/login")
+    }
+  }, [loading, isLoggedIn, profile, router])
 
   useEffect(() => {
-    if (!token) return
+    if (!token || loading || !isLoggedIn || profile?.role !== "admin") return
     axios
       .get("/api/admin/assignments/courses-tree", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setCoursesTree(res.data.courses || []))
       .catch((err) => console.error("Fetch courses tree error:", err))
-  }, [token])
+  }, [token, loading, isLoggedIn, profile])
 
   const selectedCourse = coursesTree.find((c) => String(c.id) === String(selectedCourseId))
   const lessons = selectedCourse?.lessons || []
@@ -207,20 +210,21 @@ export default function AddAssignment() {
         <title>Add Assignment - Admin Panel</title>
       </Head>
 
-      <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-slate-200">
+      <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-gray-400 shrink-0">
         <h1 className="text-2xl font-medium text-slate-800">Add Assignment</h1>
         <div className="flex gap-4">
           <Button
-            variant="outline"
-            className="border-[#F97316] text-[#F97316] hover:bg-orange-50 hover:text-[#EA580C] h-11 px-8 rounded-md font-medium text-[15px]"
+            variant="cancel"
+            size="admin"
             onClick={() => router.push("/admin/assignments")}
           >
             Cancel
           </Button>
           <Button
+            variant="primary"
+            size="admin"
             onClick={handleCreate}
             disabled={isSubmitting || loading || !token}
-            className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-11 px-8 rounded-md font-medium shadow-sm text-[15px] disabled:opacity-50"
           >
             {isSubmitting ? "Creating..." : "Create"}
           </Button>
@@ -234,7 +238,7 @@ export default function AddAssignment() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-10 mb-8">
+      <div className="bg-white rounded-2xl border border-gray-300 shadow-sm px-[100px] pt-10 pb-[60px] mb-8">
         {/* Cascaded Selectors */}
         <div className="mb-8">
           <div className="mb-6">
@@ -245,7 +249,7 @@ export default function AddAssignment() {
               <select
                 value={selectedCourseId}
                 onChange={(e) => handleCourseChange(e.target.value)}
-                className="w-full h-12 border border-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#2F5FAC]/30 focus:border-[#2F5FAC]"
+                className="w-full h-12 min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none hover:ring-orange-300 focus:outline-none focus:ring-1 focus:ring-orange-300"
               >
                 <option value="">Place Holder</option>
                 {coursesTree.map((c) => (
@@ -271,7 +275,7 @@ export default function AddAssignment() {
                   value={selectedLessonId}
                   onChange={(e) => handleLessonChange(e.target.value)}
                   disabled={!selectedCourseId}
-                  className="w-full h-12 border border-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#2F5FAC]/30 focus:border-[#2F5FAC] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-12 min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none hover:ring-orange-300 focus:outline-none focus:ring-1 focus:ring-orange-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="">Place Holder</option>
                   {lessons.map((l) => (
@@ -293,7 +297,7 @@ export default function AddAssignment() {
                   value={selectedSubLessonId}
                   onChange={(e) => setSelectedSubLessonId(e.target.value)}
                   disabled={!selectedLessonId}
-                  className="w-full h-12 border border-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#2F5FAC]/30 focus:border-[#2F5FAC] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-12 min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 pr-10 text-[15px] text-slate-700 bg-white appearance-none hover:ring-orange-300 focus:outline-none focus:ring-1 focus:ring-orange-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="">Place Holder</option>
                   {subLessons.map((sl) => (
@@ -423,7 +427,7 @@ export default function AddAssignment() {
                             onChange={(e) =>
                               updateOption(qIdx, oIdx, "is_correct", e.target.checked)
                             }
-                            className="w-4 h-4 text-[#2F5FAC] border-slate-300 flex-shrink-0"
+                            className="w-4 h-4 border-slate-300 flex-shrink-0 accent-[#2F5FAC]"
                             name={q.question_type === "single_choice" ? `q-${q._id}-correct` : undefined}
                           />
                           <Input

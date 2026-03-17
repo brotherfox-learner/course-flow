@@ -1,4 +1,4 @@
-import { Inter } from "next/font/google";
+import { Inter, Nunito } from "next/font/google";
 import "@/styles/globals.css";
 import { AuthProvider } from "@/context/AuthContext"
 import { Toaster } from "sonner"
@@ -9,10 +9,17 @@ const inter = Inter({
   display: "swap",
 });
 
+const nunito = Nunito({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-nunito",
+  display: "swap",
+});
+
 export default function App({ Component, pageProps }) {
   return (
     <AuthProvider>
-      <div className={inter.className}>
+      <div className={`${inter.className} ${nunito.variable}`}>
       <Toaster position="top-center" richColors />
         <Component {...pageProps} />
       </div>

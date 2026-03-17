@@ -117,10 +117,10 @@ export default function AddCourse() {
 
   const handleVideoUpload = (videoData) => {
     // Just store File locally — NO Cloudinary upload yet
-    setFormData(prev => ({ 
-      ...prev, 
+    setFormData(prev => ({
+      ...prev,
       videoTrailerData: videoData,
-      vdoTrailerUrl: "" 
+      vdoTrailerUrl: ""
     }))
     if (errors.vdoTrailerUrl) {
       setErrors(prev => ({ ...prev, vdoTrailerUrl: "" }))
@@ -129,10 +129,10 @@ export default function AddCourse() {
 
   const handleImageUpload = (imageData) => {
     // Just store File locally — NO Cloudinary upload yet
-    setFormData(prev => ({ 
-      ...prev, 
+    setFormData(prev => ({
+      ...prev,
       coverImageData: imageData,
-      coverImgUrl: "" 
+      coverImgUrl: ""
     }))
     if (errors.coverImgUrl) {
       setErrors(prev => ({ ...prev, coverImgUrl: "" }))
@@ -348,17 +348,18 @@ export default function AddCourse() {
       <div className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-slate-200">
         <h1 className="text-2xl font-medium text-slate-800">Add Course</h1>
         <div className="flex gap-4">
-          <Button 
-            variant="outline" 
-            className="border-[#F97316] text-[#F97316] hover:bg-orange-50 hover:text-[#EA580C] h-11 px-8 rounded-md font-medium text-[15px]" 
+          <Button
+            variant="cancel"
+            size="admin"
             onClick={() => router.push('/admin/courses')}
           >
             Cancel
           </Button>
           <Button
+            variant="primary"
+            size="admin"
             onClick={handleCreate}
             disabled={isSubmitting || loading || !token}
-            className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-11 px-8 rounded-md font-medium shadow-sm text-[15px] disabled:opacity-50"
           >
             Create
           </Button>
@@ -366,300 +367,302 @@ export default function AddCourse() {
       </div>
 
       <div className="m-8 mb-16">
-      {submitError && (
-        <div className="bg-orange-100/20 border border-orange-500 rounded-lg px-4 py-3 mb-6">
-          <p className="text-orange-500 text-sm">{submitError}</p>
-        </div>
-      )}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-10 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 mb-8">
-          <div className="col-span-2">
-            <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Course name <span className="text-[#C82A2A]">*</span></Label>
-            <Input
-              name="courseName"
-              placeholder="Place Holder"
-              value={formData.courseName}
-              onChange={handleChange}
-              className="h-12 border-slate-300 text-[15px]"
-            />
-            {errors.courseName && (
-              <p className="text-orange-500 text-sm mt-1">{errors.courseName}</p>
-            )}
+        {submitError && (
+          <div className="bg-orange-100/20 border border-orange-500 rounded-lg px-4 py-3 mb-6">
+            <p className="text-orange-500 text-sm">{submitError}</p>
           </div>
-          <div>
-            <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Price <span className="text-[#C82A2A]">*</span></Label>
-            <Input
-              name="price"
-              placeholder="Place Holder"
-              type="number"
-              value={formData.price}
-              onChange={handleChange}
-              className="h-12 border-slate-300 text-[15px]"
-            />
-            {errors.price && (
-              <p className="text-orange-500 text-sm mt-1">{errors.price}</p>
-            )}
-          </div>
-          <div>
-            <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Total learning time <span className="text-[#C82A2A]">*</span></Label>
-            <Input
-              name="totalLearningTime"
-              placeholder="Place Holder"
-              type="number"
-              value={formData.totalLearningTime}
-              onChange={handleChange}
-              className="h-12 border-slate-300 text-[15px]"
-            />
-            {errors.totalLearningTime && (
-              <p className="text-orange-500 text-sm mt-1">{errors.totalLearningTime}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="mb-8 p-8 bg-[#F6F8FE] rounded-xl">
-          <div className="flex items-center justify-start gap-3">
-            <input 
-              type="checkbox" 
-              id="promo" 
-              className="w-5 h-5 text-[#2F5FAC] rounded border-slate-300 focus:ring-[#2F5FAC]"
-              checked={hasPromoCode}
-              onChange={(e) => setHasPromoCode(e.target.checked)}
-            />
-            <Label htmlFor="promo" className="font-medium text-slate-800 text-[16px]">Promo code</Label>
-          </div>
-          
-          {hasPromoCode && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 mt-4">
-              <div>
-                <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Set promo code</Label>
-                <Input
-                  placeholder="NEWYEAR200"
-                  value={promoData.code}
-                  onChange={(e) => setPromoData((p) => ({ ...p, code: e.target.value }))}
-                  className="h-12 border-slate-300 bg-white text-[15px]"
-                />
-              </div>
-              <div>
-                <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Minimum purchase amount (THB)</Label>
-                <Input
-                  placeholder="0"
-                  type="number"
-                  value={promoData.minPurchase}
-                  onChange={(e) => setPromoData((p) => ({ ...p, minPurchase: e.target.value }))}
-                  className="h-12 border-slate-300 bg-white text-[15px]"
-                />
-              </div>
-              <div className="col-span-2">
-                <Label className="mb-4 block text-slate-700 font-medium text-[15px]">Select discount type</Label>
-                <RadioGroup
-                  value={promoData.discountType}
-                  onValueChange={(v) => setPromoData((p) => ({ ...p, discountType: v }))}
-                  className="flex flex-col sm:flex-row gap-12"
-                >
-                  <div className="flex items-center gap-3">
-                    <RadioGroupItem value="thb" id="course-promo-thb" className="w-5 h-5 border-slate-300 text-[#2F5FAC] data-[state=checked]:border-[#2F5FAC]" />
-                    <Label htmlFor="course-promo-thb" className="text-slate-700 font-medium text-[15px]">Discount (THB)</Label>
-                    <Input
-                      className="w-32 ml-2 h-12 border-slate-300 bg-white text-[15px]"
-                      placeholder="200"
-                      type="number"
-                      value={promoData.discountAmount}
-                      onChange={(e) => setPromoData((p) => ({ ...p, discountAmount: e.target.value }))}
-                      disabled={promoData.discountType !== "thb"}
-                    />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <RadioGroupItem value="percent" id="course-promo-percent" className="w-5 h-5 border-slate-300 text-[#2F5FAC] data-[state=checked]:border-[#2F5FAC]" />
-                    <Label htmlFor="course-promo-percent" className="text-slate-700 font-medium text-[15px]">Discount (%)</Label>
-                    <Input
-                      className="w-32 ml-2 h-12 border-slate-300 bg-white text-[15px]"
-                      placeholder="30"
-                      type="number"
-                      value={promoData.discountPercent}
-                      onChange={(e) => setPromoData((p) => ({ ...p, discountPercent: e.target.value }))}
-                      disabled={promoData.discountType !== "percent"}
-                    />
-                  </div>
-                </RadioGroup>
-              </div>
-              <div>
-                <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Valid From</Label>
-                <Input
-                  type="date"
-                  value={promoData.validFrom}
-                  onChange={(e) => setPromoData((p) => ({ ...p, validFrom: e.target.value }))}
-                  className="h-12 border-slate-300 bg-white text-[15px]"
-                />
-              </div>
-              <div>
-                <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Valid To</Label>
-                <Input
-                  type="date"
-                  value={promoData.validTo}
-                  onChange={(e) => setPromoData((p) => ({ ...p, validTo: e.target.value }))}
-                  className="h-12 border-slate-300 bg-white text-[15px]"
-                />
-              </div>
-              <div>
-                <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Usage Limit</Label>
-                <Input
-                  type="number"
-                  placeholder="100"
-                  value={promoData.usageLimit}
-                  onChange={(e) => setPromoData((p) => ({ ...p, usageLimit: e.target.value }))}
-                  className="h-12 border-slate-300 bg-white text-[15px]"
-                />
-              </div>
-              <p className="col-span-2 text-[12px] text-slate-400 -mt-4">
-                โค้ดส่วนลดนี้จะถูกล็อคไว้สำหรับ course นี้เท่านั้น
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-8">
-          <div>
-            <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Course summary <span className="text-[#C82A2A]">*</span></Label>
-            <Input
-              name="courseSummary"
-              placeholder="Place Holder"
-              value={formData.courseSummary}
-              onChange={handleChange}
-              className="h-12 border-slate-300 text-[15px]"
-            />
-            {errors.courseSummary && (
-              <p className="text-orange-500 text-sm mt-1">{errors.courseSummary}</p>
-            )}
-          </div>
-          <div>
-            <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Course detail <span className="text-[#C82A2A]">*</span></Label>
-            <Textarea
-              name="courseDetail"
-              placeholder="Place Holder"
-              value={formData.courseDetail}
-              onChange={handleChange}
-              className="min-h-[200px] border-slate-300 resize-none text-[15px] p-4"
-            />
-            {errors.courseDetail && (
-              <p className="text-orange-500 text-sm mt-1">{errors.courseDetail}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-8 mt-10">
-          <div>
-            <Label className="mb-1 block text-slate-700 font-medium text-[15px]">Cover image <span className="text-[#C82A2A]">*</span></Label>
-            <Input
-              name="coverImgUrl"
-              placeholder="Cover image URL"
-              value={formData.coverImgUrl}
-              onChange={handleChange}
-              className="h-12 border-slate-300 text-[15px] mb-2"
-            />
-            {errors.coverImgUrl && (
-              <p className="text-orange-500 text-sm mt-1 mb-2">{errors.coverImgUrl}</p>
-            )}
-            <p className="text-[13px] text-slate-400 mb-3">Supported file types: .jpg, .png, .jpeg. Max file size: 5 MB</p>
-            <ImageUpload
-              value={formData.coverImageData}
-              onChange={handleImageUpload}
-              maxSize={5 * 1024 * 1024}
-              className="w-[240px]"
-            />
-          </div>
-          
-          <div>
-            <Label className="mb-1 block text-slate-700 font-medium text-[15px]">Video Trailer <span className="text-[#C82A2A]">*</span></Label>
-            
-            {/* Video Upload Component */}
-            <VideoUpload
-              value={formData.videoTrailerData}
-              onChange={handleVideoUpload}
-              className="mb-3"
-            />
-            
-            {/* Fallback URL input for manual entry */}
-            <div className="mt-4">
+        )}
+        <div className="bg-white rounded-2xl border border-gray-300 shadow-sm px-[100px] pt-10 pb-[60px] mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8 mb-8">
+            <div className="col-span-2">
+              <Label className="mb-1 block body2 text-black font-normal">Course name <span className="text-[#C82A2A]">*</span></Label>
               <Input
-                name="vdoTrailerUrl"
-                placeholder="Or enter video trailer URL manually"
-                value={formData.vdoTrailerUrl}
+                name="courseName"
+                placeholder="Place Holder"
+                value={formData.courseName}
                 onChange={handleChange}
-                className="h-12 border-slate-300 text-[15px]"
+                className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
               />
-              {errors.vdoTrailerUrl && (
-                <p className="text-orange-500 text-sm mt-1">{errors.vdoTrailerUrl}</p>
+              {errors.courseName && (
+                <p className="text-orange-500 text-sm mt-1">{errors.courseName}</p>
               )}
             </div>
-            
-            <p className="text-[13px] text-slate-400 mt-2">
-              Upload a video file or enter a URL. Supported formats: .mp4, .mov, .avi, .webm. Max file size: 50 MB
-            </p>
+            <div>
+              <Label className="mb-1 block body2 text-black font-normal">Price <span className="text-[#C82A2A]">*</span></Label>
+              <Input
+                name="price"
+                placeholder="Place Holder"
+                type="number"
+                value={formData.price}
+                onChange={handleChange}
+                className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
+              />
+              {errors.price && (
+                <p className="text-orange-500 text-sm mt-1">{errors.price}</p>
+              )}
+            </div>
+            <div>
+              <Label className="mb-1 block body2 text-black font-normal">Total learning time <span className="text-[#C82A2A]">*</span></Label>
+              <Input
+                name="totalLearningTime"
+                placeholder="Place Holder"
+                type="number"
+                value={formData.totalLearningTime}
+                onChange={handleChange}
+                className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
+              />
+              {errors.totalLearningTime && (
+                <p className="text-orange-500 text-sm mt-1">{errors.totalLearningTime}</p>
+              )}
+            </div>
           </div>
 
-          <div>
-            <Label className="mb-1 block text-slate-700 font-medium text-[15px]">Attach File (Optional)</Label>
-            <AttachFileUpload
-              token={token}
-              files={attachedFiles}
-              onUpload={(file) => setAttachedFiles((prev) => [...prev, file])}
-              onRemove={(file) =>
-                setAttachedFiles((prev) =>
-                  prev.filter((f) => (f.url ?? f.file_url) !== (file.url ?? file.file_url))
-                )
-              }
-              disabled={!token || isSubmitting}
-            />
-          </div>
-        </div>
-      </div>
+          <div className="mb-8 p-8 bg-[#F6F8FE] rounded-xl">
+            <div className="flex items-center justify-start gap-3">
+              <input
+                type="checkbox"
+                id="promo"
+                className="w-5 h-5 rounded border-slate-300 accent-[#2F5FAC] focus:ring-[#2F5FAC]"
+                checked={hasPromoCode}
+                onChange={(e) => setHasPromoCode(e.target.checked)}
+              />
+              <Label htmlFor="promo" className="font-medium text-gray-800 body2">Promo code</Label>
+            </div>
 
-      <div className="mb-12">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-[22px] font-medium text-slate-800">Lesson</h2>
-          <Button
-            type="button"
-            onClick={handleAddLesson}
-            className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-12 px-6 rounded-md font-medium shadow-sm text-[15px]"
-          >
-            + Add Lesson
-          </Button>
-        </div>
-
-        {lessons.length === 0 ? (
-          <div className="bg-[#E2E8F0] bg-opacity-30 border border-slate-100 rounded-xl p-20 flex flex-col items-center justify-center text-center text-[#64748B]">
-            <p className="text-[16px] leading-relaxed">
-              กดปุ่ม + Add Lesson เพื่อเพิ่มบทเรียน<br />
-              (ใน 1 คอร์สต้องมีอย่างน้อย 1 บทเรียน)
-            </p>
-          </div>
-        ) : (
-          <DndContext
-            sensors={lessonSensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleLessonDragEnd}
-          >
-            <SortableContext
-              items={lessons.map((l) => l.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <div className="space-y-6">
-                {lessons.map((lesson, idx) => (
-                  <LessonBlock
-                    key={lesson.id}
-                    lesson={lesson}
-                    index={idx}
-                    onChange={handleLessonChange}
-                    onDelete={handleRemoveLesson}
-                    errors={lessonErrors[lesson.id]}
-                    disabled={isSubmitting}
+            {hasPromoCode && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8 mt-4">
+                <div>
+                  <Label className="mb-1 block body2 text-black font-normal">Set promo code</Label>
+                  <Input
+                    placeholder="Enter promo code"
+                    value={promoData.code}
+                    onChange={(e) => setPromoData((p) => ({ ...p, code: e.target.value }))}
+                    className="h-12 border-gray-400 rounded-lg bg-white body2 placeholder:text-gray-600"
                   />
-                ))}
+                </div>
+                <div>
+                  <Label className="mb-1 block body2 text-black font-normal">Minimum purchase amount (THB)</Label>
+                  <Input
+                    placeholder="0"
+                    type="number"
+                    value={promoData.minPurchase}
+                    onChange={(e) => setPromoData((p) => ({ ...p, minPurchase: e.target.value }))}
+                    className="h-12 border-gray-400 rounded-lg bg-white body2 placeholder:text-gray-600"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label className="mb-4 block body2 text-black font-normal">Select discount type</Label>
+                  <RadioGroup
+                    value={promoData.discountType}
+                    onValueChange={(v) => setPromoData((p) => ({ ...p, discountType: v }))}
+                    className="flex flex-col sm:flex-row gap-12"
+                  >
+                    <div className="flex items-center gap-3">
+                      <RadioGroupItem value="thb" id="course-promo-thb" className="w-5 h-5 border-slate-300 text-[#2F5FAC] data-[state=checked]:border-[#2F5FAC]" />
+                      <Label htmlFor="course-promo-thb" className="body2 text-black font-normal">Discount (THB)</Label>
+                      <Input
+                        className="w-32 ml-2 h-12 border-gray-400 rounded-lg bg-white body2 placeholder:text-gray-600"
+                        placeholder="200"
+                        type="number"
+                        value={promoData.discountAmount}
+                        onChange={(e) => setPromoData((p) => ({ ...p, discountAmount: e.target.value }))}
+                        disabled={promoData.discountType !== "thb"}
+                      />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <RadioGroupItem value="percent" id="course-promo-percent" className="w-5 h-5 border-slate-300 text-[#2F5FAC] data-[state=checked]:border-[#2F5FAC]" />
+                      <Label htmlFor="course-promo-percent" className="body2 text-black font-normal">Discount (%)</Label>
+                      <Input
+                        className="w-32 ml-2 h-12 border-gray-400 rounded-lg bg-white body2 placeholder:text-gray-600"
+                        placeholder="30"
+                        type="number"
+                        value={promoData.discountPercent}
+                        onChange={(e) => setPromoData((p) => ({ ...p, discountPercent: e.target.value }))}
+                        disabled={promoData.discountType !== "percent"}
+                      />
+                    </div>
+                  </RadioGroup>
+                </div>
+                <div>
+                  <Label className="mb-1 block body2 text-black font-normal">Valid From</Label>
+                  <Input
+                    type="date"
+                    value={promoData.validFrom}
+                    onChange={(e) => setPromoData((p) => ({ ...p, validFrom: e.target.value }))}
+                    className="h-12 border-gray-400 rounded-lg bg-white body2"
+                  />
+                </div>
+                <div>
+                  <Label className="mb-1 block body2 text-black font-normal">Valid To</Label>
+                  <Input
+                    type="date"
+                    value={promoData.validTo}
+                    onChange={(e) => setPromoData((p) => ({ ...p, validTo: e.target.value }))}
+                    className="h-12 border-gray-400 rounded-lg bg-white body2"
+                  />
+                </div>
+                <div>
+                  <Label className="mb-1 block body2 text-black font-normal">Usage Limit</Label>
+                  <Input
+                    type="number"
+                    placeholder="Unlimited"
+                    value={promoData.usageLimit}
+                    onChange={(e) => setPromoData((p) => ({ ...p, usageLimit: e.target.value }))}
+                    className="h-12 border-gray-400 rounded-lg bg-white body2 placeholder:text-gray-600"
+                  />
+                </div>
+                <p className="col-span-2 text-[12px] text-slate-400 -mt-4">
+                  This discount code will be locked for this course only
+                </p>
               </div>
-            </SortableContext>
-          </DndContext>
-        )}
-      </div>
+            )}
+          </div>
+
+          <div className="space-y-8">
+            <div>
+              <Label className="mb-1 block body2 text-black font-normal">Course summary <span className="text-[#C82A2A]">*</span></Label>
+              <Input
+                name="courseSummary"
+                placeholder="Place Holder"
+                value={formData.courseSummary}
+                onChange={handleChange}
+                className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
+              />
+              {errors.courseSummary && (
+                <p className="text-orange-500 text-sm mt-1">{errors.courseSummary}</p>
+              )}
+            </div>
+            <div>
+              <Label className="mb-1 block body2 text-black font-normal">Course detail <span className="text-[#C82A2A]">*</span></Label>
+              <Textarea
+                name="courseDetail"
+                placeholder="Place Holder"
+                value={formData.courseDetail}
+                onChange={handleChange}
+                className="min-h-[200px] border-gray-400 rounded-lg resize-none body2 p-4 placeholder:text-gray-600"
+              />
+              {errors.courseDetail && (
+                <p className="text-orange-500 text-sm mt-1">{errors.courseDetail}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-8 mt-10">
+            <div>
+              <Label className="mb-1 block body2 text-black font-normal">Cover image <span className="text-[#C82A2A]">*</span></Label>
+              <Input
+                name="coverImgUrl"
+                placeholder="Cover image URL"
+                value={formData.coverImgUrl}
+                onChange={handleChange}
+                className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600 mb-3"
+              />
+              {errors.coverImgUrl && (
+                <p className="text-orange-500 text-sm mt-1 mb-2">{errors.coverImgUrl}</p>
+              )}
+              <ImageUpload
+                value={formData.coverImageData}
+                onChange={handleImageUpload}
+                maxSize={5 * 1024 * 1024}
+                className="max-w-[300px] max-h-[300px] min-h-[300px] min-w-[300px]"
+              />
+              <p className="mt-2 text-[13px] text-slate-400">Supported file types: .jpg, .png, .jpeg. Max file size: 5 MB</p>
+
+            </div>
+
+            <div>
+              <Label className="mb-1 block body2 text-black font-normal">Video Trailer <span className="text-[#C82A2A]">*</span></Label>
+              {/* Fallback URL input for manual entry */}
+              <div className="my-4">
+                <Input
+                  name="vdoTrailerUrl"
+                  placeholder="Video trailer URL"
+                  value={formData.vdoTrailerUrl}
+                  onChange={handleChange}
+                  className="h-12 border-gray-400 rounded-lg body2 placeholder:text-gray-600"
+                />
+                {errors.vdoTrailerUrl && (
+                  <p className="text-orange-500 text-sm mt-1">{errors.vdoTrailerUrl}</p>
+                )}
+              </div>
+              {/* Video Upload Component */}
+              <VideoUpload
+                value={formData.videoTrailerData}
+                onChange={handleVideoUpload}
+                className="mb-3 max-w-[300px] max-h-[300px] min-h-[300px] min-w-[300px]"
+              />
+
+
+
+              <p className="text-[13px] text-slate-400 mt-2">
+                Upload a video file or enter a URL. Supported formats: .mp4, .mov, .avi, .webm. Max file size: 50 MB
+              </p>
+            </div>
+
+            <div>
+              <Label className="mb-1 block body2 text-black font-normal">Attach File (Optional)</Label>
+              <AttachFileUpload
+                token={token}
+                files={attachedFiles}
+                onUpload={(file) => setAttachedFiles((prev) => [...prev, file])}
+                onRemove={(file) =>
+                  setAttachedFiles((prev) =>
+                    prev.filter((f) => (f.url ?? f.file_url) !== (file.url ?? file.file_url))
+                  )
+                }
+                disabled={!token || isSubmitting}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-12">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-[22px] font-medium text-slate-800">Lesson</h2>
+            <Button
+              variant="primary"
+              size="admin"
+              type="button"
+              onClick={handleAddLesson}
+            >
+              + Add Lesson
+            </Button>
+          </div>
+
+          {lessons.length === 0 ? (
+            <div className="bg-[#E2E8F0] bg-opacity-30 border border-slate-100 rounded-xl p-20 flex flex-col items-center justify-center text-center text-[#64748B]">
+              <p className="text-[16px] leading-relaxed">
+                Press + Add Lesson to add lessons<br />
+                (Each course requires at least 1 lesson)
+              </p>
+            </div>
+          ) : (
+            <DndContext
+              sensors={lessonSensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleLessonDragEnd}
+            >
+              <SortableContext
+                items={lessons.map((l) => l.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-6">
+                  {lessons.map((lesson, idx) => (
+                    <LessonBlock
+                      key={lesson.id}
+                      lesson={lesson}
+                      index={idx}
+                      onChange={handleLessonChange}
+                      onDelete={handleRemoveLesson}
+                      errors={lessonErrors[lesson.id]}
+                      disabled={isSubmitting}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          )}
+        </div>
       </div>
     </AdminLayout>
   )

@@ -43,7 +43,7 @@ function CourseMultiSelect({ courses, selectedIds, onChange }) {
       <button
         type="button"
         onClick={() => setOpen((p) => !p)}
-        className="w-full min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 py-2 flex flex-wrap gap-2 items-center text-left bg-white focus:outline-none focus:ring-1 focus:ring-orange-300"
+        className="w-full min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 py-2 flex flex-wrap gap-2 items-center text-left bg-white hover:ring-orange-300 focus:outline-none focus:ring-1 focus:ring-orange-300"
       >
         {allSelected ? (
           <span className="text-[15px] text-slate-700">All courses</span>
@@ -103,7 +103,7 @@ function CourseMultiSelect({ courses, selectedIds, onChange }) {
 export default function EditPromoCode() {
   const router = useRouter()
   const { id } = router.query
-  const { token, logout } = useAuth()
+  const { token, logout, loading, profile, isLoggedIn } = useAuth()
 
   const [formData, setFormData] = useState({
     code: "",
@@ -128,7 +128,7 @@ export default function EditPromoCode() {
 
   /* Fetch courses list + promo code data */
   useEffect(() => {
-    if (!token || !id) return
+    if (!token || !id || loading || !isLoggedIn || profile?.role !== "admin") return
 
     const fetchAll = async () => {
       setIsLoading(true)
@@ -169,7 +169,7 @@ export default function EditPromoCode() {
     }
 
     fetchAll()
-  }, [token, id, logout])
+  }, [token, id, logout, loading, isLoggedIn, profile])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -294,7 +294,7 @@ export default function EditPromoCode() {
         <title>Edit Promo Code - Admin Panel</title>
       </Head>
 
-      <header className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-slate-200">
+      <header className="flex justify-between items-center mb-8 p-8 bg-white h-[92px] border-b border-gray-400 shrink-0">
         <h1 className="text-2xl font-medium text-slate-800 flex items-center gap-2">
           <button
             type="button"
@@ -308,14 +308,15 @@ export default function EditPromoCode() {
         </h1>
         <div className="flex gap-4">
           <Button
-            variant="outline"
-            className="border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600 h-11 px-8 font-medium text-[15px]"
+            variant="cancel"
+            size="admin"
             onClick={() => router.push("/admin/promocodes")}
           >
             Cancel
           </Button>
           <Button
-            className="bg-[#2F5FAC] hover:bg-[#254A8A] text-white h-11 px-8 font-medium shadow-sm text-[15px]"
+            variant="primary"
+            size="admin"
             onClick={handleSave}
             disabled={isSubmitting || !token}
           >
@@ -324,14 +325,14 @@ export default function EditPromoCode() {
         </div>
       </header>
 
-      <div className="m-8 mb-16">
+      <div className="m-[40px] mb-16">
       {submitError && (
         <div className="bg-orange-100/20 border border-orange-500 rounded-lg px-4 py-3 mb-6">
           <p className="text-orange-500 text-sm">{submitError}</p>
         </div>
       )}
 
-      <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 max-w-4xl">
+      <section className="bg-white rounded-2xl border border-gray-300 shadow-sm px-[100px] pt-10 pb-[60px] mb-8">
         <div className="space-y-6">
 
           {/* Row 1: Code + Min purchase */}
@@ -456,10 +457,10 @@ export default function EditPromoCode() {
         </div>
       </section>
 
-      <div className="flex justify-end mt-4 max-w-4xl">
+      <div className="flex justify-end mt-4">
         <Button
           variant="ghost"
-          className="text-red-500 hover:bg-red-50 hover:text-red-600 font-medium"
+          className="text-base font-bold text-red-500 hover:text-red-500 hover:bg-red-50"
           onClick={handleDeleteClick}
           disabled={isDeleting}
         >

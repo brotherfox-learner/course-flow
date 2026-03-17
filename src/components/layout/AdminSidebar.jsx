@@ -58,17 +58,18 @@ export function AdminSidebar() {
   }
 
   return (
-    <Sidebar className="border-r border-slate-200 bg-white w-64">
-      <SidebarHeader className="p-6 pb-2 mt-4">
-        <h1 className="text-[28px] font-bold text-center tracking-tight flex justify-center items-center">
-          <span className="text-[#6495ED]">Course</span>
-          <span className="text-[#1E3A8A]">Flow</span>
-        </h1>
-        <p className="text-sm text-slate-500 text-center mt-2 font-medium">Admin Panel Control</p>
+    <Sidebar className="border-r border-gray-400 bg-white">
+      <SidebarHeader className="px-6 pt-10 pb-6 flex flex-col items-center gap-6">
+        <Link href="/" target="_blank" rel="noopener noreferrer" className="block">
+          <h1 className="text-[28px] font-bold text-center tracking-tight brand-gradient-text">
+            CourseFlow
+          </h1>
+        </Link>
+        <p className="body2 text-gray-700 text-center font-normal">Admin Panel Control</p>
       </SidebarHeader>
       
-      <SidebarContent className="mt-8">
-        <SidebarMenu className="px-4 gap-2">
+      <SidebarContent className="mt-10">
+        <SidebarMenu className="px-0 gap-0">
           {navigation.map((item) => {
             const isActive = router.pathname.startsWith(item.url)
             return (
@@ -76,15 +77,15 @@ export function AdminSidebar() {
                 <SidebarMenuButton 
                   asChild 
                   isActive={isActive}
-                  className={`font-medium h-12 rounded-lg transition-colors ${
+                  className={`font-medium h-14 rounded-none px-6 gap-4 transition-colors ${
                     isActive 
-                      ? "bg-slate-100 text-[#1E3A8A]" 
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      ? "bg-gray-200 text-gray-800" 
+                      : "bg-white text-gray-800 hover:bg-gray-100"
                   }`}
                 >
                   <Link href={item.url} className="flex items-center">
-                    <item.icon className={`w-[22px] h-[22px] mr-4 ${isActive ? "text-[#1E3A8A]" : "text-[#94A3B8]"}`} />
-                    <span className="text-[16px]">{item.title}</span>
+                    <item.icon className="w-6 h-6 mr-4 text-blue-300" />
+                    <span className="body2 font-medium">{item.title}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -93,16 +94,16 @@ export function AdminSidebar() {
         </SidebarMenu>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 mb-8">
+      <SidebarFooter className="px-0 mb-8">
         <SidebarMenu>
           <SidebarMenuItem>
             <Dialog open={isLogoutOpen} onOpenChange={setIsLogoutOpen}>
               <DialogTrigger asChild>
                 <SidebarMenuButton 
-                  className="font-medium h-12 text-slate-600 hover:bg-slate-50 hover:text-slate-900 w-full rounded-lg"
+                  className="font-bold h-14 text-gray-800 hover:bg-gray-100 w-full rounded-none px-6 gap-4"
                 >
-                  <LogOut className="w-[22px] h-[22px] mr-4 text-[#94A3B8]" />
-                  <span className="text-[16px]">Log out</span>
+                  <LogOut className="w-6 h-6 mr-4 text-blue-300" />
+                  <span className="body2 font-bold">Log out</span>
                 </SidebarMenuButton>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
@@ -113,10 +114,10 @@ export function AdminSidebar() {
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="mt-4 flex gap-2 sm:justify-end">
-                  <Button variant="outline" className="border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600" onClick={() => setIsLogoutOpen(false)}>
+                  <Button variant="cancel" size="admin" onClick={() => setIsLogoutOpen(false)}>
                     Cancel
                   </Button>
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleLogout}>
+                  <Button variant="primary" size="admin" onClick={handleLogout}>
                     Yes, I want to log out
                   </Button>
                 </DialogFooter>

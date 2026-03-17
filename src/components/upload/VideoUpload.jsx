@@ -67,12 +67,15 @@ export default function VideoUpload({
   }, [onChange, preview]);
 
   const formatFileSize = (bytes) => {
+    if (bytes == null || typeof bytes !== 'number' || !Number.isFinite(bytes) || bytes < 0) return '';
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
+
+  const displayName = preview?.name === 'trailer' ? 'Video trailer' : (preview?.name || 'Video');
 
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -110,11 +113,11 @@ export default function VideoUpload({
         )}
 
         {preview && (
-          <div className="relative w-[240px]">
+          <div className="relative w-[300px] h-[300px]">
             <div className="relative rounded-lg overflow-hidden bg-black">
               <video
                 src={preview.preview}
-                className="w-full h-[135px] object-contain"
+                className="w-full h-full object-contain"
                 controls
                 preload="metadata"
               >
@@ -129,8 +132,8 @@ export default function VideoUpload({
                 <X className="w-3 h-3" />
               </button>
             </div>
-            <p className="text-xs text-slate-500 mt-1 truncate" title={preview.name}>
-              {preview.name}{preview.size ? ` (${formatFileSize(preview.size)})` : ''}
+            <p className="text-xs text-slate-500 mt-1 truncate" title={displayName}>
+              {displayName}{preview.size != null && Number.isFinite(preview.size) ? ` (${formatFileSize(preview.size)})` : ''}
             </p>
           </div>
         )}
@@ -140,7 +143,7 @@ export default function VideoUpload({
 
   // ── Default (full-size) layout ──
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`space-y-4 ${className} `}>
       {/* Upload Area */}
       {!preview && (
         <Card 
@@ -156,7 +159,7 @@ export default function VideoUpload({
             <Upload className="w-12 h-12 text-gray-400 mb-4" />
             <div className="space-y-2">
               <p className="text-lg font-medium text-gray-700">
-                {isDragActive ? 'Drop video here' : 'Upload video trailer'}
+                {isDragActive ? 'Drop Video here' : 'Upload Video Trailer'}
               </p>
               <p className="text-sm text-gray-500">
                 Drag and drop or click to browse
@@ -184,7 +187,7 @@ export default function VideoUpload({
 
       {/* Video Preview */}
       {preview && (
-        <Card className="p-4">
+        <Card className={`p-4 ${className}`}>
           <div className="space-y-4">
             {/* Video Info */}
             <div className="flex items-start justify-between">
@@ -192,11 +195,11 @@ export default function VideoUpload({
                 <div className="p-2 bg-blue-100 rounded-lg">
                   <FileVideo className="w-6 h-6 text-blue-600" />
                 </div>
-                <div className="space-y-1">
-                  <h4 className="font-medium text-gray-900">{preview.name}</h4>
+                <div className="space-y-1 min-w-0 flex-1">
+                  <h4 className="font-medium text-gray-900 truncate max-w-[150px]" title={displayName}>{displayName}</h4>
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
                     <span>{formatFileSize(preview.size)}</span>
-                    {preview.duration && (
+                    {typeof preview.duration === 'number' && Number.isFinite(preview.duration) && (
                       <span>{formatDuration(preview.duration)}</span>
                     )}
                   </div>
@@ -216,7 +219,7 @@ export default function VideoUpload({
             <div className="relative rounded-lg overflow-hidden bg-black">
               <video
                 src={preview.preview}
-                className="w-full h-auto max-h-64 object-contain"
+                className="w-full h-full min-h-[200px] object-fill"
                 controls
                 preload="metadata"
               >
