@@ -170,7 +170,7 @@ export default function CourseList() {
               </TableRow>
             ) : (
               courses.map((course, index) => (
-                <TableRow key={course.id} className="border-b border-gray-200 hover:bg-gray-100 transition-colors h-[88px]">
+                <TableRow key={course.id} className="border-b border-[#F1F2F6] hover:bg-gray-100 transition-colors h-[88px]">
                   <TableCell className="text-center body2 font-normal text-black">{(currentPage - 1) * pageSize + index + 1}</TableCell>
                   <TableCell>
                     <div className="w-16 h-[47px] bg-gray-200 rounded object-cover overflow-hidden">
