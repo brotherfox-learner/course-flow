@@ -1,6 +1,14 @@
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import VideoUpload from "@/components/upload/VideoUpload"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function SubLessonCard({
   subLesson,
@@ -33,6 +41,19 @@ export default function SubLessonCard({
 
   const handleVideoChange = (videoData) => {
     onChange({ ...subLesson, videoData })
+  }
+
+  const handleContentTypeChange = (contentType) => {
+    onChange({ 
+      ...subLesson, 
+      content_type: contentType,
+      content: contentType === 'video' ? null : (subLesson.content || ''),
+      videoData: contentType === 'video' ? subLesson.videoData : null
+    })
+  }
+
+  const handleContentChange = (content) => {
+    onChange({ ...subLesson, content })
   }
 
   return (
@@ -84,18 +105,56 @@ export default function SubLessonCard({
           </button>
         </div>
 
-        {/* Video upload */}
+        {/* Content Type Selection */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
-            Video <span className="text-[#C82A2A]">*</span>
+            Content Type <span className="text-[#C82A2A]">*</span>
           </label>
-          <VideoUpload
-            value={subLesson.videoData}
-            onChange={handleVideoChange}
+          <Select
+            value={subLesson.content_type || 'video'}
+            onValueChange={handleContentTypeChange}
             disabled={disabled}
-            compact
-          />
+          >
+            <SelectTrigger className="w-full max-w-[200px] bg-white">
+              <SelectValue placeholder="Select Content Type" />
+            </SelectTrigger>
+            <SelectContent side="bottom" sideOffset={4} className="bg-white">
+              <SelectGroup>
+                <SelectItem value="video">Video</SelectItem>
+                <SelectItem value="text">Text</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
+
+        {/* Content based on type */}
+        {(subLesson.content_type || 'video') === 'video' ? (
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Video <span className="text-[#C82A2A]">*</span>
+            </label>
+            <VideoUpload
+              value={subLesson.videoData}
+              onChange={handleVideoChange}
+              disabled={disabled}
+              compact
+            />
+          </div>
+        ) : (
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Text Content <span className="text-[#C82A2A]">*</span>
+            </label>
+            <textarea
+              rows={4}
+              value={subLesson.content || ''}
+              onChange={(e) => handleContentChange(e.target.value)}
+              placeholder="Enter lesson content..."
+              disabled={disabled}
+              className="w-full max-w-[530px] px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2F5FAC]/30 focus:border-[#2F5FAC] disabled:opacity-50 resize-y"
+            />
+          </div>
+        )}
       </div>
     </div>
   )

@@ -48,7 +48,9 @@ export default async function handler(req, res) {
             'name', sl.name,
             'order_index', sl.order_index,
             'vdo_url', sl.vdo_url,
-            'vdo_time', sl.vdo_time
+            'vdo_time', sl.vdo_time,
+            'content_type', sl.content_type,
+            'content', sl.content
           )
         ) FILTER (WHERE sl.id IS NOT NULL) as sub_lessons
       FROM lessons l
@@ -64,7 +66,18 @@ export default async function handler(req, res) {
       id: row.id,
       name: row.name,
       order_index: row.order_index,
-      sub_lessons: row.sub_lessons || [],
+      subLessons: (row.sub_lessons || []).map((sl) => ({
+        id: sl.id,
+        name: sl.name,
+        order_index: sl.order_index,
+        content_type: sl.content_type || 'video',
+        content: sl.content || null,
+        videoData: sl.vdo_url ? {
+          url: sl.vdo_url,
+          duration: sl.vdo_time || 0,
+          publicId: null
+        } : null
+      }))
     }))
 
     return res.status(200).json({ lessons })
