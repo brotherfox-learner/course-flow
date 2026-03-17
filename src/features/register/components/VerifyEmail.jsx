@@ -4,6 +4,8 @@ import useVerifyEmail from "../hook/useVerifyEmail"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import { useAuth } from "@/context/AuthContext"
+import Lottie from "lottie-react"
+import Email from "@/assets/animation/Email.json"
 
 function VerifyEmail() {
 
@@ -100,11 +102,17 @@ function VerifyEmail() {
     return (
 
         <div className="relative bg-white h-screen px-4 py-10 overflow-hidden">
-            <div className="flex flex-col items-center gap-10 max-w-[798px] py-10 mx-auto bg-gray-100 rounded-2xl">
-                <h3 className="headline3 text-black lg:headline2">
-                    Check your email
-                </h3>
-                <Mail size={100} color="#2FAC8E" strokeWidth={2} />
+            <div className="flex flex-col items-center gap-7 max-w-[798px] py-10 mx-auto bg-gray-100 rounded-2xl">
+                <div className="flex flex-col items-center">
+                    <h3 className="headline3 text-black lg:headline2">
+                        Check your email
+                    </h3>
+                    <Lottie
+                        animationData={Email}
+                        loop={false}
+                        className="w-[250px]"
+                    />
+                </div>
                 <p className="flex flex-col items-center gap-2">
                     <span className="body3 lg:body1">
                         We’ve sent a verification link to your email.

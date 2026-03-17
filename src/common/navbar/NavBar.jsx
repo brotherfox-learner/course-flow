@@ -5,22 +5,44 @@ import UserProfile from "./UserProfile"
 import DropdownUser from "./DropdownUser"
 import { useToggle } from "@/hooks/useToggle"
 import { useAuth } from "@/context/AuthContext"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import router from "next/router"
 
 function NavBar() {
     const { isShow, switchToggle, reset } = useToggle()
     const { user, profile, loading } = useAuth()
+    const dropdownRef = useRef(null)
 
     useEffect(() => {
-        if (!user) reset();
-    }, [user]);
+        if (!user) reset()
+    }, [user])
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
+                reset()
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside)
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+        }
+    }, [])
 
     return (
         <nav className="sticky top-0 z-100 shadow-2 flex flex-row items-center justify-between bg-white px-4 py-[14px] lg:px-40">
             <BrandLogo />
-            <div className="relative flex flex-row gap-2 lg:gap-12">
-                <Button onClick={() => router.push("/courses")} variant="ghost" size="ghost" className="text-dark-blue-500!">Our Courses</Button>
+
+            <div ref={dropdownRef} className="relative flex flex-row gap-2 lg:gap-12">
+                <Button onClick={() => router.push("/courses")} variant="ghost" size="ghost" className="text-dark-blue-500!">
+                    Our Courses
+                </Button>
+
                 {user ? (
                     <UserProfile profile={profile} onToggle={switchToggle} isLoading={loading}/>
                 ) : (
@@ -28,10 +50,12 @@ function NavBar() {
                         <Button variant="primary" size="md">Log in</Button>
                     </Link>
                 )}
+
                 {user && isShow && <DropdownUser />}
             </div>
         </nav>
     )
 }
+
 
 export default NavBar

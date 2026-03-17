@@ -3,43 +3,57 @@ import { useRouter } from "next/router"
 import { supabase } from "@/lib/supabaseClient"
 
 export default function AuthCallback() {
-    const router = useRouter()
 
-    useEffect(() => {
-        let mounted = true
-        const handleAuth = async () => {
+  const router = useRouter()
 
-            const { data, error } = await supabase.auth.getSession()
+  useEffect(() => {
 
-            if (!mounted) return
+    const hash = window.location.hash
+    const params = new URLSearchParams(hash.replace("#", "?"))
 
-            if (error) {
-                console.error(error)
-                router.replace("/login")
-                return
-            }
+    const type = params.get("type")
+    const message = params.get("message")
 
-            if (data.session) {
-                const channel = new BroadcastChannel("auth")
-                channel.postMessage("login")
-                channel.close()
-                // cleanup verify email state
-                sessionStorage.removeItem("verifyEmail")
-                router.replace("/profile")
-            } else {
-                router.replace("/login")
-            }
+    /* SUCCESS EMAIL CHANGE */
+
+    if (type === "email_change") {
+      router.replace("/auth/email-change-status?success=1")
+      return
+    }
+
+    /* FIRST CONFIRM */
+
+    if (message?.includes("Confirmation link accepted")) {
+      router.replace("/auth/email-change-status")
+      return
+    }
+
+    /* NORMAL AUTH FLOW */
+
+    const { data: listener } =
+      supabase.auth.onAuthStateChange((event, session) => {
+
+        if (!session) {
+          router.replace("/login")
+          return
         }
-        handleAuth()
-        return () => {
-            mounted = false
-        }
-    }, [router])
 
-    return (
-        <div className="flex flex-col items-center justify-center h-screen gap-4">
-            <div className="animate-spin w-10 h-10 border-5 border-blue-500 border-t-transparent rounded-full" />
-            <p className="body1 text-black">Signing you in...</p>
-        </div>
-    )
+        sessionStorage.removeItem("verifyEmail")
+
+        router.replace("/profile")
+
+      })
+
+    return () => listener.subscription.unsubscribe()
+
+  }, [router])
+
+  return (
+    <div className="flex flex-col items-center justify-center h-screen gap-4">
+      <div className="animate-spin w-10 h-10 border-5 border-blue-500 border-t-transparent rounded-full" />
+      <p className="body1 text-black">
+        Signing you in...
+      </p>
+    </div>
+  )
 }

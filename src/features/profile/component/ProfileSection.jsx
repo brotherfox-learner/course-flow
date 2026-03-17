@@ -211,9 +211,11 @@ export default function ProfilePage() {
                                 className="w-full body2 text-black/40 bg-gray-200 border border-gray-400 rounded-lg p-3"
                             />
                             <Button
+                                type="button"
                                 variant="secondary"
                                 size="sm"
-                                onClick={() => router.push("/profile/change-email")}>
+                                onClick={() => router.push("/profile/change-email")}
+                            >
                                 Change
                             </Button>
                         </div>
