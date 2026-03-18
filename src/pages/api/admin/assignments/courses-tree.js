@@ -26,41 +26,54 @@ export default async function handler(req, res) {
     return res.status(401).json({ message: "Invalid token" })
   }
 
-  const roleCheck = await pool.query(`SELECT role FROM users WHERE id = $1`, [user.id])
-  if (roleCheck.rows.length === 0 || roleCheck.rows[0].role !== "admin") {
-    return res.status(403).json({ message: "Forbidden" })
-  }
-
   try {
-    // Return all courses with their lessons and sub-lessons for the cascaded dropdown
-    const coursesRes = await pool.query(
-      `SELECT id, course_name FROM courses ORDER BY course_name ASC`
-    )
+    const roleCheck = await pool.query(`SELECT role FROM users WHERE id = $1`, [user.id])
+    if (roleCheck.rows.length === 0 || roleCheck.rows[0].role !== "admin") {
+      return res.status(403).json({ message: "Forbidden" })
+    }
+    // Single query to avoid exhausting connection pool (N+1 problem)
+    const { rows } = await pool.query(`
+      SELECT
+        c.id AS course_id,
+        c.course_name,
+        l.id AS lesson_id,
+        l.name AS lesson_name,
+        l.order_index AS lesson_order,
+        sl.id AS sub_lesson_id,
+        sl.name AS sub_lesson_name,
+        sl.order_index AS sub_lesson_order
+      FROM courses c
+      LEFT JOIN lessons l ON l.course_id = c.id
+      LEFT JOIN sub_lessons sl ON sl.lesson_id = l.id
+      ORDER BY c.course_name ASC, l.order_index ASC NULLS LAST, sl.order_index ASC NULLS LAST
+    `)
 
-    const courses = await Promise.all(
-      coursesRes.rows.map(async (course) => {
-        const lessonsRes = await pool.query(
-          `SELECT id, name FROM lessons WHERE course_id = $1 ORDER BY order_index ASC`,
-          [course.id]
-        )
-
-        const lessons = await Promise.all(
-          lessonsRes.rows.map(async (lesson) => {
-            const subLessonsRes = await pool.query(
-              `SELECT id, name FROM sub_lessons WHERE lesson_id = $1 ORDER BY order_index ASC`,
-              [lesson.id]
-            )
-            return { ...lesson, sub_lessons: subLessonsRes.rows }
-          })
-        )
-
-        return { ...course, lessons }
-      })
-    )
+    const courseMap = new Map()
+    for (const row of rows) {
+      if (!row.course_id) continue
+      if (!courseMap.has(row.course_id)) {
+        courseMap.set(row.course_id, { id: row.course_id, course_name: row.course_name, lessons: [] })
+      }
+      const course = courseMap.get(row.course_id)
+      if (row.lesson_id && !course.lessons.find((l) => l.id === row.lesson_id)) {
+        course.lessons.push({ id: row.lesson_id, name: row.lesson_name, sub_lessons: [] })
+      }
+      const lesson = course.lessons.find((l) => l.id === row.lesson_id)
+      if (lesson && row.sub_lesson_id && !lesson.sub_lessons.find((s) => s.id === row.sub_lesson_id)) {
+        lesson.sub_lessons.push({ id: row.sub_lesson_id, name: row.sub_lesson_name })
+      }
+    }
+    const courses = Array.from(courseMap.values())
 
     return res.status(200).json({ courses })
   } catch (error) {
-    console.error("List courses for assignment error:", error)
-    return res.status(500).json({ message: "Internal server error" })
+    console.error("List courses for assignment error:", error?.message || error)
+    console.error("Full error:", error)
+    return res.status(500).json({
+      message: "Internal server error",
+      ...(process.env.NODE_ENV === "development" && {
+        debug: error?.message || String(error),
+      }),
+    })
   }
 }

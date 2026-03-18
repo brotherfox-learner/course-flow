@@ -43,7 +43,7 @@ function CourseMultiSelect({ courses, selectedIds, onChange }) {
       <button
         type="button"
         onClick={() => setOpen((p) => !p)}
-        className="w-full min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 py-2 flex flex-wrap gap-2 items-center text-left bg-white hover:ring-orange-300 focus:outline-none focus:ring-1 focus:ring-orange-300"
+        className="w-full h-12 min-h-[44px] ring-1 ring-slate-300 rounded-md px-3 py-2 flex flex-wrap gap-2 items-center text-left bg-white hover:ring-orange-300 focus:outline-none focus:ring-1 focus:ring-orange-300"
       >
         {allSelected ? (
           <span className="text-[15px] text-slate-700">All courses</span>
@@ -184,7 +184,7 @@ export default function EditPromoCode() {
       const v = Number(formData.discountAmount)
       if (!formData.discountAmount) newErrors.discountAmount = "Discount amount is required"
       else if (!Number.isFinite(v) || v <= 0) newErrors.discountAmount = "Must be greater than 0"
-      else if (v < 0) newErrors.discountAmount = "Cannot be negative"
+      else if (v < 0) newErrors.discountAmount = "Must be greater than 0"
     }
     if (formData.discountType === "percent") {
       const v = Number(formData.discountPercent)
@@ -194,12 +194,12 @@ export default function EditPromoCode() {
     }
     const minPurchase = Number(formData.minPurchase)
     if (!Number.isFinite(minPurchase) || minPurchase < 0) {
-      newErrors.minPurchase = "Cannot be negative"
+      newErrors.minPurchase = "Must be greater than 0"
     } else if (formData.discountType === "thb" && minPurchase - Number(formData.discountAmount || 0) < 20) {
-      newErrors.minPurchase = "Min purchase minus discount must be at least 20 THB (Omise)"
+      newErrors.minPurchase = "Min purchase minus discount must be at least 20 THB"
     } else if (formData.discountType === "percent" && formData.discountPercent) {
       const afterDiscount = Math.round(minPurchase * (1 - Number(formData.discountPercent) / 100) * 100) / 100
-      if (afterDiscount < 20) newErrors.minPurchase = "Amount after discount must be at least 20 THB (Omise)"
+      if (afterDiscount < 20) newErrors.minPurchase = "Amount after discount must be at least 20 THB"
     }
     if (!formData.validFrom) newErrors.validFrom = "Start date is required"
     if (!formData.validTo) newErrors.validTo = "End date is required"
@@ -338,18 +338,18 @@ export default function EditPromoCode() {
           {/* Row 1: Code + Min purchase */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <Label className="mb-2 block">Set promo code *</Label>
+              <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Set promo code <span className="text-[#C82A2A]">*</span></Label>
               <Input
                 name="code"
                 placeholder="NEWYEAR200"
                 value={formData.code}
                 onChange={handleChange}
-                className={errors.code ? "border-red-500" : ""}
+                className={`h-12 text-[15px] bg-white ${errors.code ? "ring-orange-500" : ""}`}
               />
-              {errors.code && <p className="text-red-500 text-sm mt-1">{errors.code}</p>}
+              {errors.code && <p className="text-orange-500 text-sm mt-1">{errors.code}</p>}
             </div>
             <div>
-              <Label className="mb-2 block">Minimum purchase amount (THB)</Label>
+              <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Minimum purchase amount (THB)</Label>
               <Input
                 name="minPurchase"
                 type="number"
@@ -357,15 +357,15 @@ export default function EditPromoCode() {
                 placeholder="0"
                 value={formData.minPurchase}
                 onChange={handleChange}
-                className={errors.minPurchase ? "border-red-500" : ""}
+                className={errors.minPurchase ? "border-orange-500" : ""}
               />
-              {errors.minPurchase && <p className="text-red-500 text-sm mt-1">{errors.minPurchase}</p>}
+              {errors.minPurchase && <p className="text-orange-500 text-sm mt-1">{errors.minPurchase}</p>}
             </div>
           </div>
 
           {/* Row 2: Discount Type */}
           <div>
-            <Label className="mb-4 block">Select discount type *</Label>
+            <Label className="mb-4 block">Select discount type <span className="text-[#C82A2A]">*</span></Label>
             <RadioGroup
               value={formData.discountType}
               onValueChange={(v) => setFormData((p) => ({ ...p, discountType: v }))}
@@ -373,11 +373,11 @@ export default function EditPromoCode() {
             >
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="thb" id="edit-thb" />
-                <Label htmlFor="edit-thb">Fixed amount (THB)</Label>
+                <Label htmlFor="edit-thb" className="text-slate-700 font-medium text-[15px]">Fixed amount (THB)</Label>
                 <Input
                   name="discountAmount"
                   type="number"
-                  className={`w-28 ml-2 ${errors.discountAmount && formData.discountType === "thb" ? "border-red-500" : ""}`}
+                  className={`w-28 ml-2 h-12 text-[15px] bg-white ${errors.discountAmount && formData.discountType === "thb" ? "ring-orange-500" : ""}`}
                   placeholder="200"
                   value={formData.discountAmount}
                   onChange={handleChange}
@@ -390,7 +390,7 @@ export default function EditPromoCode() {
                 <Input
                   name="discountPercent"
                   type="number"
-                  className={`w-28 ml-2 ${errors.discountPercent && formData.discountType === "percent" ? "border-red-500" : ""}`}
+                  className={`w-28 ml-2 h-12 text-[15px] bg-white ${errors.discountPercent && formData.discountType === "percent" ? "ring-orange-500" : ""}`}
                   placeholder="30"
                   value={formData.discountPercent}
                   onChange={handleChange}
@@ -402,7 +402,7 @@ export default function EditPromoCode() {
 
           {/* Row 3: Courses Included */}
           <div>
-            <Label className="mb-2 block">Courses Included</Label>
+            <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Courses Included</Label>
             <CourseMultiSelect
               courses={courses}
               selectedIds={selectedCourseIds}
@@ -416,7 +416,7 @@ export default function EditPromoCode() {
           {/* Row 4: Validity Period */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <Label className="mb-2 block">Valid From *</Label>
+              <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Valid From <span className="text-[#C82A2A]">*</span></Label>
               <Input
                 name="validFrom"
                 type="date"
@@ -424,34 +424,34 @@ export default function EditPromoCode() {
                 onChange={handleChange}
                 className={errors.validFrom ? "border-red-500" : ""}
               />
-              {errors.validFrom && <p className="text-red-500 text-sm mt-1">{errors.validFrom}</p>}
+              {errors.validFrom && <p className="text-orange-500 text-sm mt-1">{errors.validFrom}</p>}
             </div>
             <div>
-              <Label className="mb-2 block">Valid To *</Label>
+              <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Valid To <span className="text-[#C82A2A]">*</span></Label>
               <Input
                 name="validTo"
                 type="date"
                 value={formData.validTo}
                 onChange={handleChange}
-                className={errors.validTo ? "border-red-500" : ""}
+                className={`h-12 text-[15px] bg-white ${errors.validTo ? "ring-orange-500" : ""}`}
               />
-              {errors.validTo && <p className="text-red-500 text-sm mt-1">{errors.validTo}</p>}
+              {errors.validTo && <p className="text-orange-500 text-sm mt-1">{errors.validTo}</p>}
             </div>
           </div>
 
           {/* Row 5: Usage Limit */}
           <div>
-            <Label className="mb-2 block">Usage Limit (leave empty for unlimited)</Label>
+            <Label className="mb-2 block text-slate-700 font-medium text-[15px]">Usage Limit (leave empty for unlimited)</Label>
             <Input
               name="usageLimit"
               type="number"
               min="1"
               placeholder="Unlimited"
-              className={`max-w-xs ${errors.usageLimit ? "border-red-500" : ""}`}
+              className={`max-w-xs h-12 text-[15px] bg-white ${errors.usageLimit ? "ring-orange-500" : ""}`}
               value={formData.usageLimit}
               onChange={handleChange}
             />
-            {errors.usageLimit && <p className="text-red-500 text-sm mt-1">{errors.usageLimit}</p>}
+            {errors.usageLimit && <p className="text-orange-500 text-sm mt-1">{errors.usageLimit}</p>}
           </div>
 
         </div>

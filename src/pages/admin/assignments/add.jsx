@@ -1,4 +1,4 @@
-﻿import Head from "next/head"
+import Head from "next/head"
 import { useEffect, useState } from "react"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
@@ -58,7 +58,12 @@ export default function AddAssignment() {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setCoursesTree(res.data.courses || []))
-      .catch((err) => console.error("Fetch courses tree error:", err))
+      .catch((err) => {
+        console.error("Fetch courses tree error:", err)
+        if (err.response?.data?.debug) {
+          console.error("Server debug:", err.response.data.debug)
+        }
+      })
   }, [token, loading, isLoggedIn, profile])
 
   const selectedCourse = coursesTree.find((c) => String(c.id) === String(selectedCourseId))

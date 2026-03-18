@@ -1,11 +1,13 @@
-﻿import Button from "@/shared/components/navbar/Button"
+import Button from "@/shared/components/navbar/Button"
 import DatePickerInput from "./DatePicker"
 import useRegister from "../hooks/useRegister"
 import Link from "next/link"
 import { ComboBox } from "./ComboBox"
+import { useIsMobile } from "@/shared/hooks/use-mobile"
 
 function RegisterSection() {
   const { form, errors, isLoading, handleChange, submit } = useRegister()
+  const isMobile = useIsMobile()
 
   const styleInput =
     "w-full body2 text-black bg-white border border-gray-400 rounded-lg p-3 placeholder:text-gray-600 focus:outline-none focus:border-orange-500"
@@ -85,7 +87,7 @@ function RegisterSection() {
               value={form.educationalBackground}
               onChange={handleChange}
               inputClassName={`${styleInput}`}
-              placeholder="Select educational background (optional)"
+              placeholder={isMobile ? "Educational background (optional)" : "Select educational background (optional)"}
             />
           </div>
 
