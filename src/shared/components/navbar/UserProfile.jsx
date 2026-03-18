@@ -25,7 +25,11 @@ export function UserProfile({ profile, onToggle, isLoading }) {
         {profile?.firstName} {profile?.lastName}
       </button>
       <button onClick={onToggle} className="cursor-pointer">
-        <ChevronDown size={24} color="#646D89" strokeWidth={1} />
+        <div class="w-0 h-0 
+            border-l-[5px] border-l-transparent
+            border-r-[5px] border-r-transparent
+            border-t-[5px] border-t-gray-700">
+        </div>
       </button>
     </div>
   )

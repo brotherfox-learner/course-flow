@@ -87,7 +87,7 @@ function RegisterSection() {
               value={form.educationalBackground}
               onChange={handleChange}
               inputClassName={`${styleInput}`}
-              placeholder={isMobile ? "Educational background (optional)" : "Select educational background (optional)"}
+              placeholder="Educational background (optional)"
             />
           </div>
 
