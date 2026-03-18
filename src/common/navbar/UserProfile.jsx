@@ -1,4 +1,3 @@
-﻿import { ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar"
 import Link from "next/link"
 import { Skeleton } from "@/shared/ui/skeleton"
@@ -24,8 +23,16 @@ export function UserProfile({ profile, onToggle, isLoading }) {
       <button onClick={onToggle} className="hidden body2 text-gray-800 lg:ml-2 lg:flex items-center cursor-pointer">
         {profile?.firstName} {profile?.lastName}
       </button>
-      <button onClick={onToggle} className="cursor-pointer">
-        <ChevronDown size={24} color="#646D89" strokeWidth={1} />
+      <button
+        type="button"
+        onClick={onToggle}
+        className="cursor-pointer w-8 h-8 flex items-center justify-center"
+        aria-label="Open user menu"
+      >
+        <div
+          className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-gray-500"
+          aria-hidden="true"
+        />
       </button>
     </div>
   )

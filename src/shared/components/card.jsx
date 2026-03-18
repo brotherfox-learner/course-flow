@@ -125,9 +125,9 @@ export default function Card({
             aria-label="Remove from wishlist"
           >
             <img
-              src="/Trash.svg"
+              src="/trash.svg"
               alt=""
-              className="w-5 h-5 object-contain [filter:invert(27%)_sepia(98%)_saturate(2476%)_hue-rotate(346deg)_brightness(95%)_contrast(95%)]"
+              className="w-5 h-5 object-contain filter-[invert(27%)_sepia(98%)_saturate(2476%)_hue-rotate(346deg)_brightness(95%)_contrast(95%)]"
             />
           </button>
         )}
