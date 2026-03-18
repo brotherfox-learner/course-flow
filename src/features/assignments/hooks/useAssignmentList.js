@@ -21,22 +21,22 @@ export function useAssignmentList(token) {
   const [activeTab, setActiveTab] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
 
-  const fetchAssignments = useCallback(async () => {
+  const fetchAssignments = useCallback(async (silent = false) => {
     if (!token) {
       setLoading(false)
       setAssignments([])
       return
     }
-    setLoading(true)
-    setError("")
+    if (!silent) setLoading(true)
+    if (!silent) setError("")
     try {
       const data = await fetchAssignmentList(token)
       setAssignments(data)
     } catch (e) {
-      setError(e.message)
+      if (!silent) setError(e.message)
       setAssignments([])
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }, [token])
 
@@ -56,6 +56,8 @@ export function useAssignmentList(token) {
     setCurrentPage(1)
   }
 
+  const refetchSilent = useCallback(() => fetchAssignments(true), [fetchAssignments])
+
   return {
     assignments,
     filtered,
@@ -68,5 +70,6 @@ export function useAssignmentList(token) {
     handleTabChange,
     setCurrentPage,
     refetch: fetchAssignments,
+    refetchSilent,
   }
 }

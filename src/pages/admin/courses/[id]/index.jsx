@@ -12,7 +12,6 @@ import CourseBasicFields from "@/features/admin-courses/components/CourseBasicFi
 import CourseMediaSection from "@/features/admin-courses/components/CourseMediaSection"
 import PromoCodeSection from "@/features/admin-courses/components/PromoCodeSection"
 import AddSubLessonDialog from "@/features/admin-courses/components/AddSubLessonDialog"
-import EditSubLessonDialog from "@/features/admin-courses/components/EditSubLessonDialog"
 import { useCloudinaryUpload } from "@/features/admin-courses/hooks/useCloudinaryUpload"
 import { usePromoCodeSection } from "@/features/admin-courses/hooks/usePromoCodeSection"
 import { useSubLessonModals } from "@/features/admin-courses/hooks/useSubLessonModals"
@@ -401,7 +400,6 @@ export default function EditCourse() {
                 onEditLesson={(lesson) => router.push(`/admin/courses/${id}/lessons/${lesson.id}`)}
                 onAddSubLesson={subLessonModals.openAdd}
                 onDeleteSubLesson={subLessonModals.handleDelete}
-                onEditSubLesson={subLessonModals.openEdit}
               />
             )}
           </div>
@@ -439,18 +437,6 @@ export default function EditCourse() {
         onVdoTimeChange={subLessonModals.setNewVdoTime}
         onCancel={subLessonModals.closeAdd}
         onConfirm={subLessonModals.handleAdd}
-      />
-
-      <EditSubLessonDialog
-        isOpen={subLessonModals.isEditOpen}
-        name={subLessonModals.editName}
-        vdoUrl={subLessonModals.editVdoUrl}
-        vdoTime={subLessonModals.editVdoTime}
-        onNameChange={subLessonModals.setEditName}
-        onVdoUrlChange={subLessonModals.setEditVdoUrl}
-        onVdoTimeChange={subLessonModals.setEditVdoTime}
-        onCancel={subLessonModals.closeEdit}
-        onConfirm={subLessonModals.handleUpdate}
       />
     </AdminLayout>
   )

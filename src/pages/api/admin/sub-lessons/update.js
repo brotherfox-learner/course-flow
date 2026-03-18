@@ -104,13 +104,17 @@ export default async function handler(req, res) {
 
            vdo_time = $3,
 
+           content_type = $4,
+
+           content = $5,
+
            updated_at = NOW()
 
-       WHERE id = $4
+       WHERE id = $6
 
-       RETURNING id, lesson_id, name, order_index, vdo_url, vdo_time, created_at, updated_at`,
+       RETURNING id, lesson_id, name, order_index, vdo_url, vdo_time, content_type, content, created_at, updated_at`,
 
-      [name.trim(), vdo_url ?? null, vdo_time ?? null, sub_lesson_id]
+      [name.trim(), vdo_url ?? null, vdo_time ?? null, content_type ?? "video", content ?? null, sub_lesson_id]
 
     )
 

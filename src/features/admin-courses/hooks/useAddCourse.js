@@ -130,16 +130,28 @@ export function useAddCourse(token, onSuccess, onAuthError) {
             const lesson = lessons[i]
             const subPayload = []
             for (const sub of lesson.subLessons) {
-              let vdoUrl = null
-              if (sub.videoData?.file) {
-                vdoUrl = await uploadFileToCloudinary(sub.videoData.file, "video", "course-flow/videos")
+              const contentType = sub.content_type || "video"
+              if (contentType === "text") {
+                subPayload.push({
+                  name: sub.name.trim(),
+                  order_index: subPayload.length + 1,
+                  content_type: "text",
+                  vdo_url: null,
+                  content: sub.content || "",
+                })
+              } else {
+                let vdoUrl = null
+                if (sub.videoData?.file) {
+                  vdoUrl = await uploadFileToCloudinary(sub.videoData.file, "video", "course-flow/videos")
+                }
+                subPayload.push({
+                  name: sub.name.trim(),
+                  order_index: subPayload.length + 1,
+                  content_type: "video",
+                  vdo_url: vdoUrl,
+                  content: null,
+                })
               }
-              subPayload.push({
-                name: sub.name.trim(),
-                order_index: subPayload.length + 1,
-                type: "vdo",
-                content: vdoUrl,
-              })
             }
             await axios.post(
               "/api/admin/lessons/create-with-sublessons",

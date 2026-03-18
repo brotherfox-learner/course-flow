@@ -44,6 +44,26 @@ export default async function handler(req, res) {
   try {
     await client.query("BEGIN")
 
+    // Clear user submissions when editing (prevents bug when question IDs change)
+    await client.query(
+      `DELETE FROM submission_selected_options WHERE submission_answer_id IN (
+        SELECT sa.id FROM submission_answers sa
+        JOIN assignment_submissions asub ON sa.submission_id = asub.id
+        WHERE asub.assignment_id = $1
+      )`,
+      [assignment_id]
+    )
+    await client.query(
+      `DELETE FROM submission_answers WHERE submission_id IN (
+        SELECT id FROM assignment_submissions WHERE assignment_id = $1
+      )`,
+      [assignment_id]
+    )
+    await client.query(
+      `DELETE FROM assignment_submissions WHERE assignment_id = $1`,
+      [assignment_id]
+    )
+
     // Update sub_lesson_id if changed
     if (sub_lesson_id) {
       await client.query(

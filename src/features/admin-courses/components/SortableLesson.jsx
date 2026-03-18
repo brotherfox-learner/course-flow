@@ -1,4 +1,4 @@
-﻿import { useSortable } from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
     SortableContext,
@@ -19,7 +19,7 @@ import Button from "@/shared/components/navbar/Button";
 import { useToggle } from "@/shared/hooks/useToggle";
 import SortableSubLesson from "./SortableSubLesson";
 
-export default function SortableLesson({ item, onDelete, onEdit, onAddSubLesson, onDeleteSubLesson, onEditSubLesson, onSubLessonReorder }) {
+export default function SortableLesson({ item, onDelete, onEdit, onAddSubLesson, onDeleteSubLesson, onSubLessonReorder }) {
 
     const { isShow, switchToggle } = useToggle();
 
@@ -161,7 +161,6 @@ export default function SortableLesson({ item, onDelete, onEdit, onAddSubLesson,
                                         sub={sub}
                                         lessonId={item.id}
                                         onDelete={onDeleteSubLesson}
-                                        onEdit={onEditSubLesson}
                                     />
                                 ))}
                                 <div className="flex justify-center py-2">

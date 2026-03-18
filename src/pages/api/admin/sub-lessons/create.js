@@ -112,13 +112,13 @@ export default async function handler(req, res) {
 
     const result = await pool.query(
 
-      `INSERT INTO sub_lessons (lesson_id, name, order_index, vdo_url, vdo_time)
+      `INSERT INTO sub_lessons (lesson_id, name, order_index, vdo_url, vdo_time, content_type, content)
 
-       VALUES ($1, $2, $3, $4, $5)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
 
-       RETURNING id, lesson_id, name, order_index, vdo_url, vdo_time, created_at, updated_at`,
+       RETURNING id, lesson_id, name, order_index, vdo_url, vdo_time, content_type, content, created_at, updated_at`,
 
-      [lesson_id, name, nextOrderIndex, vdo_url ?? null, vdo_time ?? null]
+      [lesson_id, name, nextOrderIndex, vdo_url ?? null, vdo_time ?? null, content_type ?? "video", content ?? null]
 
     )
 

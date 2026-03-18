@@ -60,6 +60,7 @@ export default function EditAssignment() {
   const [isPageLoading, setIsPageLoading] = useState(true)
   const [pageError, setPageError] = useState("")
   const [assignmentTitle, setAssignmentTitle] = useState("")
+  const [submissionCount, setSubmissionCount] = useState(0)
 
   const [coursesTree, setCoursesTree] = useState([])
   const [selectedCourseId, setSelectedCourseId] = useState("")
@@ -103,6 +104,7 @@ export default function EditAssignment() {
         })
         const a = res.data.assignment
         setAssignmentTitle(a.first_question || a.questions?.[0]?.question_text || "Assignment")
+        setSubmissionCount(a.submission_count ?? 0)
         setSelectedCourseId(String(a.course_id))
         setSelectedLessonId(String(a.lesson_id))
         setSelectedSubLessonId(String(a.sub_lesson_id))
@@ -324,6 +326,15 @@ export default function EditAssignment() {
       {submitError && (
         <div className="bg-orange-100/20 border border-orange-500 rounded-lg px-4 py-3 mb-6">
           <p className="text-orange-500 text-sm">{submitError}</p>
+        </div>
+      )}
+
+      {submissionCount > 0 && (
+        <div className="bg-amber-50 border border-amber-400 rounded-lg px-4 py-3 mb-6">
+          <p className="text-amber-800 text-sm font-medium">
+            {submissionCount} user{submissionCount !== 1 ? "s have" : " has"} completed this assignment.
+            Saving will reset their progress and they will need to redo it.
+          </p>
         </div>
       )}
 
