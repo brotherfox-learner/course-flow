@@ -113,11 +113,11 @@ export default function VideoUpload({
         )}
 
         {preview && (
-          <div className="relative w-[300px] h-[300px]">
+          <div className="relative max-w-[180px] max-h-[180px]">
             <div className="relative rounded-lg overflow-hidden bg-black">
               <video
                 src={preview.preview}
-                className="w-full h-full object-contain"
+                className="w-full h-full min-h-[180px] max-h-[180px] object-fill"
                 controls
                 preload="metadata"
               >
@@ -216,10 +216,10 @@ export default function VideoUpload({
             </div>
 
             {/* Video Preview */}
-            <div className="relative rounded-lg overflow-hidden bg-black">
+            <div className="relative rounded-lg overflow-hidden bg-black box-border">
               <video
                 src={preview.preview}
-                className={`w-full min-h-[200px] max-h-[200px] object-fill`}
+                className={`w-full min-h-[200px] max-h-[200px] box-border object-fill`}
                 controls
                 preload="metadata"
               >
