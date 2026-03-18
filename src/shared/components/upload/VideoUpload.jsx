@@ -219,7 +219,7 @@ export default function VideoUpload({
             <div className="relative rounded-lg overflow-hidden bg-black">
               <video
                 src={preview.preview}
-                className="w-full h-full min-h-[200px] object-fill"
+                className={`w-full min-h-[200px] max-h-[200px] object-fill`}
                 controls
                 preload="metadata"
               >

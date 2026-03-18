@@ -168,7 +168,7 @@ export default function ImageUpload({
               <img
                 src={preview.preview}
                 alt={preview.name}
-                className="w-full h-full min-h-[200px] object-fill"
+                className="w-full h-full min-h-[200px] max-h-[200px] object-fill"
               />
             </div>
           </div>

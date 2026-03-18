@@ -138,6 +138,7 @@ export default function SubLessonCard({
               onChange={handleVideoChange}
               disabled={disabled}
               compact
+              className="max-h-[200px] min-h-[200px]"
             />
           </div>
         ) : (
