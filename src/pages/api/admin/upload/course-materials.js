@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js"
 import formidable, { errors as formidableErrors } from "formidable"
 import fs from "node:fs"
 import { randomUUID } from "node:crypto"
-import pool from "@/utils/db"
+import pool from "@/infrastructure/db"
 
 export const config = {
   api: {

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
@@ -7,7 +7,7 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/common/accordion";
+} from "@/shared/components/accordion";
 
 const SUB_LESSON_STATUS = {
   notStarted: "not_started",

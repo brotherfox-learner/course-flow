@@ -1,11 +1,11 @@
-import {
+﻿import {
     Combobox,
     ComboboxContent,
     ComboboxEmpty,
     ComboboxInput,
     ComboboxItem,
     ComboboxList,
-} from "@/components/ui/combobox"
+} from "@/shared/ui/combobox"
 
 const educationals = [
     "Engineering",

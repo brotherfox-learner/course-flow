@@ -1,8 +1,8 @@
-import Button from "@/common/navbar/Button"
-import useLogin from "../hook/useLogin"
+﻿import Button from "@/shared/components/navbar/Button"
+import useLogin from "../hooks/useLogin"
 import Link from "next/link"
 import { Eye, EyeClosed } from 'lucide-react';
-import usePasswordVisibility from "../hook/usePasswordVisibility";
+import usePasswordVisibility from "../hooks/usePasswordVisibility";
 
 function LoginSection() {
     const { form, errors, isLoading, handleChange, submit } = useLogin()

@@ -1,14 +1,14 @@
 import Head from "next/head"
 import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import AdminLayout from "@/components/layout/AdminLayout"
+import { Button } from "@/shared/ui/button"
+import { Input } from "@/shared/ui/input"
+import { Textarea } from "@/shared/ui/textarea"
+import { Label } from "@/shared/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group"
+import AdminLayout from "@/shared/layouts/AdminLayout"
 import { useRouter } from "next/router"
 import axios from "axios"
-import { useAuth } from "@/context/AuthContext"
+import { useAuth } from "@/features/auth/context/AuthContext"
 import { Trash2, Plus, ChevronDown } from "lucide-react"
 
 const QUESTION_TYPES = [
@@ -58,7 +58,12 @@ export default function AddAssignment() {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setCoursesTree(res.data.courses || []))
-      .catch((err) => console.error("Fetch courses tree error:", err))
+      .catch((err) => {
+        console.error("Fetch courses tree error:", err)
+        if (err.response?.data?.debug) {
+          console.error("Server debug:", err.response.data.debug)
+        }
+      })
   }, [token, loading, isLoggedIn, profile])
 
   const selectedCourse = coursesTree.find((c) => String(c.id) === String(selectedCourseId))

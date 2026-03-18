@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import Button from "@/common/navbar/Button";
+import Button from "@/shared/components/navbar/Button";
 
 export default function CourseContentFooter({
   onPrevious,

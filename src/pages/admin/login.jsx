@@ -2,7 +2,7 @@ import Head from "next/head"
 import { useRouter } from "next/router"
 import { useEffect } from "react"
 import { AdminLoginForm } from "@/features/login/components/AdminLoginForm"
-import { useAuth } from "@/context/AuthContext"
+import { useAuth } from "@/features/auth/context/AuthContext"
 
 export default function AdminLoginPage() {
   const router = useRouter()

@@ -7,7 +7,7 @@
  *   ALTER TABLE sub_lesson_progress DROP CONSTRAINT IF EXISTS sub_lesson_progress_status_check;
  *   ALTER TABLE sub_lesson_progress ADD CONSTRAINT sub_lesson_progress_status_check CHECK (status IN ('completed', 'in_progress'));
  */
-import pool from "../../../../utils/db";
+import pool from "@/infrastructure/db";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(

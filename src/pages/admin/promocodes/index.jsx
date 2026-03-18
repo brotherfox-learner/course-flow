@@ -1,6 +1,6 @@
-import Head from "next/head"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+﻿import Head from "next/head"
+import { Button } from "@/shared/ui/button"
+import { Input } from "@/shared/ui/input"
 import {
   Table,
   TableBody,
@@ -8,15 +8,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/shared/ui/table"
 import { Search, Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
-import AdminLayout from "@/components/layout/AdminLayout"
-import Modal from "@/common/modal"
-import Pagination from "@/common/pagination"
+import AdminLayout from "@/shared/layouts/AdminLayout"
+import Modal from "@/shared/components/modal"
+import Pagination from "@/shared/components/pagination"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import axios from "axios"
-import { useAuth } from "@/context/AuthContext"
+import { useAuth } from "@/features/auth/context/AuthContext"
 import { format } from "date-fns"
 
 export default function PromoCodeList() {

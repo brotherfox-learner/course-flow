@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { fetchCourses as fetchCoursesApi } from "../services/course.service";
 
 /**
  * Fetch courses list from /api/courses
@@ -11,10 +11,10 @@ export function useCourses() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const load = async () => {
       try {
-        const { data } = await axios.get("/api/courses");
-        setCourses(data.courses || []);
+        const data = await fetchCoursesApi();
+        setCourses(data);
         setError(null);
       } catch (err) {
         console.error("Fetch error:", err);
@@ -24,7 +24,7 @@ export function useCourses() {
         setLoading(false);
       }
     };
-    fetchCourses();
+    load();
   }, []);
 
   return { courses, loading, error };

@@ -1,5 +1,5 @@
-import { useRouter } from "next/router";
-import NavBar from "@/common/navbar/NavBar";
+﻿import { useRouter } from "next/router";
+import NavBar from "@/shared/components/navbar/NavBar";
 
 export default function PaymentComplete() {
   const router = useRouter();

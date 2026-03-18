@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+﻿import { Button } from "@/shared/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -6,11 +6,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/shared/ui/dialog"
 import { Edit, Trash2 } from "lucide-react"
 import { useState } from "react"
 import axios from "axios"
-import { useAuth } from "@/context/AuthContext"
+import { useAuth } from "@/features/auth/context/AuthContext"
 import { useRouter } from "next/router"
 
 export default function AdminCourseActions({ courseId, courseName }) {

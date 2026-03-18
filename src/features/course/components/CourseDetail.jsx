@@ -8,12 +8,12 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "../../../common/accordion";
-import Card from "../../../common/card";
-import Button from "../../../common/navbar/Button";
-import Modal from "../../../common/modal";
+} from "@/shared/components/accordion";
+import Card from "@/shared/components/card";
+import Button from "@/shared/components/navbar/Button";
+import Modal from "@/shared/components/modal";
 import { useCourseDetail, useSubscribeModal } from "../hooks";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/features/auth/context/AuthContext";
 import { useWishlist } from "@/features/wishlist/hooks";
 import CourseDetailSkeleton from "./CourseDetailSkeleton";
 

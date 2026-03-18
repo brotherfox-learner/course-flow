@@ -1,4 +1,4 @@
-import NavBar from "@/common/navbar/NavBar"
+﻿import NavBar from "@/shared/components/navbar/NavBar"
 import RegisterSection from "@/features/register/components/RegisterSection";
 
 function Register() {

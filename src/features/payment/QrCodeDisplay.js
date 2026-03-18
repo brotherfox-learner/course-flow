@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+﻿import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
-import NavBar from "@/common/navbar/NavBar";
+import NavBar from "@/shared/components/navbar/NavBar";
 const QR_EXPIRY_MINUTES = 15;
 
 export default function QrCodeDisplay({ qrCodeUri, chargeId, amount, courseSlug, courseId }) {

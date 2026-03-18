@@ -3,10 +3,10 @@ import { useRouter } from "next/router";
 import PaymentForm from "../../features/payment/PaymentForm";
 import OrderSummary from "../../features/payment/OrderSummary";
 import QrCodeDisplay from "../../features/payment/QrCodeDisplay";
-import pool from "../../utils/db";
-import NavBar from "../../common/navbar/NavBar";
-import Footer from "../../common/Footer";
-import { useAuth } from "@/context/AuthContext";
+import pool from "@/infrastructure/db";
+import NavBar from "@/shared/components/navbar/NavBar";
+import Footer from "@/shared/components/Footer";
+import { useAuth } from "@/features/auth/context/AuthContext";
 
 export async function getServerSideProps(context) {
   // รับ courseSlug จาก URL (รองรับทั้ง slug และ id)

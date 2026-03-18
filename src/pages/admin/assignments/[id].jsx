@@ -1,10 +1,10 @@
 import Head from "next/head"
 import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Button } from "@/shared/ui/button"
+import { Input } from "@/shared/ui/input"
+import { Textarea } from "@/shared/ui/textarea"
+import { Label } from "@/shared/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group"
 import {
   Dialog,
   DialogContent,
@@ -12,11 +12,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import AdminLayout from "@/components/layout/AdminLayout"
+} from "@/shared/ui/dialog"
+import AdminLayout from "@/shared/layouts/AdminLayout"
 import { useRouter } from "next/router"
 import axios from "axios"
-import { useAuth } from "@/context/AuthContext"
+import { useAuth } from "@/features/auth/context/AuthContext"
 import { Trash2, Plus, ChevronDown } from "lucide-react"
 
 const QUESTION_TYPES = [

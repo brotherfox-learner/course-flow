@@ -1,4 +1,4 @@
-import Button from "@/common/navbar/Button"
+﻿import Button from "@/shared/components/navbar/Button"
 import { useRouter } from "next/router"
 
 function HeroSection () {

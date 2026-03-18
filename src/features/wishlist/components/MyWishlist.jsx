@@ -1,7 +1,7 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import Link from "next/link";
-import Card from "@/common/card";
-import Modal from "@/common/modal";
+import Card from "@/shared/components/card";
+import Modal from "@/shared/components/modal";
 import CourseCardSkeleton from "@/features/course/components/CourseCardSkeleton";
 
 const SKELETON_COUNT = 9;

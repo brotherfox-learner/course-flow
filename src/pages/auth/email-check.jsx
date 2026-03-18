@@ -1,5 +1,5 @@
-import NavBar from "@/common/navbar/NavBar"
-import EmailCheck from "@/features/profile/component/EmailCheck"
+﻿import NavBar from "@/shared/components/navbar/NavBar"
+import EmailCheck from "@/features/profile/components/EmailCheck"
 
 export default function EmailCheckPage() {
     return (

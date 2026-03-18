@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { uploadVideo } from '@/lib/cloudinary';
+import { uploadVideo } from '@/infrastructure/cloudinary';
 
 // Initialize Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

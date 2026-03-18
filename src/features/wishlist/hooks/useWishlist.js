@@ -1,8 +1,13 @@
 import { useState, useCallback, useEffect } from "react";
+import {
+  fetchWishlist as fetchWishlistApi,
+  addToWishlist as addToWishlistApi,
+  removeFromWishlist as removeFromWishlistApi,
+} from "../services/wishlist.service";
 
 /**
  * @param {string} [userId] - Logged-in user id (from useAuth). If null/undefined, no fetch.
- * @param {string} [token] - Auth token for POST add to wishlist.
+ * @param {string} [token] - Auth token for POST/DELETE wishlist.
  * @returns {{ courses: array, loading: boolean, error: string | null, refetch: () => Promise<void>, addToWishlist: (courseId: number) => Promise<{ success: boolean; error?: string }> }}
  */
 export function useWishlist(userId, token) {
@@ -19,17 +24,11 @@ export function useWishlist(userId, token) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/wishlist?userId=${encodeURIComponent(userId)}`);
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        setCourses(data.courses ?? []);
-      } else {
-        setError(data.error || "Failed to load wishlist");
-        setCourses([]);
-      }
+      const data = await fetchWishlistApi(userId);
+      setCourses(data);
     } catch (err) {
       console.error("useWishlist fetch:", err);
-      setError("Failed to load wishlist");
+      setError(err.message || "Failed to load wishlist");
       setCourses([]);
     } finally {
       setLoading(false);
@@ -44,23 +43,12 @@ export function useWishlist(userId, token) {
     async (courseId) => {
       if (!token) return { success: false, error: "Not logged in" };
       try {
-        const res = await fetch("/api/wishlist", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ courseId: Number(courseId) }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (res.ok && data.success) {
-          await refetch();
-          return { success: true };
-        }
-        return { success: false, error: data.error || "Failed to add to wishlist" };
+        await addToWishlistApi(courseId, token);
+        await refetch();
+        return { success: true };
       } catch (err) {
         console.error("addToWishlist:", err);
-        return { success: false, error: "Failed to add to wishlist" };
+        return { success: false, error: err.message || "Failed to add to wishlist" };
       }
     },
     [token, refetch]
@@ -70,23 +58,12 @@ export function useWishlist(userId, token) {
     async (courseId) => {
       if (!token) return { success: false, error: "Not logged in" };
       try {
-        const res = await fetch("/api/wishlist", {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ courseId: Number(courseId) }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (res.ok && data.success !== false) {
-          await refetch();
-          return { success: true };
-        }
-        return { success: false, error: data.error || "Failed to remove from wishlist" };
+        await removeFromWishlistApi(courseId, token);
+        await refetch();
+        return { success: true };
       } catch (err) {
         console.error("removeFromWishlist:", err);
-        return { success: false, error: "Failed to remove from wishlist" };
+        return { success: false, error: err.message || "Failed to remove from wishlist" };
       }
     },
     [token, refetch]

@@ -1,7 +1,7 @@
-import { useCallback, useState, useEffect } from 'react';
+﻿import { useCallback, useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Button } from '@/shared/ui/button';
+import { Card } from '@/shared/ui/card';
 import { Upload, X, Image as ImageIcon, AlertCircle } from 'lucide-react';
 
 export default function ImageUpload({ 

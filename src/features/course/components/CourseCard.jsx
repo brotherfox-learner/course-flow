@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import Card from "../../../common/card";
-import SearchBox from "../../../common/searchbox";
+import Card from "@/shared/components/card";
+import SearchBox from "@/shared/components/searchbox";
 import Link from "next/link";
-import Pagination from "../../../common/pagination.jsx";
+import Pagination from "@/shared/components/pagination.jsx";
 import CourseCardSkeleton from "./CourseCardSkeleton";
 import { useCourseList } from "../hooks";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/features/auth/context/AuthContext";
 import { useWishlist } from "@/features/wishlist/hooks";
 
 const PAGE_SIZE = 12;

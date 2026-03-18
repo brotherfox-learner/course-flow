@@ -1,6 +1,6 @@
-import pool from "@/utils/db"
+import pool from "@/infrastructure/db"
 import { createClient } from "@supabase/supabase-js"
-import { toBangkokStartOfDay, toBangkokEndOfDay } from "@/utils/promoCodeDates"
+import { toBangkokStartOfDay, toBangkokEndOfDay } from "@/shared/utils/promoCodeDates"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
