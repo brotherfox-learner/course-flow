@@ -1,10 +1,11 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import Card from "@/shared/components/card";
 import NavBar from "@/shared/components/navbar/NavBar";
 import Footer from "@/shared/components/Footer";
 import Pagination from "@/shared/components/pagination";
 import { useAuth } from "@/features/auth/context/AuthContext";
+import { useSwipeableTabs } from "@/hooks/useSwipeableTabs";
 
 const PAGE_SIZE = 8;
 
@@ -82,6 +83,16 @@ export default function MyCourses() {
     { key: "inprogress", label: "Inprogress" },
     { key: "completed", label: "Completed" },
   ];
+
+  const handleTabChange = useCallback(
+    (key) => {
+      setActiveTab(key);
+      setCurrentPage(1);
+    },
+    []
+  );
+
+  const swipeHandlers = useSwipeableTabs(tabs, activeTab, handleTabChange);
 
   if (authLoading || loading) {
     return (
@@ -217,10 +228,7 @@ export default function MyCourses() {
             {tabs.map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => {
-                  setActiveTab(tab.key);
-                  setCurrentPage(1);
-                }}
+                onClick={() => handleTabChange(tab.key)}
                 className={`pb-3 body2 font-medium transition-colors cursor-pointer relative ${activeTab === tab.key
                   ? "text-black border-b-2 border-black"
                   : "text-gray-500 hover:text-gray-700"
@@ -256,7 +264,10 @@ export default function MyCourses() {
             </aside>
 
 
-            <div className="flex-1">
+            <div
+              className="flex-1 touch-pan-y"
+              {...swipeHandlers}
+            >
               {filteredCourses.length === 0 ? (
                 <div className="text-center py-16 flex flex-col items-center gap-6">
                   <p className="body2 text-gray-500">
