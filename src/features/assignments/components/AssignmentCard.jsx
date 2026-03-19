@@ -1,5 +1,20 @@
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { useAssignmentQuestions } from "../hooks/useAssignmentQuestions"
+
+function slugifySubLesson(id, name) {
+  const idPart = id != null ? String(id) : null
+  const namePart = typeof name === "string" ? name : ""
+  const base = namePart.trim()
+  const nameSlug = base
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+  if (!idPart) return null
+  return nameSlug ? `${idPart}-${nameSlug}` : idPart
+}
 import { useQuizAnswers } from "../hooks/useQuizAnswers"
 import { useAssignmentSubmit } from "../hooks/useAssignmentSubmit"
 import { useAssignmentRetry } from "../hooks/useAssignmentRetry"
@@ -11,6 +26,10 @@ import { getDisplayStatus, getStatusConfig, buildGradingFromExisting } from "../
  */
 export default function AssignmentCard({ assignment, token, onRefresh }) {
   const statusKey = getDisplayStatus(assignment)
+  const learnSlug = slugifySubLesson(assignment.sub_lesson_id, assignment.sub_lesson_name)
+  const learnHref = learnSlug
+    ? `/courses/${assignment.course_id}/learn/${learnSlug}`
+    : `/courses/${assignment.course_id}/learn`
   const sc = getStatusConfig(statusKey)
 
   const { questions, submission, loadingQ, initAnswers } = useAssignmentQuestions(
@@ -104,12 +123,12 @@ export default function AssignmentCard({ assignment, token, onRefresh }) {
               <p className="body4 text-red-500 flex-1">{submitError || retryError}</p>
             )}
             <div className="flex items-center gap-4 ml-auto">
-              <a
-                href={`/courses/${assignment.course_id}/learn`}
+              <Link
+                href={learnHref}
                 className="body3 text-blue-500 hover:text-blue-700 font-medium underline underline-offset-2 whitespace-nowrap"
               >
                 Open in Course
-              </a>
+              </Link>
               {(gradingResults === null || !questions.every((q) => gradingResults?.[q.id])) && (
                 <button
                   onClick={handleSubmit}

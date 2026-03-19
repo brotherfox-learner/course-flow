@@ -21,6 +21,7 @@ export default function AssignmentsPage() {
     handleTabChange,
     setCurrentPage,
     refetch,
+    refetchSilent,
   } = useAssignmentList(token)
 
   useEffect(() => {
@@ -65,7 +66,7 @@ export default function AssignmentsPage() {
             token={token}
             onTabChange={handleTabChange}
             onPageChange={setCurrentPage}
-            onRefresh={refetch}
+            onRefresh={refetchSilent}
           />
         </div>
       </main>

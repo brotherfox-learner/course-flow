@@ -112,15 +112,21 @@ export default async function handler(req, res) {
         throw new Error("Sub lesson name required")
       }
 
+      const vdoUrl = sub.vdo_url ?? (sub.type === "vdo" ? sub.content : null)
+      const contentType = sub.content_type ?? "video"
+      const content = sub.content_type === "text" ? (sub.content ?? "") : null
+
       await client.query(
         `INSERT INTO sub_lessons
-         (lesson_id, name, order_index, vdo_url)
-         VALUES ($1,$2,$3,$4)`,
+         (lesson_id, name, order_index, vdo_url, content_type, content)
+         VALUES ($1,$2,$3,$4,$5,$6)`,
         [
           lessonId,
           sub.name,
           sub.order_index,
-          sub.type === "vdo" ? sub.content : null
+          vdoUrl,
+          contentType,
+          content
         ]
       )
 

@@ -60,6 +60,12 @@ export default async function handler(req, res) {
 
     const assignment = assignmentRes.rows[0]
 
+    const submissionCountRes = await pool.query(
+      `SELECT COUNT(*)::int AS cnt FROM assignment_submissions WHERE assignment_id = $1`,
+      [id]
+    )
+    const submissionCount = submissionCountRes.rows[0]?.cnt ?? 0
+
     // Get questions
     const questionsRes = await pool.query(
       `SELECT id, question_text, question_type, correct_text_answer
@@ -82,7 +88,9 @@ export default async function handler(req, res) {
       })
     )
 
-    return res.status(200).json({ assignment: { ...assignment, questions } })
+    return res.status(200).json({
+      assignment: { ...assignment, questions, submission_count: submissionCount },
+    })
   } catch (error) {
     console.error("Fetch assignment error:", error)
     return res.status(500).json({ message: "Internal server error" })

@@ -34,7 +34,7 @@ import SortableLesson from "./SortableLesson";
 
 
 
-export default function SortableList({ lessons, setLessons, courseId, token, onDeleteLesson, onEditLesson, onAddSubLesson, onDeleteSubLesson, onEditSubLesson }) {
+export default function SortableList({ lessons, setLessons, courseId, token, onDeleteLesson, onEditLesson, onAddSubLesson, onDeleteSubLesson }) {
 
   const [mounted, setMounted] = useState(false);
 
@@ -208,8 +208,7 @@ export default function SortableList({ lessons, setLessons, courseId, token, onD
               onDelete={onDeleteLesson}
               onEdit={onEditLesson}
               onAddSubLesson={onAddSubLesson}
-              onDeleteSubLesson={onDeleteSubLesson}
-              onEditSubLesson={onEditSubLesson}
+                onDeleteSubLesson={onDeleteSubLesson}
               onSubLessonReorder={handleSubLessonReorder}
             />
           ))}

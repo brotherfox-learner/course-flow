@@ -1,4 +1,4 @@
-﻿import { useState, useCallback } from "react"
+import { useState, useCallback } from "react"
 
 import { useSortable } from "@dnd-kit/sortable"
 
@@ -152,7 +152,7 @@ export default function LessonBlock({
 
         ...lesson.subLessons,
 
-        { id: makeTempId(), name: "", videoData: null },
+        { id: makeTempId(), name: "", content_type: "video", content: null, videoData: null },
 
       ],
 

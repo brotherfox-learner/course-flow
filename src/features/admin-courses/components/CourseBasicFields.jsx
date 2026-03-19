@@ -16,7 +16,7 @@ export default function CourseBasicFields({ formData, errors = {}, onChange, isA
   const learningTimeKey = isAdd ? "totalLearningTime" : "learningTime"
   const summaryKey = isAdd ? "courseSummary" : "summary"
   const detailKey = isAdd ? "courseDetail" : "detail"
-  const requiredColor = isAdd ? "text-[#C82A2A]" : "text-[#5483D0]"
+  const requiredColor = "text-[#C82A2A]"
 
   return (
     <>

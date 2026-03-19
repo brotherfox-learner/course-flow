@@ -104,27 +104,33 @@ export default function EditLessonPage() {
         setLessonName(lesson.name)
         setOriginalLessonName(lesson.name)
 
-        const mappedSubs = (lesson.sub_lessons || [])
+        const rawSubs = lesson.subLessons || lesson.sub_lessons || []
+        const mappedSubs = rawSubs
           .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
-          .map((sub) => ({
-            id: sub.id,
-            dbId: sub.id,
-            name: sub.name || "",
-            vdo_url: sub.vdo_url || null,
-            videoData: sub.vdo_url
-              ? {
-                  secure_url: sub.vdo_url,
-                  preview: sub.vdo_url,
-                  name: "video",
-                  public_id: extractPublicId(sub.vdo_url),
-                }
-              : null,
-          }))
+          .map((sub) => {
+            const vdoUrl = sub.videoData?.url ?? sub.vdo_url ?? null
+            return {
+              id: sub.id,
+              dbId: sub.id,
+              name: sub.name || "",
+              content_type: sub.content_type || "video",
+              content: sub.content ?? null,
+              vdo_url: vdoUrl,
+              videoData: vdoUrl
+                ? {
+                    secure_url: vdoUrl,
+                    preview: vdoUrl,
+                    name: "video",
+                    public_id: extractPublicId(vdoUrl),
+                  }
+                : null,
+            }
+          })
 
         setSubLessons(
           mappedSubs.length > 0
             ? mappedSubs
-            : [{ id: makeTempId(), name: "", videoData: null }]
+            : [{ id: makeTempId(), name: "", content_type: "video", content: null, videoData: null }]
         )
       } catch (error) {
         console.error("Fetch lesson failed:", error)
@@ -153,7 +159,7 @@ export default function EditLessonPage() {
   const handleAddSubLesson = () => {
     setSubLessons((prev) => [
       ...prev,
-      { id: makeTempId(), name: "", videoData: null },
+      { id: makeTempId(), name: "", content_type: "video", content: null, videoData: null },
     ])
   }
 
@@ -255,7 +261,12 @@ export default function EditLessonPage() {
     subLessons.forEach((sub, i) => {
       const e = {}
       if (!sub.name.trim()) e.name = "Sub-lesson name is required"
-      if (!sub.videoData && !sub.vdo_url) e.video = "Video is required"
+      const contentType = sub.content_type || "video"
+      if (contentType === "video") {
+        if (!sub.videoData && !sub.vdo_url) e.video = "Video is required"
+      } else {
+        if (!sub.content?.trim()) e.content = "Text content is required"
+      }
       if (Object.keys(e).length > 0) subErrors[i] = e
     })
     if (subErrors.some(Boolean)) newErrors.subLessons = subErrors
@@ -287,15 +298,21 @@ export default function EditLessonPage() {
       // 2) Process each sub-lesson
       for (let i = 0; i < subLessons.length; i++) {
         const sub = subLessons[i]
+        const contentType = sub.content_type || "video"
 
-        // Upload new video if needed
-        let vdoUrl = sub.videoData?.secure_url || sub.vdo_url || null
-        if (sub.videoData?.file) {
-          vdoUrl = await uploadFileToCloudinary(
-            sub.videoData.file,
-            "video",
-            "course-flow/videos"
-          )
+        let vdoUrl = null
+        let content = null
+        if (contentType === "text") {
+          content = sub.content?.trim() || ""
+        } else {
+          vdoUrl = sub.videoData?.secure_url || sub.vdo_url || null
+          if (sub.videoData?.file) {
+            vdoUrl = await uploadFileToCloudinary(
+              sub.videoData.file,
+              "video",
+              "course-flow/videos"
+            )
+          }
         }
 
         if (sub.dbId) {
@@ -306,6 +323,8 @@ export default function EditLessonPage() {
               sub_lesson_id: sub.dbId,
               name: sub.name.trim(),
               vdo_url: vdoUrl,
+              content_type: contentType,
+              content,
             },
             { headers: { Authorization: `Bearer ${token}` } }
           )
@@ -317,6 +336,8 @@ export default function EditLessonPage() {
               lesson_id: Number(lessonId),
               name: sub.name.trim(),
               vdo_url: vdoUrl,
+              content_type: contentType,
+              content,
               order_index: i + 1,
             },
             { headers: { Authorization: `Bearer ${token}` } }
@@ -469,9 +490,9 @@ export default function EditLessonPage() {
                       {errors.subLessons[idx].name}
                     </p>
                   )}
-                  {errors.subLessons?.[idx]?.video && (
+                  {(errors.subLessons?.[idx]?.video || errors.subLessons?.[idx]?.content) && (
                     <p className="text-orange-500 text-xs mt-1 ml-10">
-                      {errors.subLessons[idx].video}
+                      {errors.subLessons[idx].video || errors.subLessons[idx].content}
                     </p>
                   )}
                 </div>

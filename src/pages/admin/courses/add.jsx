@@ -75,7 +75,7 @@ export default function AddCourse() {
   const handleAddLesson = () => {
     setLessons((prev) => [
       ...prev,
-      { id: makeLessonId(), name: "", subLessons: [{ id: makeSubId(), name: "", videoData: null }] },
+      { id: makeLessonId(), name: "", subLessons: [{ id: makeSubId(), name: "", content_type: "video", content: null, videoData: null }] },
     ])
   }
 

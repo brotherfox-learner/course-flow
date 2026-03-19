@@ -162,6 +162,7 @@ export default function CourseContent({
         </section>
       )}
 
+      {(!showPlaceholder && !assignment.assignmentLoading && !assignment.hasAssignment) ? null : (
       <AssignmentPanel
         showPlaceholder={showPlaceholder}
         assignmentLoading={assignment.assignmentLoading}
@@ -186,6 +187,7 @@ export default function CourseContent({
         onNextQuestion={assignment.handleNextQuestion}
         onNavigateToQuestion={assignment.handleNavigateToQuestion}
       />
+      )}
     </article>
   );
 }
