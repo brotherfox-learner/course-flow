@@ -120,9 +120,9 @@ export default function CourseCard() {
                 );
               })
             ) : search ? (
-              <section className="col-span-full flex items-start justify-center px-4 pt-6 pb-12 lg:pt-8 lg:pb-16">
+              <section className="col-span-full flex items-start justify-center px-4 pt-6 pb-12 lg:pt-8 lg:pb-16 lg:ml-[120px] lg:mt-[-50px]">
                 <article className="w-full max-w-[600px] text-left lg:text-left">
-                  <h2 className="headline3 text-gray-900 font-bold mb-3">
+                  <h2 className="text-[20px] text-gray-900 font-bold mb-3 lg:headline3"> 
                     Sorry, we couldn&apos;t find any results for &quot;{search}&quot;
                   </h2>
                   <p className="body2 text-gray-700 mb-4">

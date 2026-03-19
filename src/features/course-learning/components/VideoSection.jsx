@@ -1,4 +1,5 @@
 import Image from "next/image"
+import { contentToHtml } from "@/shared/utils/contentToHtml"
 
 /**
  * Renders the video player (or cover image placeholder) with skip overlay.
@@ -84,8 +85,8 @@ export default function VideoSection({
           aria-label="Lesson article"
         >
           <div
-            className="body2 text-black prose prose-sm max-w-none"
-            dangerouslySetInnerHTML={{ __html: content }}
+            className="body2 text-black prose prose-sm max-w-none prose-p:my-0 prose-h1:my-0 prose-h2:my-0 prose-h3:my-0 prose-ul:my-0 prose-ol:my-0"
+            dangerouslySetInnerHTML={{ __html: contentToHtml(content) }}
           />
         </section>
       )}

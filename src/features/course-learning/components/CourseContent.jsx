@@ -7,6 +7,7 @@ import { useVideoProgress } from "../hooks/useVideoProgress";
 import { useVideoCompletion } from "../hooks/useVideoCompletion";
 import { useVideoKeyboard } from "../hooks/useVideoKeyboard";
 import { useSubLessonAssignment } from "../hooks/useSubLessonAssignment";
+import { contentToHtml } from "@/shared/utils/contentToHtml";
 
 export default function CourseContent({
   subLessonName,
@@ -151,8 +152,8 @@ export default function CourseContent({
           {content ? (
             <>
               <div
-                className="body2 text-black prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: content }}
+                className="body2 text-black prose prose-sm max-w-none prose-p:my-0 prose-h1:my-0 prose-h2:my-0 prose-h3:my-0 prose-ul:my-0 prose-ol:my-0"
+                dangerouslySetInnerHTML={{ __html: contentToHtml(content) }}
               />
               <div ref={scrollCompleteSentinelRef} className="h-2 w-full" aria-hidden />
             </>
