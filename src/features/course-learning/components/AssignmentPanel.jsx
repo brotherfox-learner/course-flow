@@ -48,8 +48,6 @@ export default function AssignmentPanel({
     )
   }
 
-  if (!assignmentLoading && !hasAssignment) return null
-
   return (
     <section
       className="flex flex-col items-start p-4 gap-4 w-full max-w-[343px] md:max-w-[520px] lg:max-w-full lg:p-6 lg:gap-5 flex-none order-2 self-stretch bg-blue-100 rounded-[8px]"
@@ -59,7 +57,7 @@ export default function AssignmentPanel({
         <div className="flex justify-center w-full py-6">
           <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
         </div>
-      ) : (
+      ) : hasAssignment ? (
         <>
           <header className="flex flex-row justify-between items-center gap-4 w-full">
             <h2 id="assignment-heading" className="body1 text-black flex-1 min-w-0">
@@ -166,6 +164,15 @@ export default function AssignmentPanel({
               </button>
             </nav>
           )}
+        </>
+      ) : (
+        <>
+          <header className="flex flex-row justify-between items-start gap-4 w-full">
+            <h2 id="assignment-heading" className="body1 text-black flex-1 min-w-0">
+              Assignment
+            </h2>
+          </header>
+          <p className="body2 text-gray-600">No assignment for this lesson.</p>
         </>
       )}
     </section>
