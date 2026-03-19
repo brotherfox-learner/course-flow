@@ -9,7 +9,7 @@ export function UserProfile({ profile, onToggle, isLoading }) {
   if (isLoading) return <SkeletonDemo />
 
   return (
-    <div className="flex flex-row items-center lg:py-2 lg:gap-2">
+    <div className="flex flex-row items-center lg:py-1.5 lg:gap-2">
       <Link href="/profile" className="cursor-pointer">
         <Avatar className="w-12 h-12 cursor-pointer hover:opacity-80 transition-opacity">
           <AvatarImage
