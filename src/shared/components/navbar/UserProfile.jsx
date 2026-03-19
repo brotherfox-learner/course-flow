@@ -9,7 +9,7 @@ export function UserProfile({ profile, onToggle, isLoading }) {
   if (isLoading) return <SkeletonDemo />
 
   return (
-    <div className="flex flex-row items-center lg:py-2 lg:gap-2">
+    <div className="flex flex-row gap-2 items-center lg:py-1.5 lg:gap-2">
       <Link href="/profile" className="cursor-pointer">
         <Avatar className="w-12 h-12 cursor-pointer hover:opacity-80 transition-opacity">
           <AvatarImage
@@ -24,8 +24,12 @@ export function UserProfile({ profile, onToggle, isLoading }) {
       <button onClick={onToggle} className="hidden body2 text-gray-800 lg:ml-2 lg:flex items-center cursor-pointer">
         {profile?.firstName} {profile?.lastName}
       </button>
-      <button onClick={onToggle} className="cursor-pointer">
-        <ChevronDown size={24} color="#646D89" strokeWidth={1} />
+      <button onClick={onToggle} className="cursor-pointer lg:ml-">
+        <div class="w-0 h-0 
+            border-l-[5px] border-l-transparent
+            border-r-[5px] border-r-transparent
+            border-t-[5px] border-t-gray-700">
+        </div>
       </button>
     </div>
   )

@@ -24,7 +24,7 @@ function getLatestSelectableDate() {
   const today = new Date()
 
   return new Date(
-    today.getFullYear() - 18,
+    today.getFullYear() - 12,
     today.getMonth(),
     today.getDate()
   )
@@ -66,10 +66,10 @@ function isFutureDate(date) {
   return date > today
 }
 
-function isUnder18(date) {
+function isUnder12(date) {
   const today = new Date()
   const minBirthDate = new Date(
-    today.getFullYear() - 18,
+    today.getFullYear() - 12,
     today.getMonth(),
     today.getDate()
   )
@@ -159,10 +159,10 @@ export default function DatePickerInput({
             defaultMonth={date || latestSelectableDate}
             captionLayout="dropdown"
             fromYear={1900}
-            toYear={currentYear - 18}
-            disabled={(d) => isFutureDate(d) || isUnder18(d)}
+            toYear={currentYear - 12}
+            disabled={(d) => isFutureDate(d) || isUnder12(d)}
             onSelect={(selectedDate) => {
-              if (!selectedDate || isFutureDate(selectedDate) || isUnder18(selectedDate)) return
+              if (!selectedDate || isFutureDate(selectedDate) || isUnder12(selectedDate)) return
 
               setDate(selectedDate)
               setInputValue(formatDate(selectedDate))

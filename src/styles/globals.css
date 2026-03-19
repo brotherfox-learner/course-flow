@@ -104,8 +104,8 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
-
-  --navbar-height: 92px;
+  --navbar-mobile-height: 76px;
+  --navbar-height: 88px;
 }
 
 @theme inline {
