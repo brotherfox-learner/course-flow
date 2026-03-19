@@ -1,5 +1,6 @@
 import Pagination from "@/shared/components/pagination"
 import AssignmentCard from "./AssignmentCard"
+import { useSwipeableTabs } from "@/hooks/useSwipeableTabs"
 
 const PAGE_SIZE = 4
 
@@ -19,6 +20,8 @@ export default function AssignmentsList({
   onPageChange,
   onRefresh,
 }) {
+  const swipeHandlers = useSwipeableTabs(tabs, activeTab, onTabChange)
+
   return (
     <>
       <nav
@@ -40,32 +43,36 @@ export default function AssignmentsList({
         ))}
       </nav>
 
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-          <p className="body3 text-red-600">{error}</p>
-        </div>
-      )}
+      <div
+        className="touch-pan-y min-h-[200px]"
+        {...swipeHandlers}
+      >
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <p className="body3 text-red-600">{error}</p>
+          </div>
+        )}
 
-      {loading ? (
-        <div className="flex justify-center py-24">
-          <div className="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="py-24 text-center max-w-md mx-auto">
-          <p className="body2 text-gray-600 font-medium mb-2">No assignments right now</p>
-          <p className="body3 text-gray-500">
-            Assignments appear when you are enrolled in a course that has them.
-            Go to My Courses to see your enrolled courses.
-          </p>
-          <a
-            href="/my-courses"
-            className="inline-block mt-4 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white body3 font-medium rounded-xl transition-colors"
-          >
-            Go to My Courses
-          </a>
-        </div>
-      ) : (
-        <>
+        {loading ? (
+          <div className="flex justify-center py-24">
+            <div className="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-24 text-center max-w-md mx-auto">
+            <p className="body2 text-gray-600 font-medium mb-2">No assignments right now</p>
+            <p className="body3 text-gray-500">
+              Assignments appear when you are enrolled in a course that has them.
+              Go to My Courses to see your enrolled courses.
+            </p>
+            <a
+              href="/my-courses"
+              className="inline-block mt-4 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white body3 font-medium rounded-xl transition-colors"
+            >
+              Go to My Courses
+            </a>
+          </div>
+        ) : (
+          <>
           <div className="mx-auto lg:mx-0 flex flex-col gap-4 w-full items-center justify-center">
             {filtered
               .slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
@@ -94,8 +101,9 @@ export default function AssignmentsList({
               )}
             </div>
           )}
-        </>
-      )}
+          </>
+        )}
+      </div>
     </>
   )
 }
