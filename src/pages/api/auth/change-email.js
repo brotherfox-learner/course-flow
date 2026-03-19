@@ -58,7 +58,7 @@ export default async function handler(req, res) {
     await supabase.auth.updateUser(
       { email: newEmail },
       {
-        emailRedirectTo: "http://localhost:3000/auth/callback"
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
       }
     )
 
