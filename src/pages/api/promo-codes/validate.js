@@ -1,5 +1,6 @@
 import pool from "@/infrastructure/db";
 import { createClient } from "@supabase/supabase-js";
+import { resolveChargeAfterPromo } from "@/shared/utils/omiseChargeAmount";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -116,13 +117,17 @@ export default async function handler(req, res) {
 
     await client.query("COMMIT");
 
-    /* 6. Calculate discount */
-    let discountAmount = 0;
+    /* 6. Nominal discount from promo config, then clamp to Omise minimum charge */
+    let nominalDiscount = 0;
     if (promo.discount_type === "fixed") {
-      discountAmount = parseFloat(promo.discount_value);
+      nominalDiscount = parseFloat(promo.discount_value);
     } else if (promo.discount_type === "percent") {
-      discountAmount = price * (parseFloat(promo.discount_value) / 100);
+      nominalDiscount = price * (parseFloat(promo.discount_value) / 100);
     }
+    nominalDiscount = Math.round(nominalDiscount * 100) / 100;
+    const naiveFinal = Math.round((price - nominalDiscount) * 100) / 100;
+    const { finalAmountThb, effectiveDiscountThb, discountCappedToMinimum } =
+      resolveChargeAfterPromo(price, naiveFinal);
 
     return res.status(200).json({
       valid: true,
@@ -131,7 +136,9 @@ export default async function handler(req, res) {
       name: promo.name,
       discountType: promo.discount_type,
       discountValue: parseFloat(promo.discount_value),
-      discountAmount: Math.round(discountAmount * 100) / 100,
+      discountAmount: effectiveDiscountThb,
+      finalPrice: finalAmountThb,
+      discountCappedToMinimum,
     });
   } catch (error) {
     await client.query("ROLLBACK");

@@ -1,5 +1,9 @@
 import omise from "@/infrastructure/omise";
 import pool from "@/infrastructure/db";
+import {
+  OMISE_MIN_CHARGE_THB,
+  resolveChargeAfterPromo,
+} from "@/shared/utils/omiseChargeAmount";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -48,7 +52,8 @@ export default async function handler(req, res) {
       });
     }
 
-    let finalAmount = parseFloat(course.price);
+    const coursePrice = parseFloat(course.price);
+    let finalAmount = coursePrice;
     let promoCodeId = null;
     let promo = null;
 
@@ -86,27 +91,33 @@ export default async function handler(req, res) {
         }
       }
 
-      // Min price check
-      if (promo.min_price && finalAmount < parseFloat(promo.min_price)) {
+      // Min price check (order subtotal before discount)
+      if (promo.min_price && coursePrice < parseFloat(promo.min_price)) {
         return res.status(400).json({
           error: "Order does not meet minimum price for this promo code",
         });
       }
 
-      // Calculate discount (for amount; validation under lock comes later)
+      // Nominal discount from promo config
       if (promo.discount_type === "fixed") {
-        finalAmount = Math.max(0, finalAmount - parseFloat(promo.discount_value));
+        finalAmount = Math.max(0, coursePrice - parseFloat(promo.discount_value));
       } else if (promo.discount_type === "percent") {
-        finalAmount = finalAmount * (1 - parseFloat(promo.discount_value) / 100);
+        finalAmount = coursePrice * (1 - parseFloat(promo.discount_value) / 100);
+        finalAmount = Math.round(finalAmount * 100) / 100;
       }
+
+      const resolved = resolveChargeAfterPromo(coursePrice, finalAmount);
+      finalAmount = resolved.finalAmountThb;
 
       promoCodeId = promo.id;
     }
 
-    // 4. Amount check
+    // 4. Omise cannot charge under 20 THB (and we cannot charge more than list price)
     const amountInSatang = Math.round(finalAmount * 100);
-    if (amountInSatang < 2000) {
-      return res.status(400).json({ error: "Amount must be at least 20 THB" });
+    if (amountInSatang < Math.round(OMISE_MIN_CHARGE_THB * 100)) {
+      return res.status(400).json({
+        error: `Course price must be at least ${OMISE_MIN_CHARGE_THB} THB to pay with Omise`,
+      });
     }
 
     if (paymentMethod !== "card" && paymentMethod !== "promptpay") {

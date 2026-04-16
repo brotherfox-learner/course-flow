@@ -6,6 +6,7 @@ import Footer from "@/shared/components/Footer";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { useCourseDetail } from "@/features/course/hooks/useCourseDetail";
 import { CourseProgress, CourseContent, CourseContentFooter } from "@/features/course-learning";
+import { TestTubeDiagonal } from "lucide-react";
 
 /** แปลง lessons เป็นรายการ sub-lesson แบบแบน (ใช้สำหรับ Previous/Next และค้นหาตาม slug/id) */
 function getFlatSubLessons(lessons) {
@@ -84,7 +85,7 @@ export default function CourseLearnPage() {
     return () => {
       cancelled = true;
     };
-  }, [token, id]);
+  }, [token, id]);  
 
   // ดึง course materials เมื่อ enrolled แล้ว
   useEffect(() => {
