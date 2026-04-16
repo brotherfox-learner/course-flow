@@ -94,6 +94,7 @@ export default function PaymentPage({ course }) {
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [promoError, setPromoError] = useState("");
   const [promoLoading, setPromoLoading] = useState(false);
+  const [promoCappedNotice, setPromoCappedNotice] = useState(false);
 
   // QR display state
   const [showQr, setShowQr] = useState(false);
@@ -110,12 +111,20 @@ export default function PaymentPage({ course }) {
 
     setPromoLoading(true);
     setPromoError("");
+    setPromoCappedNotice(false);
 
     try {
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers.Authorization = `Bearer ${token}`;
+
       const res = await fetch("/api/promo-codes/validate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, coursePrice: course.price }),
+        headers,
+        body: JSON.stringify({
+          code,
+          courseId: course.id,
+          coursePrice: course.price,
+        }),
       });
 
       const data = await res.json();
@@ -128,7 +137,8 @@ export default function PaymentPage({ course }) {
       }
 
       setPromoCode(code);
-      setPromoDiscount(data.discountAmount);
+      setPromoDiscount(data.discountAmount ?? 0);
+      setPromoCappedNotice(Boolean(data.discountCappedToMinimum));
       setPromoError("");
     } catch (err) {
       setPromoError("Failed to validate promo code");
@@ -381,6 +391,7 @@ export default function PaymentPage({ course }) {
             isLoading={isLoading}
             promoError={promoError}
             promoLoading={promoLoading}
+            promoCappedNotice={promoCappedNotice}
           />
         </div>
       </div>

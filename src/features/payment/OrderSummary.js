@@ -11,6 +11,7 @@ export default function OrderSummary({
   isLoading,
   promoError,
   promoLoading,
+  promoCappedNotice = false,
 }) {
   const [promoInput, setPromoInput] = useState(promoCode || "");
 
@@ -49,6 +50,11 @@ export default function OrderSummary({
       </div>
       {promoError && (
         <p className="text-red-500 body4 mb-3 -mt-2">{promoError}</p>
+      )}
+      {promoCappedNotice && !promoError && (
+        <p className="text-amber-700 body4 mb-3 -mt-2" role="status">
+          Discount adjusted, the charge is at least 20 THB 
+        </p>
       )}
 
       {/* Price Breakdown */}

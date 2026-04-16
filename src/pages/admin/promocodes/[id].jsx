@@ -195,11 +195,6 @@ export default function EditPromoCode() {
     const minPurchase = Number(formData.minPurchase)
     if (!Number.isFinite(minPurchase) || minPurchase < 0) {
       newErrors.minPurchase = "Must be greater than 0"
-    } else if (formData.discountType === "thb" && minPurchase - Number(formData.discountAmount || 0) < 20) {
-      newErrors.minPurchase = "Min purchase minus discount must be at least 20 THB"
-    } else if (formData.discountType === "percent" && formData.discountPercent) {
-      const afterDiscount = Math.round(minPurchase * (1 - Number(formData.discountPercent) / 100) * 100) / 100
-      if (afterDiscount < 20) newErrors.minPurchase = "Amount after discount must be at least 20 THB"
     }
     if (!formData.validFrom) newErrors.validFrom = "Start date is required"
     if (!formData.validTo) newErrors.validTo = "End date is required"

@@ -80,27 +80,8 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: "Usage limit must be a positive integer" })
   }
 
-  // Omise: minimum charge 20 THB. Min amount after discount must be >= 20.
-  // Use round to avoid floating point issues (e.g. 100 * 0.2 = 19.999999999999996)
-  const OMISE_MIN = 20
-  if (discount_type === "fixed") {
-    const minAfterDiscount = parsedMinPrice - parsedDiscountValue
-    if (minAfterDiscount < OMISE_MIN) {
-      return res.status(400).json({
-        message: "Minimum purchase minus discount must be at least 20 THB (Omise requirement)",
-      })
-    }
-  } else {
-    // percent: min_price * (1 - discount/100) >= 20
-    const minAfterDiscount = Math.round(parsedMinPrice * (1 - parsedDiscountValue / 100) * 100) / 100
-    if (parsedDiscountValue < 100 && minAfterDiscount < OMISE_MIN) {
-      return res.status(400).json({
-        message: "Minimum purchase after discount must be at least 20 THB (Omise requirement)",
-      })
-    }
-    if (parsedDiscountValue >= 100) {
-      return res.status(400).json({ message: "Discount percentage cannot be 100% or more" })
-    }
+  if (discount_type === "percent" && parsedDiscountValue >= 100) {
+    return res.status(400).json({ message: "Discount percentage cannot be 100% or more" })
   }
 
   const validFromStr = toBangkokStartOfDay(valid_from)
